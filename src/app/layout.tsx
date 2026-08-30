@@ -1,45 +1,27 @@
-import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import type { Metadata, Viewport } from 'next'
+import { Instrument_Sans } from 'next/font/google'
+import './globals.css'
+import { Navegacion } from '@/ui/sistema/Navegacion'
 
-const inter = Inter({ subsets: ["latin"] });
+const instrument = Instrument_Sans({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "Libreta — Tu almacén en tu celu",
-  description:
-    "Vendé, anotá el fiado y sabé cuánto ganaste. Funciona sin internet.",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "Libreta",
-  },
-};
+  title: 'Libreta',
+  description: 'Tu almacén, en tu celu',
+}
 
 export const viewport: Viewport = {
-  themeColor: "#3E3680",
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-};
+  themeColor: '#12694E',
+  viewportFit: 'cover',
+}
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
-      <body className={`${inter.className} antialiased bg-slate-950 text-slate-100`}>
-        {/* Registro del service worker: hace la app instalable + offline */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('/libreta-pos/sw.js').catch(() => {})); }`,
-          }}
-        />
-        {children}
+    <html lang="es-AR" data-tema="claro">
+      <body className={instrument.className}>
+        <main className="pb-20">{children}</main>
+        <Navegacion />
       </body>
     </html>
-  );
+  )
 }

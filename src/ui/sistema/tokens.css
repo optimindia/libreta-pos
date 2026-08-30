@@ -1,0 +1,32 @@
+:root {
+  --verde: #12694E;
+  --verde-texto: #FFFFFF;
+  --ambar: #B4642A;
+  --ambar-fondo: #FDF6EF;
+  --tinta: #1B1A17;
+  --tenue: #8C877D;
+  --hueso: #FCFBF8;
+  --hueso-2: #FFFFFF;
+  --linea: #EDEAE4;
+  --chip-fondo: #F1EEE7;
+}
+
+[data-tema='oscuro'] {
+  --verde: #2BA97B;
+  --verde-texto: #052016;
+  --ambar: #D68B4A;
+  --ambar-fondo: #22180F;
+  --tinta: #F2F0EA;
+  --tenue: #7C776D;
+  --hueso: #141412;
+  --hueso-2: #191917;
+  --linea: #232320;
+  --chip-fondo: #1D1D1A;
+}
+
+/* Todo importe usa esta clase: dígitos de ancho fijo para que la
+   columna de precios quede alineada y el total no baile al cambiar. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.035em;
+}
