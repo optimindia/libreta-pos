@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Instrument_Sans } from 'next/font/google'
 import './globals.css'
 import { Navegacion } from '@/ui/sistema/Navegacion'
+import { RegistrarSW } from '@/ui/sistema/RegistrarSW'
 
 const instrument = Instrument_Sans({ subsets: ['latin'] })
 
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es-AR" data-tema="claro">
       <body className={instrument.className}>
+        <RegistrarSW />
         <main className="pb-20">{children}</main>
         <Navegacion />
       </body>
