@@ -1,3 +1,5 @@
+import { PantallaVender } from '@/ui/vender/PantallaVender'
+
 export default function Pagina() {
-  return <div className="p-5">Libreta</div>
+  return <PantallaVender />
 }
