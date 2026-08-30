@@ -1,11 +1,12 @@
 import { db, type EnCola } from './db'
+import { nuevoId } from '@/dominio/id'
 
 export const MAX_INTENTOS = 5
 
 /** El id de la cola se deriva de la entidad y del id del dato: dos encolados
  *  del mismo hecho colapsan en uno, y un reintento nunca duplica la venta. */
 function idDeCola(entidad: EnCola['entidad'], datos: unknown): string {
-  const id = (datos as { id?: string }).id ?? crypto.randomUUID()
+  const id = (datos as { id?: string }).id ?? nuevoId()
   return `${entidad}:${id}`
 }
 

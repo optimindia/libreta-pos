@@ -5,6 +5,7 @@ import { repos } from '@/datos/local/repos'
 import { resumenDelDia } from '@/dominio/ganancia'
 import { listaDeCompra } from '@/dominio/reposicion'
 import { mensajeCompra, enlaceWhatsApp } from '@/dominio/mensajes'
+import { textoDuracion } from '@/dominio/comparar'
 import { Importe } from '@/ui/sistema/Importe'
 
 const NOMBRE_MEDIO: Record<string, string> = {
@@ -77,9 +78,7 @@ export function PantallaPlata() {
                 <div className="leading-tight">
                   <div className="text-[13px] font-medium">{compra.producto.nombre}</div>
                   <div className="text-[11px]" style={{ color: 'var(--tenue)' }}>
-                    {compra.diasRestantes === null
-                      ? 'está por debajo del mínimo'
-                      : `te dura ${compra.diasRestantes} ${compra.diasRestantes === 1 ? 'día' : 'días'}`}
+                    {textoDuracion(compra.diasRestantes)}
                   </div>
                 </div>
                 <span className="tabular text-[13px] font-semibold">{compra.cantidadSugerida}</span>

@@ -3,10 +3,9 @@ import { encolar } from './cola'
 import type {
   Cliente, Centavos, Fiado, Ingreso, ItemVenta, MedioPago, Producto, UUID, Venta,
 } from '@/dominio/tipos'
+import { nuevoId } from '@/dominio/id'
 import { totalTicket } from '@/dominio/ticket'
 import { saldoFiado } from '@/dominio/fiado'
-
-const nuevoId = (): UUID => crypto.randomUUID()
 
 /** Quita acentos y pasa a minúscula, para buscar "playadito" y encontrar "Playadito". */
 function normalizar(texto: string): string {

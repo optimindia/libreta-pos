@@ -5,9 +5,12 @@ import { db } from '@/datos/local/db'
 import { repos } from '@/datos/local/repos'
 import { resumenDelDia } from '@/dominio/ganancia'
 import { deudaPorCliente } from '@/dominio/fiado'
+import { fechaLarga, compararConLaSemanaPasada } from '@/dominio/comparar'
 import { hayPendientes } from '@/datos/local/cola'
 import { Importe } from '@/ui/sistema/Importe'
 import { ChipEstado } from '@/ui/sistema/ChipEstado'
+
+const DIAS_ATRAS = 'mismo día de la semana pasada'
 
 export function Cabecera() {
   const datos = useLiveQuery(async () => {
@@ -22,6 +25,7 @@ export function Cabecera() {
     const deudas = deudaPorCliente(fiados, pagos, ahora)
     return {
       resumen: resumenDelDia(ventas, new Date(ahora)),
+      contraSemanaPasada: compararConLaSemanaPasada(ventas, new Date(ahora)),
       teDeben: deudas.reduce((total, deuda) => total + deuda.saldo, 0),
       negocio,
       pendientes,
@@ -49,7 +53,7 @@ export function Cabecera() {
         <div className="flex-1 leading-tight">
           <div className="text-[13px] font-semibold">{datos.negocio?.nombre ?? 'Tu almacén'}</div>
           <div className="text-[11px]" style={{ color: 'var(--tenue)' }}>
-            {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            {fechaLarga(new Date())}
           </div>
         </div>
         <ChipEstado pendientes={datos.pendientes} />
@@ -60,6 +64,14 @@ export function Cabecera() {
           Vendido hoy
         </div>
         <Importe centavos={datos.resumen.vendido} tamaño="grande" />
+        {datos.contraSemanaPasada !== null && (
+          <div className="mt-0.5 text-[11.5px]" style={{ color: 'var(--tenue)' }}>
+            {datos.contraSemanaPasada >= 0
+              ? `${datos.contraSemanaPasada}% más`
+              : `${Math.abs(datos.contraSemanaPasada)}% menos`}{' '}
+            que el {DIAS_ATRAS}
+          </div>
+        )}
       </div>
 
       <div
