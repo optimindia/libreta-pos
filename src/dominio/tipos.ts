@@ -77,4 +77,7 @@ export interface Negocio {
   nombre: string
   logo: string | null
   color: string | null
+  /** Id en la nube; ausente mientras el negocio viva sólo en el teléfono. */
+  negocioId?: UUID
+  telefono?: string
 }

@@ -2,6 +2,8 @@ import { db, type EnCola } from '@/datos/local/db'
 import type { Table } from 'dexie'
 import { pendientes, marcarSubido, marcarFallido } from '@/datos/local/cola'
 import { cliente } from './cliente'
+import { aLaNube, deLaNube, type Fila } from './mapeo'
+import type { UUID } from '@/dominio/tipos'
 
 export type SubirFn = (item: EnCola) => Promise<void>
 export type TraerFn = (tabla: string) => Promise<unknown[]>
@@ -39,12 +41,16 @@ export async function sincronizar(
 }
 
 /** La subida real contra Supabase. `upsert` hace la operación idempotente:
- *  reintentar la misma venta no la duplica. */
-export const subirASupabase: SubirFn = async (item) => {
-  if (!cliente) throw new Error('nube apagada')
-  const fila = item.datos as Record<string, unknown>
-  const { error } = await cliente.from(TABLA[item.entidad]).upsert(fila)
-  if (error) throw error
+ *  reintentar la misma venta no la duplica. Una venta se parte en dos tablas,
+ *  así que se sube en orden: primero la venta, después sus items. */
+export function subirASupabase(negocioId: UUID): SubirFn {
+  return async (item) => {
+    if (!cliente) throw new Error('nube apagada')
+    for (const parte of aLaNube(item.entidad, item.datos, negocioId)) {
+      const { error } = await cliente.from(parte.tabla).upsert(parte.filas)
+      if (error) throw error
+    }
+  }
 }
 
 const DESTINO: Record<string, () => Table<unknown, unknown>> = {
@@ -74,10 +80,37 @@ export async function bajarTodo(traer: TraerFn): Promise<number> {
   return escritas
 }
 
-/** La bajada real contra Supabase. */
+/** La bajada real contra Supabase. Las ventas se rearman con sus items,
+ *  porque en la base viven en dos tablas y la aplicación las usa juntas:
+ *  sin los items no habría forma de calcular la ganancia. */
 export const traerDeSupabase: TraerFn = async (tabla) => {
   if (!cliente) throw new Error('nube apagada')
+
+  if (tabla === 'ventas' || tabla === 'ingresos') {
+    const tablaItems = tabla === 'ventas' ? 'venta_items' : 'ingreso_items'
+    const claveDelPadre = tabla === 'ventas' ? 'venta_id' : 'ingreso_id'
+
+    const [cabeceras, items] = await Promise.all([
+      cliente.from(tabla).select('*'),
+      cliente.from(tablaItems).select('*'),
+    ])
+    if (cabeceras.error) throw cabeceras.error
+    if (items.error) throw items.error
+
+    return (cabeceras.data ?? []).map((fila) => ({
+      ...deLaNube(tabla, fila as Fila),
+      items: (items.data ?? [])
+        .filter((item) => (item as Fila)[claveDelPadre] === (fila as Fila).id)
+        .map((item) => {
+          const local = deLaNube(tablaItems, item as Fila) as Fila
+          delete local[claveDelPadre === 'venta_id' ? 'ventaId' : 'ingresoId']
+          delete local.id
+          return local
+        }),
+    }))
+  }
+
   const { data, error } = await cliente.from(tabla).select('*')
   if (error) throw error
-  return data ?? []
+  return (data ?? []).map((fila) => deLaNube(tabla, fila as Fila))
 }
