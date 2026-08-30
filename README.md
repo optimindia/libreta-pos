@@ -39,6 +39,20 @@ npm run build        # verificación de tipos + build de producción
 - [Plan de implementación](docs/superpowers/plans/2026-08-30-libreta-v2.md)
 - [Encender la nube](docs/nube.md) — Supabase paso a paso
 
+## En producción
+
+**https://libreta-sepia.vercel.app**
+
+Desplegado en Vercel (proyecto `libreta`) contra el proyecto de Supabase `Libreta`.
+Para publicar cambios: `npm run deploy` (necesita `vercel login` o un token).
+Las variables `NEXT_PUBLIC_SUPABASE_*` ya están cargadas en el proyecto de Vercel;
+como Next las incrusta durante el build, cambiarlas obliga a desplegar de nuevo.
+
 ## Estado
 
-La aplicación funciona completa contra el teléfono. La capa de nube está escrita y **apagada** hasta cargar las dos variables de entorno de Supabase; la lectura de facturas por foto necesita además `ANTHROPIC_API_KEY`.
+La aplicación funciona completa: offline en el teléfono y sincronizando a Supabase
+cuando hay señal, con el aislamiento entre negocios verificado
+(`npm run verificar:aislamiento`).
+
+Falta sólo la lectura de facturas por foto, que necesita `ANTHROPIC_API_KEY`
+cargada en Vercel.

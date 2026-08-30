@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "verificar:aislamiento": "node scripts/verificar-aislamiento.mjs"
+    "verificar:aislamiento": "node scripts/verificar-aislamiento.mjs",
+    "deploy": "vercel deploy --prod --yes"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
