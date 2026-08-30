@@ -21,6 +21,9 @@ const CAMPOS: Record<string, string> = {
   fiadoId: 'fiado_id',
   productoId: 'producto_id',
   costoUnitario: 'costo_unitario',
+  fondoInicial: 'fondo_inicial',
+  ventasEfectivo: 'ventas_efectivo',
+  pagosFiadoEfectivo: 'pagos_fiado_efectivo',
 }
 
 const FECHAS = new Set(['fecha', 'vence', 'actualizado_en'])
@@ -75,6 +78,7 @@ export function aLaNube(
     cliente: 'clientes',
     fiado: 'fiados',
     fiadoPago: 'fiado_pagos',
+    cierre: 'cierres',
   }
   return [{ tabla: TABLA[entidad], filas: [cabecera] }]
 }

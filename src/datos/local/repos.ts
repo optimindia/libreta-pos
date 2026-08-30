@@ -1,7 +1,7 @@
 import { db } from './db'
 import { encolar } from './cola'
 import type {
-  Cliente, Centavos, Fiado, Ingreso, ItemVenta, MedioPago, Producto, UUID, Venta,
+  Cierre, Cliente, Centavos, Fiado, Ingreso, ItemVenta, MedioPago, Producto, UUID, Venta,
 } from '@/dominio/tipos'
 import { nuevoId } from '@/dominio/id'
 import { totalTicket } from '@/dominio/ticket'
@@ -109,6 +109,21 @@ export const repos = {
     },
     async pagos() {
       return db.fiadoPagos.toArray()
+    },
+  },
+
+  cierres: {
+    async registrar(datos: Omit<Cierre, 'id' | 'fecha'>): Promise<Cierre> {
+      const cierre: Cierre = { ...datos, id: nuevoId(), fecha: Date.now() }
+      await db.cierres.add(cierre)
+      await encolar('cierre', 'crear', cierre)
+      return cierre
+    },
+    async todos(): Promise<Cierre[]> {
+      return db.cierres.orderBy('fecha').reverse().toArray()
+    },
+    async ultimo(): Promise<Cierre | null> {
+      return (await db.cierres.orderBy('fecha').last()) ?? null
     },
   },
 

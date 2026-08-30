@@ -72,6 +72,18 @@ export interface Ingreso {
   origen: 'manual' | 'foto'
 }
 
+/** El arqueo de caja: se guarda el hecho de haber cerrado, con los números
+ *  de ese momento. El esperado siempre se puede recalcular desde las ventas. */
+export interface Cierre {
+  id: UUID
+  fecha: number
+  fondoInicial: Centavos
+  ventasEfectivo: Centavos
+  pagosFiadoEfectivo: Centavos
+  esperado: Centavos
+  contado: Centavos
+}
+
 export interface Negocio {
   id: UUID
   nombre: string

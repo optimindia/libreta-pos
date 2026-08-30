@@ -51,6 +51,7 @@ const DESTINO: Record<string, () => Table<unknown, unknown>> = {
   fiados: () => db.fiados as unknown as Table<unknown, unknown>,
   fiado_pagos: () => db.fiadoPagos as unknown as Table<unknown, unknown>,
   ingresos: () => db.ingresos as unknown as Table<unknown, unknown>,
+  cierres: () => db.cierres as unknown as Table<unknown, unknown>,
 }
 
 /** Primera apertura en un teléfono nuevo: la nube devuelve lo que el

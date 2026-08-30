@@ -68,3 +68,26 @@ describe('deLaNube', () => {
     expect(deLaNube('productos', filas[0])).toEqual(producto)
   })
 })
+
+describe('mapeo de cierres', () => {
+  const cierre = {
+    id: 'c1', fecha: 1788000000000,
+    fondoInicial: 50000, ventasEfectivo: 420000, pagosFiadoEfectivo: 30000,
+    esperado: 500000, contado: 498000,
+  }
+
+  it('va a la tabla cierres con los nombres de la base', () => {
+    const [{ tabla, filas }] = aLaNube('cierre', cierre, NEGOCIO)
+    expect(tabla).toBe('cierres')
+    expect(filas[0]).toMatchObject({
+      id: 'c1', fondo_inicial: 50000, ventas_efectivo: 420000,
+      pagos_fiado_efectivo: 30000, esperado: 500000, contado: 498000,
+    })
+    expect(typeof filas[0].fecha).toBe('string')
+  })
+
+  it('ida y vuelta devuelve el mismo cierre', () => {
+    const [{ filas }] = aLaNube('cierre', cierre, NEGOCIO)
+    expect(deLaNube('cierres', filas[0])).toEqual(cierre)
+  })
+})

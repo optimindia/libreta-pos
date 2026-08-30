@@ -90,6 +90,17 @@ create table ingreso_items (
   costo_unitario bigint not null
 );
 
+create table cierres (
+  id uuid primary key,
+  negocio_id uuid not null references negocios(id) on delete cascade,
+  fecha timestamptz not null,
+  fondo_inicial bigint not null,
+  ventas_efectivo bigint not null,
+  pagos_fiado_efectivo bigint not null,
+  esperado bigint not null,
+  contado bigint not null
+);
+
 create table ventas_resumen (
   id bigserial primary key,
   negocio_id uuid not null references negocios(id) on delete cascade,
@@ -110,6 +121,7 @@ create index on venta_items (negocio_id, producto_id);
 create index on fiados (negocio_id, cliente_id);
 create index on fiado_pagos (negocio_id, fiado_id);
 create index on ingresos (negocio_id, fecha desc);
+create index on cierres (negocio_id, fecha desc);
 
 -- RLS: el aislamiento vive en la base, no en la confianza en el código.
 -- Aunque una consulta olvide su WHERE, Postgres no devuelve filas ajenas.
@@ -125,7 +137,7 @@ declare tabla text;
 begin
   foreach tabla in array array[
     'productos','ventas','venta_items','clientes','fiados',
-    'fiado_pagos','ingresos','ingreso_items','ventas_resumen'
+    'fiado_pagos','ingresos','ingreso_items','ventas_resumen','cierres'
   ] loop
     execute format('alter table %I enable row level security', tabla);
     execute format(

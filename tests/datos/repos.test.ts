@@ -110,3 +110,31 @@ describe('repos.ingresos', () => {
     expect(actualizado?.costo).toBe(350000)
   })
 })
+
+describe('repos.cierres', () => {
+  it('guarda un cierre y queda en la cola para subir', async () => {
+    await repos.cierres.registrar({
+      fondoInicial: 0, ventasEfectivo: 420000, pagosFiadoEfectivo: 0,
+      esperado: 420000, contado: 420000,
+    })
+    expect(await repos.cierres.todos()).toHaveLength(1)
+    const encolados = await db.cola.toArray()
+    expect(encolados.filter((item) => item.entidad === 'cierre')).toHaveLength(1)
+  })
+
+  it('el último cierre es el más reciente, no el primero', async () => {
+    await repos.cierres.registrar({
+      fondoInicial: 0, ventasEfectivo: 100000, pagosFiadoEfectivo: 0,
+      esperado: 100000, contado: 100000,
+    })
+    const segundo = await repos.cierres.registrar({
+      fondoInicial: 100000, ventasEfectivo: 200000, pagosFiadoEfectivo: 0,
+      esperado: 300000, contado: 298000,
+    })
+    expect((await repos.cierres.ultimo())?.id).toBe(segundo.id)
+  })
+
+  it('sin cierres el último es null', async () => {
+    expect(await repos.cierres.ultimo()).toBeNull()
+  })
+})
