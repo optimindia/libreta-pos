@@ -35,7 +35,7 @@ export default function RootLayout({
         {/* Registro del service worker: hace la app instalable + offline */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {})); }`,
+            __html: `if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('/libreta-pos/sw.js').catch(() => {})); }`,
           }}
         />
         {children}

@@ -5,7 +5,9 @@
 // así que el SW solo necesita servir la shell para que todo funcione.
 // ============================================================
 const CACHE = "libreta-shell-v1";
-const PRECACHE = ["/", "/manifest.json", "/icon-192.png", "/icon-512.png"];
+// GitHub Pages sirve bajo /libreta-pos/ — rutas relativas para no romper
+const BASE = "/libreta-pos";
+const PRECACHE = [`${BASE}/`, `${BASE}/manifest.json`, `${BASE}/icon-192.png`, `${BASE}/icon-512.png`];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -35,7 +37,7 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE).then((c) => c.put(request, copy));
           return res;
         })
-        .catch(() => caches.match(request).then((m) => m ?? caches.match("/")))
+        .catch(() => caches.match(request).then((m) => m ?? caches.match(`${BASE}/`)))
     );
     return;
   }
