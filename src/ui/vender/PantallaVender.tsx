@@ -10,6 +10,7 @@ import { Boton } from '@/ui/sistema/Boton'
 import { Cabecera } from './Cabecera'
 import { Ticket } from './Ticket'
 import { Cobro } from './Cobro'
+import { BotonEscanear } from './BotonEscanear'
 
 export function PantallaVender() {
   const [items, setItems] = useState<ItemVenta[]>([])
@@ -67,6 +68,12 @@ export function PantallaVender() {
       </div>
 
       {cobrando && <Cobro onCobrar={cobrar} />}
+
+      <div className="px-5 pt-3">
+        <BotonEscanear
+          onProducto={(producto) => setItems((actuales) => agregarProducto(actuales, producto))}
+        />
+      </div>
 
       <section className="mt-6 px-5">
         <h2 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
