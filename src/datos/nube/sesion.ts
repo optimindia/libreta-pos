@@ -1,6 +1,5 @@
 import { cliente } from './cliente'
 import { db } from '@/datos/local/db'
-import { nuevoId } from '@/dominio/id'
 import type { UUID } from '@/dominio/tipos'
 
 /** El almacenero no banca email y contraseña: entra con su teléfono y un PIN.
@@ -76,21 +75,20 @@ export async function crearRespaldo(
     return { ok: true, negocioId }
   }
 
+  // El alta va por una función de la base: crear el negocio y vincularlo al
+  // usuario tiene que pasar junto, y el RLS no deja insertar un negocio que
+  // todavía no es de nadie.
   const local = await db.negocio.get('unico')
-  const negocioId = nuevoId()
-  const creado = await cliente.from('negocios').insert({
-    id: negocioId,
-    nombre: local?.nombre?.trim() || 'Mi almacén',
-    logo: local?.logo ?? null,
-    color: local?.color ?? null,
+  const creado = await cliente.rpc('crear_mi_negocio', {
+    p_nombre: local?.nombre?.trim() || 'Mi almacén',
+    p_logo: local?.logo ?? null,
+    p_color: local?.color ?? null,
   })
-  if (creado.error) return { ok: false, motivo: 'no se pudo crear el negocio' }
+  if (creado.error || !creado.data) {
+    return { ok: false, motivo: 'no se pudo crear el negocio' }
+  }
 
-  const vinculo = await cliente
-    .from('usuarios_negocio')
-    .insert({ usuario_id: usuarioId, negocio_id: negocioId })
-  if (vinculo.error) return { ok: false, motivo: 'no se pudo vincular el negocio' }
-
+  const negocioId = creado.data as UUID
   await guardarNegocioLocal(negocioId, telefono)
   return { ok: true, negocioId }
 }

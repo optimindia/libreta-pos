@@ -39,3 +39,22 @@ Con dos usuarios de prueba dados de alta en negocios distintos, consultar
 `productos` desde uno de ellos debe devolver **solamente** sus filas. Si
 devuelve filas del otro negocio, RLS quedó mal aplicado y no hay que salir a
 vender hasta arreglarlo.
+
+## Verificar que el aislamiento sigue sano
+
+```bash
+npm run verificar:aislamiento
+```
+
+Crea dos negocios de prueba e intenta, desde uno, leer y escribir en el otro.
+Tiene que decir "Aislamiento OK". **Correlo cada vez que toques una política de
+RLS o agregues una tabla**: si esto falla, un almacenero puede ver la
+facturación de otro. Los negocios de prueba se limpian con
+`scripts/limpiar-pruebas.sql`.
+
+## Proyecto ya configurado
+
+- Proyecto: **Libreta** (`wfouklntgkjzcqtmwuou`), organización *CreaciónTiendas*, región us-east-2.
+- Esquema aplicado, RLS activo en las 11 tablas, confirmación de email desactivada.
+- Las claves están en `.env.local` (fuera de git). Para Vercel hay que cargar las
+  mismas dos variables en **Settings → Environment Variables**.

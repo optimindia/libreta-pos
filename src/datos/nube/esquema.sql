@@ -146,3 +146,45 @@ alter table usuarios_negocio enable row level security;
 create policy solo_yo on usuarios_negocio for all
   using (usuario_id = auth.uid())
   with check (usuario_id = auth.uid());
+
+-- Crear el primer negocio es el huevo y la gallina del RLS: la política deja
+-- tocar los negocios que ya son tuyos, pero el primero todavía no lo es.
+-- Esta función corre con permisos elevados y hace las dos cosas juntas —
+-- crear el negocio y vincularlo al usuario— para que no queden negocios
+-- huérfanos si algo falla en el medio.
+create or replace function crear_mi_negocio(
+  p_nombre text,
+  p_logo text default null,
+  p_color text default null
+)
+returns uuid
+language plpgsql security definer
+set search_path = public
+as $$
+declare
+  v_negocio uuid;
+  v_existente uuid;
+begin
+  if auth.uid() is null then
+    raise exception 'hay que iniciar sesión';
+  end if;
+
+  -- si el usuario ya tiene negocio, se devuelve ese: la función es reintentable
+  select negocio_id into v_existente
+  from usuarios_negocio where usuario_id = auth.uid() limit 1;
+  if v_existente is not null then
+    return v_existente;
+  end if;
+
+  insert into negocios (nombre, logo, color)
+  values (coalesce(nullif(trim(p_nombre), ''), 'Mi almacén'), p_logo, p_color)
+  returning id into v_negocio;
+
+  insert into usuarios_negocio (usuario_id, negocio_id)
+  values (auth.uid(), v_negocio);
+
+  return v_negocio;
+end $$;
+
+revoke all on function crear_mi_negocio(text, text, text) from public;
+grant execute on function crear_mi_negocio(text, text, text) to authenticated;
