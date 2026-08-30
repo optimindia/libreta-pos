@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mensajeCobro, mensajeCompra, enlaceWhatsApp } from '@/dominio/mensajes'
+import { mensajeCierre, mensajeCobro, mensajeCompra, enlaceWhatsApp } from '@/dominio/mensajes'
 import type { Cliente, Producto } from '@/dominio/tipos'
 
 const cliente: Cliente = { id: 'c1', nombre: 'Marta', telefono: '2615551234' }
@@ -41,6 +41,34 @@ describe('mensajeCompra', () => {
 
   it('con la lista vacía avisa que no hace falta comprar', () => {
     expect(mensajeCompra([])).toContain('No hace falta')
+  })
+})
+
+describe('mensajeCierre', () => {
+  const resumen = { vendido: 770000, ganancia: 210000, contado: 500000, diferencia: 0 }
+
+  it('resume el día con los importes en pesos', () => {
+    const texto = mensajeCierre(resumen)
+    expect(texto).toContain('$7.700')
+    expect(texto).toContain('$2.100')
+  })
+
+  it('cuando cuadra lo dice con tranquilidad, sin hablar de errores', () => {
+    const texto = mensajeCierre(resumen).toLowerCase()
+    expect(texto).toContain('cuadró')
+    for (const palabra of ['error', 'falta', 'problema']) {
+      expect(texto).not.toContain(palabra)
+    }
+  })
+
+  it('cuando falta plata lo dice sin acusar', () => {
+    const texto = mensajeCierre({ ...resumen, diferencia: -2000 })
+    expect(texto).toContain('Faltó $20')
+  })
+
+  it('cuando sobra también se cuenta', () => {
+    const texto = mensajeCierre({ ...resumen, diferencia: 2000 })
+    expect(texto).toContain('Sobró $20')
   })
 })
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatearPesos, pesosACentavos, sumar, multiplicar } from '@/dominio/dinero'
+import { formatearPesos, pesosACentavos, sumar, multiplicar, vuelto } from '@/dominio/dinero'
 
 describe('formatearPesos', () => {
   it('usa punto de miles y no muestra centavos cuando son cero', () => {
@@ -33,5 +33,19 @@ describe('aritmética en centavos', () => {
   it('multiplica por cantidad y redondea al centavo', () => {
     expect(multiplicar(90000, 2)).toBe(180000)
     expect(multiplicar(33333, 3)).toBe(99999)
+  })
+})
+
+describe('vuelto', () => {
+  it('devuelve lo que sobra del pago', () => {
+    expect(vuelto(100000, 77000)).toBe(23000)
+  })
+
+  it('es cero cuando paga justo', () => {
+    expect(vuelto(77000, 77000)).toBe(0)
+  })
+
+  it('negativo cuando alcanza justo para arriba: no hay vuelto', () => {
+    expect(vuelto(50000, 77000)).toBe(-27000)
   })
 })

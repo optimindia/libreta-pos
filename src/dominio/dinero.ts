@@ -31,3 +31,8 @@ export function sumar(...montos: Centavos[]): Centavos {
 export function multiplicar(centavos: Centavos, cantidad: number): Centavos {
   return Math.round(centavos * cantidad)
 }
+
+/** Lo que hay que devolver al cliente: negativo cuando el pago no alcanza. */
+export function vuelto(entregado: Centavos, total: Centavos): Centavos {
+  return entregado - total
+}
