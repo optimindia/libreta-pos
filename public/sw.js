@@ -5,7 +5,8 @@
 // así que el SW solo necesita servir la shell para que todo funcione.
 // ============================================================
 // Cada deploy nuevo → cache nueva → el celu baja TODO fresco
-const CACHE = "libreta-shell-v4";
+// v5: nunca cachear respuestas de error (404 rompía la app offline)
+const CACHE = "libreta-shell-v5";
 // GitHub Pages sirve bajo /libreta-pos/ — rutas relativas para no romper
 const BASE = "/libreta-pos";
 const PRECACHE = [`${BASE}/`, `${BASE}/manifest.json`, `${BASE}/icon-192.png`, `${BASE}/icon-512.png`];
@@ -43,17 +44,17 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // estáticos: cache-first
+  // estáticos: cache-first (sin cachear errores NUNCA)
   if (request.destination === "image" || request.url.includes("/_next/static/")) {
     event.respondWith(
-      caches.match(request).then(
-        (m) =>
-          m ??
-          fetch(request).then((res) => {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(request, copy));
-            return res;
-          })
+      caches.match(request).then((m) =>
+        m ??
+        fetch(request).then((res) => {
+          if (!res.ok) return res; // 404/etc pasan de largo sin ensuciar la cache
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(request, copy));
+          return res;
+        })
       )
     );
   }
