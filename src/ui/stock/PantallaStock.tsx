@@ -6,6 +6,7 @@ import { faltantes } from '@/dominio/stock'
 import { Importe } from '@/ui/sistema/Importe'
 import { FormularioProducto } from './FormularioProducto'
 import { SubirFactura } from './SubirFactura'
+import { ActualizarPrecios } from './ActualizarPrecios'
 
 export function PantallaStock() {
   const productos = useLiveQuery(() => repos.productos.todos(), [], [])
@@ -34,6 +35,13 @@ export function PantallaStock() {
       </h2>
       <div className="mt-2">
         <SubirFactura />
+      </div>
+
+      <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
+        Actualizar precios
+      </h2>
+      <div className="mt-2">
+        <ActualizarPrecios />
       </div>
 
       <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>

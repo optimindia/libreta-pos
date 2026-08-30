@@ -31,7 +31,28 @@ describe('PantallaVender', () => {
     fireEvent.click(await screen.findByText('Yerba Playadito'))
     fireEvent.click(await screen.findByRole('button', { name: /^cobrar$/i }))
     fireEvent.click(await screen.findByRole('button', { name: /efectivo/i }))
+    fireEvent.change(await screen.findByLabelText(/con cuánto pagó/i), { target: { value: '5000' } })
+    fireEvent.click(await screen.findByRole('button', { name: /cobrar \$4\.200/i }))
     await waitFor(async () => expect(await repos.ventas.todas()).toHaveLength(1))
+  })
+
+  it('al pagar en efectivo calcula el vuelto antes de confirmar', async () => {
+    render(<PantallaVender />)
+    fireEvent.click(await screen.findByText('Yerba Playadito'))
+    fireEvent.click(await screen.findByRole('button', { name: /^cobrar$/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /efectivo/i }))
+    fireEvent.change(await screen.findByLabelText(/con cuánto pagó/i), { target: { value: '5000' } })
+    expect(await screen.findByText('$800')).toBeDefined()
+  })
+
+  it('si el pago no alcanza, no deja cobrar y avisa cuánto falta', async () => {
+    render(<PantallaVender />)
+    fireEvent.click(await screen.findByText('Yerba Playadito'))
+    fireEvent.click(await screen.findByRole('button', { name: /^cobrar$/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /efectivo/i }))
+    fireEvent.change(await screen.findByLabelText(/con cuánto pagó/i), { target: { value: '3000' } })
+    expect(await screen.findByText(/le faltan \$1\.200/i)).toBeDefined()
+    expect(screen.getByRole('button', { name: /cobrar \$4\.200/i })).toHaveProperty('disabled', true)
   })
 
   it('no deja cobrar un ticket vacío', async () => {

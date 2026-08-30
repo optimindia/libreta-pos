@@ -85,4 +85,8 @@ describe('enlaceWhatsApp', () => {
   it('no vuelve a agregar el código de país si ya lo tiene', () => {
     expect(enlaceWhatsApp('542615551234', 'x')).toContain('wa.me/542615551234')
   })
+
+  it('sin teléfono abre WhatsApp a elegir contacto, no un número roto', () => {
+    expect(enlaceWhatsApp('', 'x')).toBe('https://wa.me/?text=x')
+  })
 })

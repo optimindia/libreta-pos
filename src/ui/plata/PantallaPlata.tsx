@@ -7,6 +7,7 @@ import { listaDeCompra } from '@/dominio/reposicion'
 import { mensajeCompra, enlaceWhatsApp } from '@/dominio/mensajes'
 import { textoDuracion } from '@/dominio/comparar'
 import { Importe } from '@/ui/sistema/Importe'
+import { CierreCaja } from './CierreCaja'
 
 const NOMBRE_MEDIO: Record<string, string> = {
   efectivo: 'Efectivo', transferencia: 'Transferencia', qr: 'QR', fiado: 'Fiado',
@@ -58,6 +59,13 @@ export function PantallaPlata() {
           </li>
         ))}
       </ul>
+
+      <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
+        Caja
+      </h2>
+      <div className="mt-2">
+        <CierreCaja />
+      </div>
 
       <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
         Tenés que reponer

@@ -60,6 +60,8 @@ export function mensajeCierre(resumen: ResumenCierre): string {
 
 export function enlaceWhatsApp(telefono: string, texto: string): string {
   const soloDigitos = telefono.replace(/\D/g, '')
+  const textoCodificado = encodeURIComponent(texto)
+  if (soloDigitos === '') return `https://wa.me/?text=${textoCodificado}`
   const conPais = soloDigitos.startsWith('54') ? soloDigitos : `54${soloDigitos}`
-  return `https://wa.me/${conPais}?text=${encodeURIComponent(texto)}`
+  return `https://wa.me/${conPais}?text=${textoCodificado}`
 }

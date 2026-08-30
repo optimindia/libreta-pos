@@ -67,7 +67,7 @@ export function PantallaVender() {
         </Boton>
       </div>
 
-      {cobrando && <Cobro onCobrar={cobrar} />}
+      {cobrando && <Cobro total={total} onCobrar={cobrar} />}
 
       <div className="px-5 pt-3">
         <BotonEscanear
