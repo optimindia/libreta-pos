@@ -8,15 +8,6 @@ import type { UUID } from '@/dominio/tipos'
 export type SubirFn = (item: EnCola) => Promise<void>
 export type TraerFn = (tabla: string) => Promise<unknown[]>
 
-const TABLA: Record<EnCola['entidad'], string> = {
-  venta: 'ventas',
-  producto: 'productos',
-  fiado: 'fiados',
-  fiadoPago: 'fiado_pagos',
-  ingreso: 'ingresos',
-  cliente: 'clientes',
-}
-
 export async function sincronizar(
   subir: SubirFn,
 ): Promise<{ subidos: number; fallidos: number }> {

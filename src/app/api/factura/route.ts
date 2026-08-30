@@ -1,5 +1,9 @@
-import Anthropic from '@anthropic-ai/sdk'
 import { validarPedido, normalizarItems, partirDataUrl } from './validacion'
+
+// Lectura de facturas por foto. Usa la API de ChatGPT (OpenAI) con visión,
+// llamada por fetch directo: es una sola llamada y así no hace falta un SDK.
+const OPENAI_URL = 'https://api.openai.com/v1/chat/completions'
+const MODELO = 'gpt-4o-mini'
 
 const INSTRUCCION = `Sos un asistente que lee facturas de mayoristas argentinos para un almacén de barrio.
 
@@ -34,44 +38,54 @@ export async function POST(pedido: Request) {
     return Response.json({ error: 'la imagen no es válida' }, { status: 400 })
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.OPENAI_API_KEY) {
     return Response.json(
       { error: 'la lectura de facturas todavía no está activada' },
       { status: 503 },
     )
   }
 
-  const cliente = new Anthropic()
-
   try {
-    const respuesta = await cliente.messages.create({
-      model: 'claude-opus-5',
-      max_tokens: 16000,
-      thinking: { type: 'adaptive' },
-      output_config: { effort: 'medium' },
-      system: INSTRUCCION,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: imagen.tipo as 'image/jpeg', data: imagen.datos },
-            },
-            { type: 'text', text: 'Extraé los productos de esta factura.' },
-          ],
-        },
-      ],
+    const respuesta = await fetch(OPENAI_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: MODELO,
+        messages: [
+          { role: 'system', content: INSTRUCCION },
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Extraé los productos de esta factura.' },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:${imagen.tipo};base64,${imagen.datos}`,
+                  detail: 'high',
+                },
+              },
+            ],
+          },
+        ],
+        max_tokens: 2000,
+      }),
+      signal: AbortSignal.timeout(60_000),
     })
 
-    if (respuesta.stop_reason === 'refusal') {
-      return Response.json({ error: 'no se pudo leer esta factura' }, { status: 422 })
+    if (respuesta.status === 429) {
+      return Response.json({ error: 'probá de nuevo en un minuto' }, { status: 429 })
+    }
+    if (!respuesta.ok) {
+      return Response.json({ error: 'no se pudo leer la factura' }, { status: 502 })
     }
 
-    const texto = respuesta.content
-      .filter((bloque) => bloque.type === 'text')
-      .map((bloque) => bloque.text)
-      .join('')
+    const datos = (await respuesta.json()) as {
+      choices?: { message?: { content?: string } }[]
+    }
+    const texto = datos.choices?.[0]?.message?.content ?? ''
 
     // El modelo puede envolver el JSON en explicaciones: se toma el objeto.
     const desde = texto.indexOf('{')
@@ -82,13 +96,7 @@ export async function POST(pedido: Request) {
 
     const crudo = JSON.parse(texto.slice(desde, hasta + 1)) as { items?: unknown[] }
     return Response.json({ items: normalizarItems(crudo.items ?? []) })
-  } catch (error) {
-    if (error instanceof Anthropic.RateLimitError) {
-      return Response.json({ error: 'probá de nuevo en un minuto' }, { status: 429 })
-    }
-    if (error instanceof Anthropic.APIError) {
-      return Response.json({ error: 'no se pudo leer la factura' }, { status: 502 })
-    }
-    return Response.json({ error: 'no se entendió la factura' }, { status: 422 })
+  } catch {
+    return Response.json({ error: 'no se pudo leer la factura' }, { status: 502 })
   }
 }
