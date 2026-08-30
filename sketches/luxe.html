@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Libreta — LUXE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #0B0B0D;
+    --surface: #141417;
+    --surface-2: #1B1B1F;
+    --hairline: rgba(255,255,255,.07);
+    --text: #F5F5F4;
+    --text-2: rgba(245,245,244,.55);
+    --text-3: rgba(245,245,244,.32);
+    --accent: #E8B44A;
+    --accent-ink: #141417;
+    --green: #5DBE7E;
+    --red: #E07A6B;
+    --ease: cubic-bezier(.32,.72,0,1);
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Inter", -apple-system, sans-serif;
+    background: var(--bg);
+    background-image: radial-gradient(120% 60% at 50% 0%, #17171B 0%, var(--bg) 60%);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 150px;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "tnum";
+  }
+  .wrap { max-width: 430px; margin: 0 auto; padding: 0 20px; }
+
+  /* ---- Header sticky translúcido ---- */
+  header {
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(11,11,13,.72);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .hbar { max-width: 430px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .mono {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(145deg, #F0BC58, #C88F2E);
+    display: grid; place-items: center;
+    font-weight: 700; font-size: 16px; color: var(--accent-ink);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 2px 8px rgba(0,0,0,.4);
+  }
+  .brand h1 { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+  .date { font-size: 12px; color: var(--text-3); font-weight: 500; letter-spacing: .02em; }
+
+  nav { display: flex; gap: 4px; margin: 8px 0 4px; }
+  nav button {
+    flex: 1; font-family: inherit; font-size: 13.5px; font-weight: 600;
+    background: none; border: none; color: var(--text-2);
+    padding: 9px 0; cursor: pointer; border-radius: 10px;
+    transition: all .25s var(--ease);
+  }
+  nav button.on { color: var(--text); background: var(--surface-2); }
+
+  /* ---- Hero: los números mandan ---- */
+  .hero { padding: 28px 0 24px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+  .hnum .lbl { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); }
+  .hnum .val { font-size: 40px; font-weight: 600; letter-spacing: -.035em; line-height: 1.15; margin-top: 2px; }
+  .hnum .sub { font-size: 12.5px; color: var(--text-2); margin-top: 1px; }
+  .hnum .sub b { color: var(--green); font-weight: 600; }
+  .hnum.r { text-align: right; }
+  .hnum.r .sub b { color: var(--accent); }
+  .vdiv { width: 1px; height: 64px; background: var(--hairline); }
+
+  /* ---- Barra de acciones ---- */
+  .actions { display: flex; gap: 10px; }
+  .scan {
+    flex: 1; font-family: inherit; font-size: 15px; font-weight: 600;
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--hairline); border-radius: 14px;
+    padding: 14px; cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,.4);
+    transition: transform .18s var(--ease), background .25s;
+  }
+  .scan:active { transform: scale(.975); background: var(--surface-2); }
+  .search {
+    width: 100%; margin-top: 10px; font-family: inherit; font-size: 15px;
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: 14px; padding: 13px 16px; outline: none; color: var(--text);
+    transition: border .25s;
+  }
+  .search::placeholder { color: var(--text-3); }
+  .search:focus { border-color: rgba(232,180,74,.45); }
+
+  /* ---- Grilla ---- */
+  .seclbl { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); margin: 26px 2px 12px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: 16px; padding: 12px 12px 13px; cursor: pointer; position: relative;
+    transition: transform .18s var(--ease), background .25s;
+  }
+  .card:active { transform: scale(.96); background: var(--surface-2); }
+  .card .n { font-size: 12.5px; font-weight: 500; line-height: 1.35; min-height: 34px; color: rgba(245,245,244,.82); }
+  .card .p { font-size: 17px; font-weight: 650; letter-spacing: -.02em; margin-top: 6px; }
+  .card .s { font-size: 11px; color: var(--text-3); font-weight: 500; margin-top: 2px; }
+  .card.low { border-color: rgba(224,122,107,.35); }
+  .card.low .s { color: var(--red); }
+  .dot {
+    position: absolute; top: 12px; right: 12px; width: 6px; height: 6px;
+    border-radius: 50%; background: var(--red); box-shadow: 0 0 8px rgba(224,122,107,.8);
+  }
+
+  /* ---- Ticket flotante ---- */
+  .ticket {
+    position: fixed; left: 16px; right: 16px; bottom: calc(18px + env(safe-area-inset-bottom));
+    display: none; z-index: 20; max-width: 398px; margin: 0 auto;
+    background: rgba(27,27,31,.88);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 22px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.09);
+    padding: 14px 16px;
+    animation: rise .38s var(--ease);
+  }
+  @keyframes rise { from { transform: translateY(24px); opacity: 0; } }
+  .ticket.on { display: block; }
+  .trow { display: flex; justify-content: space-between; font-size: 13.5px; color: var(--text-2); padding: 2px 0; }
+  .trow .q { color: var(--text-3); margin-right: 6px; }
+  .tbar { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--hairline); margin-top: 10px; padding-top: 12px; }
+  .tbar .amt { font-size: 26px; font-weight: 650; letter-spacing: -.03em; }
+  .tbar .lbl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; color: var(--text-3); }
+  .cobrar {
+    font-family: inherit; font-size: 15px; font-weight: 650; letter-spacing: .01em;
+    background: linear-gradient(160deg, #F0BC58, #D19A34);
+    color: var(--accent-ink);
+    border: none; border-radius: 999px; padding: 13px 28px; cursor: pointer;
+    box-shadow: 0 2px 12px rgba(232,180,74,.35), inset 0 1px 0 rgba(255,255,255,.5);
+    transition: transform .18s var(--ease);
+  }
+  .cobrar:active { transform: scale(.95); }
+
+  /* ---- Cobrado ---- */
+  .paid { position: fixed; inset: 0; display: none; place-items: center; background: rgba(8,8,10,.72); backdrop-filter: blur(8px); z-index: 30; }
+  .paid.on { display: grid; }
+  .pcard {
+    background: var(--surface); border: 1px solid rgba(255,255,255,.1);
+    border-radius: 28px; padding: 36px 44px; text-align: center;
+    box-shadow: 0 24px 80px rgba(0,0,0,.7);
+    animation: pop .45s var(--ease);
+  }
+  @keyframes pop { from { transform: scale(.9); opacity: 0; } }
+  .pcard .ck {
+    width: 52px; height: 52px; margin: 0 auto 16px; border-radius: 50%;
+    background: rgba(93,190,126,.14); display: grid; place-items: center;
+  }
+  .pcard .ck svg { width: 26px; height: 26px; }
+  .pcard .amt { font-size: 36px; font-weight: 650; letter-spacing: -.035em; }
+  .pcard .ok { font-size: 13px; color: var(--text-2); font-weight: 500; margin-top: 3px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="hbar">
+    <div class="brand">
+      <div class="mono">L</div>
+      <h1>Libreta</h1>
+    </div>
+    <span class="date">dom 30 ago</span>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav>
+    <button class="on">Vender</button><button>Fiados</button><button>Resumen</button>
+  </nav>
+
+  <section class="hero">
+    <div class="hnum">
+      <p class="lbl">Hoy vendiste</p>
+      <p class="val">$4.950</p>
+      <p class="sub">ganancia <b>$1.230</b> · 6 ventas</p>
+    </div>
+    <div class="vdiv"></div>
+    <div class="hnum r">
+      <p class="lbl">Te deben</p>
+      <p class="val">$8.400</p>
+      <p class="sub"><b>4 fiados</b> · 1 atrasado</p>
+    </div>
+  </section>
+
+  <div class="actions">
+    <button class="scan">Escanear código</button>
+  </div>
+  <input class="search" placeholder="Buscar producto o código">
+
+  <p class="seclbl">Productos</p>
+  <div class="grid">
+    <div class="card low"><span class="dot"></span><p class="n">Yerba Playadito 1kg</p><p class="p">$2.500</p><p class="s">quedan 2</p></div>
+    <div class="card"><p class="n">Coca-Cola 2.25L</p><p class="p">$2.900</p><p class="s">12 disp.</p></div>
+    <div class="card"><p class="n">Pan lactal gr.</p><p class="p">$1.300</p><p class="s">10 disp.</p></div>
+    <div class="card"><p class="n">Leche entera 1L</p><p class="p">$1.450</p><p class="s">20 disp.</p></div>
+    <div class="card"><p class="n">Facturas ×6</p><p class="p">$1.200</p><p class="s">4 disp.</p></div>
+    <div class="card"><p class="n">Fideos guiseros</p><p class="p">$1.100</p><p class="s">18 disp.</p></div>
+  </div>
+</div>
+
+<div class="ticket" id="ticket">
+  <div class="trow"><span><span class="q">1×</span>Coca-Cola 2.25L</span><span>$2.900</span></div>
+  <div class="trow"><span><span class="q">2×</span>Facturas ×6</span><span>$2.400</span></div>
+  <div class="tbar">
+    <div><p class="lbl">Total</p><p class="amt">$5.300</p></div>
+    <button class="cobrar" onclick="pagar()">Cobrar</button>
+  </div>
+</div>
+
+<div class="paid" id="paid" onclick="this.classList.remove('on')">
+  <div class="pcard">
+    <div class="ck">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#5DBE7E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <p class="amt">$5.300</p>
+    <p class="ok">Cobrado · guardado en caja</p>
+  </div>
+</div>
+
+<script>
+  const t = document.getElementById('ticket');
+  document.querySelectorAll('.card').forEach(c => {
+    c.addEventListener('click', () => t.classList.add('on'));
+  });
+  function pagar() {
+    t.classList.remove('on');
+    document.getElementById('paid').classList.add('on');
+  }
+</script>
+</body>
+</html>
