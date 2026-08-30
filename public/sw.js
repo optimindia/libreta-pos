@@ -4,7 +4,8 @@
 // cache-first para assets estáticos. Los DATOS viven en IndexedDB,
 // así que el SW solo necesita servir la shell para que todo funcione.
 // ============================================================
-const CACHE = "libreta-shell-v1";
+// Cada deploy nuevo → cache nueva → el celu baja TODO fresco
+const CACHE = "libreta-shell-v3";
 // GitHub Pages sirve bajo /libreta-pos/ — rutas relativas para no romper
 const BASE = "/libreta-pos";
 const PRECACHE = [`${BASE}/`, `${BASE}/manifest.json`, `${BASE}/icon-192.png`, `${BASE}/icon-512.png`];

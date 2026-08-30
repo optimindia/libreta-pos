@@ -1,26 +1,72 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================================
+   LIBRETA — Design System
+   Paleta: violeta brand #3E3680 → fucsia acento → dark slate.
+   Estilo: dark-first (el almacenero usa la app a la sombra y
+   al sol directo — contraste alto), glass, gradientes suaves.
+   ============================================================ */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-brand: #6d5bd0;
+  --color-brand-light: #8b7ae8;
+  --color-brand-dark: #3e3680;
+  --color-accent: #e879f9;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: #0b0a1a;
+  --foreground: #ededf5;
+  color-scheme: dark;
+}
+
+html {
+  background: var(--background);
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(1200px 500px at 90% -10%, rgba(109, 91, 208, 0.25), transparent 60%),
+    radial-gradient(900px 400px at -10% 110%, rgba(232, 121, 249, 0.12), transparent 55%),
+    var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
 }
+
+/* --- Utilidades custom --- */
+@utility glass {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(12px);
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+/* --- Animaciones --- */
+@keyframes slideUp {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes popIn {
+  0% { transform: scale(0.9); opacity: 0; }
+  60% { transform: scale(1.03); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.anim-slide-up { animation: slideUp 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
+.anim-pop { animation: popIn 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
+.anim-tap { transition: transform 0.12s ease; }
+.anim-tap:active { transform: scale(0.96); }
+
+/* Tipografía de números tabulares (tickets) */
+.tnum { font-variant-numeric: tabular-nums; }
