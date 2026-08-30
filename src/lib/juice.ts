@@ -4,8 +4,7 @@
 // El POS genérico no da nada cuando tocás. Nosotros sí:
 //   - tocar  → vibra el celu (haptic)
 //   - cobrar → CONFETTI + sonido caja + vibración fuerte
-// Los sonidos son 100% sintetizados (WebAudio, sin archivos):
-// "cha-ching" de caja registradora hecho con osciladores.
+// LUXE: confetti dorado/champagne, no arcoíris.
 // ============================================================
 import confetti from "canvas-confetti";
 
@@ -65,8 +64,9 @@ export function celebrateCash() {
   playCashSound();
   hapticCash();
 
-  const colors = ["#6d5bd0", "#e879f9", "#fbbf24", "#34d399", "#f472b6"];
-  // dos cañones laterales con colores del brand
+  // LUXE: paleta champagne — oro, crema, bronce
+  const colors = ["#E8B44A", "#F0BC58", "#F5EDD8", "#C88F2E", "#8C6D2F"];
+  // dos cañones laterales
   confetti({ particleCount: 50, angle: 60, spread: 65, startVelocity: 42, colors, ticks: 220, zIndex: 9999, origin: { x: 0, y: 0.7 } });
   confetti({ particleCount: 50, angle: 120, spread: 65, startVelocity: 42, colors, ticks: 220, zIndex: 9999, origin: { x: 1, y: 0.7 } });
 }

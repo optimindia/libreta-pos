@@ -1,50 +1,53 @@
 @import "tailwindcss";
 
 /* ============================================================
-   LIBRETA — Design System v2 "POTENTE"
-   Identidad: violeta noche + papel de libreta real.
-   Pensado para el pulgar del almacenero:
-   - Contraste alto (sol directo / contraluz del mostrador)
-   - Touch targets grandes
-   - Micro-feedback en CADA toque (haptic, anim, sonido)
+   LIBRETA — Design System v3 "LUXE"
+   Negro profundo + oro champagne. Contenido, no decoración:
+   - Color contenido: el oro solo en lo que importa (cobrar)
+   - Tipografía protagonista, tabular numbers
+   - Hairlines de 1px, sombras suaves, cero gradientes ruidosos
+   - Touch targets grandes + feedback en cada toque
    ============================================================ */
 
 @theme inline {
-  --color-brand: #6d5bd0;
-  --color-brand-light: #8b7ae8;
-  --color-brand-dark: #3e3680;
-  --color-accent: #e879f9;
+  --color-bg: #0B0B0D;
+  --color-surface: #141417;
+  --color-surface2: #1B1B1F;
+  --color-gold: #E8B44A;
+  --color-gold-light: #F0BC58;
+  --color-gold-deep: #C88F2E;
+  --color-pos: #5DBE7E;
+  --color-neg: #E07A6B;
+  --color-ink3: rgba(245, 245, 244, 0.32);
 }
 
 :root {
-  --background: #0b0a1a;
-  --foreground: #ededf5;
+  --background: #0B0B0D;
+  --foreground: #F5F5F4;
   color-scheme: dark;
 }
 
-html {
-  background: var(--background);
-}
+html { background: var(--background); }
 
 body {
-  background:
-    radial-gradient(1200px 500px at 90% -10%, rgba(109, 91, 208, 0.25), transparent 60%),
-    radial-gradient(900px 400px at -10% 110%, rgba(232, 121, 249, 0.12), transparent 55%),
-    var(--background);
+  background: radial-gradient(120% 50% at 50% 0%, #151519 0%, #0B0B0D 55%);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
   min-height: 100dvh;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "tnum";
 }
 
 /* --- Utilidades custom --- */
-@utility glass {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  backdrop-filter: blur(12px);
+@utility hairline {
+  border: 1px solid rgba(255, 255, 255, 0.07);
 }
-
+@utility surface {
+  background: #141417;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
 @utility no-scrollbar {
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
@@ -60,33 +63,26 @@ body {
   60% { transform: scale(1.03); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
-@keyframes vibrar {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-3px); }
-  40% { transform: translateX(3px); }
-  60% { transform: translateX(-2px); }
-  80% { transform: translateX(2px); }
-}
-@keyframes cashRain {
-  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+@keyframes fadeUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .anim-slide-up { animation: slideUp 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
 .anim-pop { animation: popIn 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
-.anim-vibrar { animation: vibrar 0.35s ease; }
+.anim-fade-up { animation: fadeUp 0.24s cubic-bezier(0.22, 1, 0.36, 1); }
 
 /* Números tabulares (tickets alineados) */
 .tnum { font-variant-numeric: tabular-nums; }
 
-/* Haptics: vibración real del celu (Android) */
-.haptic { transition: transform 0.12s ease; }
+/* Haptics: el toque responde — se hunde apenas */
+.haptic { transition: transform 0.14s cubic-bezier(0.32, 0.72, 0, 1), background 0.2s, opacity 0.2s; }
 .haptic:active { transform: scale(0.96); }
 
 /* ============================================================
    LA LIBRETA DE PAPEL — para fiados
-   Textura de papel rayado: renglones azules + margen rojo
-   vertical, igual a la libreta física del almacenero.
+   Contraste intencional: abrir la libreta física dentro
+   de la app oscura. Renglones azules + margen rojo.
    ============================================================ */
 .libreta-paper {
   background-color: #f7f3e8;
@@ -111,9 +107,7 @@ body {
 }
 
 /* Trazo de marcador para tachar deudas pagadas */
-.tachado {
-  position: relative;
-}
+.tachado { position: relative; }
 .tachado::after {
   content: "";
   position: absolute;

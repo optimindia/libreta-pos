@@ -2,6 +2,8 @@
 // ============================================================
 // LIBRETA — Fiados: la libreta de papel, pero digital.
 // Textura de renglones + margen rojo + deudas tachadas a mano.
+// LUXE: intro oscura elegante, y al entrar a la libreta de
+// papel, el contraste físico — abrir la libreta real.
 // ============================================================
 import { useState } from "react";
 import { db, registerCreditPayment, type Credit } from "@/lib/db";
@@ -17,16 +19,15 @@ export function Fiados() {
   const [paying, setPaying] = useState<{ id: number; name: string; remaining: number } | null>(null);
   const open = (credits ?? []).filter((c) => c.status !== "cobrada");
   const cobradas = (credits ?? []).filter((c) => c.status === "cobrada");
-  const totalDue = open.reduce((s, c) => s + c.remaining, 0);
+  const totalDue = open.reduce((s, c) => s + (c.remaining ?? c.amount), 0);
 
   return (
     <div className="anim-slide-up">
-      {/* Resumen */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-600/90 to-fuchsia-800/80 p-5 shadow-xl">
-        <div className="absolute -left-6 -top-8 h-28 w-28 rounded-full bg-white/10 blur-2xl" />
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-white/70">Te deben en total</p>
-        <p className="mt-0.5 text-[38px] font-black leading-none tnum text-white">{fmt(totalDue)}</p>
-        <p className="mt-1.5 text-xs text-white/70">{open.length} fiados abiertos</p>
+      {/* Resumen LUXE */}
+      <div className="surface rounded-3xl p-5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink3">Te deben en total</p>
+        <p className="mt-0.5 text-[38px] font-semibold leading-tight tracking-tight tnum">{fmt(totalDue)}</p>
+        <p className="mt-0.5 text-[13px] text-surface2 text-slate-500">{open.length} fiados abiertos</p>
       </div>
 
       {/* La LIBRETA de verdad — papel rayado */}
@@ -45,9 +46,9 @@ export function Fiados() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3 pr-3">
-                  <p className="text-[17px] font-black tnum">{fmt(c.remaining)}</p>
+                  <p className="text-[17px] font-black tnum">{fmt(c.remaining ?? c.amount)}</p>
                   <button
-                    onClick={() => { setPaying({ id: c.id!, name: c.customerName, remaining: c.remaining }); haptic(); }}
+                    onClick={() => { setPaying({ id: c.id!, name: c.customerName, remaining: c.remaining ?? c.amount }); haptic(); }}
                     className="haptic rounded-lg bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-800 shadow"
                   >
                     Cobrar
@@ -67,26 +68,26 @@ export function Fiados() {
         <div className="libreta-paper mt-4 rounded-3xl p-5 shadow-2xl">
           <p className="mb-2 text-sm font-bold">✅ Ya cobrados</p>
           <div>
-            {cobradas.slice(0, 10).map((c) => (
-              <div key={c.id} className="flex items-center justify-between border-b border-slate-400/20 py-2.5" style={{ minHeight: "2rem" }}>
-                <p className="pl-14 text-[15px] font-bold tachado opacity-70">{c.customerName}</p>
-                <p className="pr-3 text-[15px] font-black tnum tachado opacity-70">{fmt(c.amount)}</p>
-              </div>
-            ))}
-          </div>
+          {cobradas.slice(0, 10).map((c) => (
+            <div key={c.id} className="flex items-center justify-between border-b border-slate-400/20 py-2.5" style={{ minHeight: "2rem" }}>
+              <p className="pl-14 text-[15px] font-bold tachado opacity-70">{c.customerName}</p>
+              <p className="pr-3 text-[15px] font-black tnum tachado opacity-70">{fmt(c.amount)}</p>
+            </div>
+          ))}
         </div>
+      </div>
       )}
 
       {/* Modal cobrar fiado */}
       {paying && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm" onClick={() => setPaying(null)}>
-          <div className="w-full max-w-xs rounded-3xl bg-slate-900 p-6 anim-pop" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-xs surface anim-pop rounded-3xl p-6" onClick={(e) => e.stopPropagation()}>
             <p className="font-bold">{paying.name}</p>
-            <p className="mt-1 text-3xl font-black tnum text-rose-300">{fmt(paying.remaining)}</p>
+      <p className="mt-1 text-3xl font-black tnum text-gold">{fmt(paying.remaining)}</p>
             <div className="mt-5 grid grid-cols-2 gap-2.5">
               <button
                 onClick={async () => { await registerCreditPayment(paying.id, paying.remaining); celebrateCash(); setPaying(null); }}
-                className="haptic rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 py-3.5 font-bold"
+                className="haptic rounded-2xl bg-pos/15 py-3.5 font-bold text-pos ring-1 ring-pos/40"
               >
                 Cobró todo
               </button>
@@ -95,7 +96,7 @@ export function Fiados() {
                   const v = prompt(`¿Cuánto te pagó ${paying.name}?`);
                   if (v) { await registerCreditPayment(paying.id, Number(v)); celebrateCash(); setPaying(null); }
                 }}
-                className="haptic rounded-2xl bg-slate-700 py-3.5 font-bold"
+                className="haptic rounded-2xl bg-white/[0.06] py-3.5 font-bold ring-1 ring-white/10"
               >
                 Parcial
               </button>

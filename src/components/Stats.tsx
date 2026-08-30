@@ -2,6 +2,7 @@
 // ============================================================
 // LIBRETA — Stats: "¿cuánto gané hoy?" — la pregunta que
 // ningún POS gratis contesta. Barras, top productos, pagos.
+// LUXE: hairlines, tipografía protagonista, barras oro.
 // ============================================================
 import { useMemo, useState } from "react";
 import { db, saleProfit, type Sale } from "@/lib/db";
@@ -39,27 +40,27 @@ export function Stats() {
     <div className="anim-slide-up space-y-4">
       <div className="flex gap-2">
         {(["hoy", "mes"] as const).map((r) => (
-          <button key={r} onClick={() => { setRange(r); haptic(); }} className={`haptic flex-1 rounded-2xl py-2.5 text-sm font-bold ${range === r ? "bg-gradient-to-r from-brand to-accent shadow-lg" : "glass text-slate-400"}`}>
+          <button key={r} onClick={() => { setRange(r); haptic(); }} className={`haptic surface flex-1 rounded-2xl py-2.5 text-sm font-semibold ${range === r ? "!bg-surface2 !border-white/15 text-white" : "text-slate-500"}`}>
             {r === "hoy" ? "Hoy" : "Este mes"}
           </button>
         ))}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
-          <p className="text-[11px] uppercase tracking-widest text-slate-400">Vendido</p>
-          <p className="mt-1 text-2xl font-black tnum">{fmt(stats.total)}</p>
-          <p className="text-[11px] text-slate-500">{stats.count} ventas</p>
+        <div className="surface rounded-3xl p-4">
+          <p className="text-[11px] uppercase tracking-[0.14em] text-ink3">Vendido</p>
+          <p className="mt-1 text-2xl font-semibold tnum">{fmt(stats.total)}</p>
+          <p className="mt-0.5 text-[11px] text-slate-500">{stats.count} ventas</p>
         </div>
-        <div className="rounded-3xl bg-gradient-to-br from-emerald-600/25 to-emerald-900/25 p-4 ring-1 ring-emerald-500/40">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-300">Ganancia</p>
-          <p className="mt-1 text-2xl font-black tnum text-emerald-300">{fmt(stats.profit)}</p>
-          <p className="text-[11px] text-emerald-500/80">lo que queda para vos</p>
+        <div className="surface rounded-3xl p-4 ring-1 ring-pos/30">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-pos">Ganancia</p>
+          <p className="mt-1 text-2xl font-semibold tnum text-pos">{fmt(stats.profit)}</p>
+          <p className="mt-0.5 text-[11px] text-slate-500">lo que queda para vos</p>
         </div>
       </div>
 
-      <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-        <p className="mb-3 text-sm font-bold">Por medio de pago</p>
+      <div className="surface rounded-3xl p-5">
+        <p className="mb-3 text-sm font-semibold">Por medio de pago</p>
         <div className="space-y-2">
           {Object.entries(stats.byPayment).map(([k, v]) => (
             <div key={k} className="flex items-center justify-between text-sm">
@@ -71,8 +72,8 @@ export function Stats() {
         </div>
       </div>
 
-      <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-        <p className="mb-3 text-sm font-bold">🏆 Top productos</p>
+      <div className="surface rounded-3xl p-5">
+        <p className="mb-3 text-sm font-semibold">🏆 Top productos</p>
         <div className="space-y-3">
           {stats.top.map(([name, v], i) => (
             <div key={name}>
@@ -80,8 +81,8 @@ export function Stats() {
                 <span className="truncate text-slate-300">{i + 1}. {name}</span>
                 <span className="tnum text-slate-400">{v.qty}× · {fmt(v.revenue)}</span>
               </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full bg-gradient-to-r from-brand to-accent" style={{ width: `${(v.revenue / stats.maxRevenue) * 100}%` }} />
+              <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+                <div className="h-full rounded-full bg-gradient-to-r from-gold-deep to-gold" style={{ width: `${(v.revenue / stats.maxRevenue) * 100}%` }} />
               </div>
             </div>
           ))}
