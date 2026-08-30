@@ -1,10 +1,12 @@
 @import "tailwindcss";
 
 /* ============================================================
-   LIBRETA — Design System
-   Paleta: violeta brand #3E3680 → fucsia acento → dark slate.
-   Estilo: dark-first (el almacenero usa la app a la sombra y
-   al sol directo — contraste alto), glass, gradientes suaves.
+   LIBRETA — Design System v2 "POTENTE"
+   Identidad: violeta noche + papel de libreta real.
+   Pensado para el pulgar del almacenero:
+   - Contraste alto (sol directo / contraluz del mostrador)
+   - Touch targets grandes
+   - Micro-feedback en CADA toque (haptic, anim, sonido)
    ============================================================ */
 
 @theme inline {
@@ -58,15 +60,68 @@ body {
   60% { transform: scale(1.03); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
-@keyframes shimmer {
-  0% { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
+@keyframes vibrar {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+@keyframes cashRain {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
 }
 
 .anim-slide-up { animation: slideUp 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
 .anim-pop { animation: popIn 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
-.anim-tap { transition: transform 0.12s ease; }
-.anim-tap:active { transform: scale(0.96); }
+.anim-vibrar { animation: vibrar 0.35s ease; }
 
-/* Tipografía de números tabulares (tickets) */
+/* Números tabulares (tickets alineados) */
 .tnum { font-variant-numeric: tabular-nums; }
+
+/* Haptics: vibración real del celu (Android) */
+.haptic { transition: transform 0.12s ease; }
+.haptic:active { transform: scale(0.96); }
+
+/* ============================================================
+   LA LIBRETA DE PAPEL — para fiados
+   Textura de papel rayado: renglones azules + margen rojo
+   vertical, igual a la libreta física del almacenero.
+   ============================================================ */
+.libreta-paper {
+  background-color: #f7f3e8;
+  background-image:
+    repeating-linear-gradient(
+      transparent,
+      transparent calc(2rem - 1px),
+      #d3e4f5 calc(2rem - 1px),
+      #d3e4f5 2rem
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 3.5rem,
+      rgba(220, 38, 38, 0.3) 3.5rem,
+      rgba(220, 38, 38, 0.3) calc(3.5rem + 1.5px),
+      transparent calc(3.5rem + 1.5px)
+    );
+  background-size: 100% 2rem, 100% 100%;
+  color: #1e1b2e;
+  font-family: "Segoe Print", "Comic Sans MS", "Bradley Hand", cursive;
+}
+
+/* Trazo de marcador para tachar deudas pagadas */
+.tachado {
+  position: relative;
+}
+.tachado::after {
+  content: "";
+  position: absolute;
+  left: -2%;
+  top: 50%;
+  width: 104%;
+  height: 3px;
+  background: #dc2626;
+  transform: rotate(-2deg);
+  border-radius: 3px;
+}
