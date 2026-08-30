@@ -76,6 +76,7 @@ export default function Home() {
     await registerSale(ticket, payment, payment === "fiado" ? { name: fiadoName.trim() } : undefined);
     setTicket([]);
     setConfirming(false);
+    setFiadoStep(false);
     setFiadoName("");
     setCharged({ total: soldTotal, profit: soldProfit, payment });
     if (payment === "fiado") celebrateFiado(); else celebrateCash();
