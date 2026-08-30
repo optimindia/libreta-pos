@@ -1,13 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // GitHub Pages sirve desde /libreta-pos/, no desde /.
-  // basePath le dice a Next: "generá todos los HTML/links/JS
-  // asumiendo que la app vive bajo ese prefijo".
-  basePath: "/libreta-pos",
-  assetPrefix: "/libreta-pos/",
-  output: "export",
-  // PWA: rutas absolutas romperían bajo basePath — todo relativo
+  // Vercel sirve desde la raíz del dominio, así que no hay basePath.
+  // Tampoco `output: "export"`: la app necesita servidor para el
+  // endpoint que lee la factura por foto (/api/factura).
   images: { unoptimized: true },
 };
 

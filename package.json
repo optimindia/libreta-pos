@@ -7,8 +7,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "export": "next build && touch out/.nojekyll && cp public/sw.js out/ 2>/dev/null; touch out/.nojekyll",
-    "deploy": "npm run build && touch out/.nojekyll && cp public/sw.js out/ 2>/dev/null; true",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"
