@@ -42,7 +42,8 @@ export async function sincronizar(
  *  reintentar la misma venta no la duplica. */
 export const subirASupabase: SubirFn = async (item) => {
   if (!cliente) throw new Error('nube apagada')
-  const { error } = await cliente.from(TABLA[item.entidad]).upsert(item.datos)
+  const fila = item.datos as Record<string, unknown>
+  const { error } = await cliente.from(TABLA[item.entidad]).upsert(fila)
   if (error) throw error
 }
 
