@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 
 test('cargar un producto, venderlo y ver la ganancia', async ({ page }) => {
   await page.goto('/stock')
+  await page.getByRole('button', { name: /^cargar$/i }).click()
   await page.getByLabel('Nombre').fill('Yerba Playadito')
   await page.getByLabel('Costo').fill('3000')
   await page.getByLabel('Precio').fill('4200')
@@ -25,6 +26,7 @@ test('cargar un producto, venderlo y ver la ganancia', async ({ page }) => {
 
 test('la venta funciona con el celular sin señal', async ({ page, context }) => {
   await page.goto('/stock')
+  await page.getByRole('button', { name: /^cargar$/i }).click()
   await page.getByLabel('Nombre').fill('Fideos')
   await page.getByLabel('Costo').fill('800')
   await page.getByLabel('Precio').fill('1200')
@@ -48,6 +50,7 @@ test('la venta funciona con el celular sin señal', async ({ page, context }) =>
 
 test('cerrar la caja cuadrada y que quede el registro', async ({ page }) => {
   await page.goto('/stock')
+  await page.getByRole('button', { name: /^cargar$/i }).click()
   await page.getByLabel('Nombre').fill('Azúcar')
   await page.getByLabel('Costo').fill('1000')
   await page.getByLabel('Precio').fill('1400')

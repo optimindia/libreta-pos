@@ -2,7 +2,7 @@
 
 import { useLiveQuery } from 'dexie-react-hooks'
 import { repos } from '@/datos/local/repos'
-import { resumenDelDia } from '@/dominio/ganancia'
+import { resumenDelDia, masVendidos } from '@/dominio/ganancia'
 import { listaDeCompra } from '@/dominio/reposicion'
 import { mensajeCompra, enlaceWhatsApp } from '@/dominio/mensajes'
 import { textoDuracion } from '@/dominio/comparar'
@@ -22,6 +22,7 @@ export function PantallaPlata() {
     ])
     return {
       resumen: resumenDelDia(ventas, new Date(ahora)),
+      masVendidos: masVendidos(ventas, new Date(ahora)),
       compras: listaDeCompra(productos, ventas, ahora),
     }
   }, [])
@@ -43,6 +44,28 @@ export function PantallaPlata() {
         <div className="text-[11px]" style={{ color: 'var(--tenue)' }}>Ganaste</div>
         <Importe centavos={datos.resumen.ganancia} tamaño="grande" style={{ color: 'var(--verde)' }} />
       </div>
+
+      {datos.masVendidos.length > 0 && (
+        <>
+          <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
+            Lo que más vendiste hoy
+          </h2>
+          <ul className="mt-2 flex gap-2">
+            {datos.masVendidos.map((producto, indice) => (
+              <li
+                key={producto.productoId}
+                className="flex-1 rounded-2xl px-3 py-2.5"
+                style={{ background: indice === 0 ? 'var(--chip-fondo)' : 'var(--hueso-2)', border: '1px solid var(--linea)' }}
+              >
+                <div className="truncate text-[12.5px] font-medium">{producto.nombre}</div>
+                <div className="tabular text-[11px]" style={{ color: 'var(--tenue)' }}>
+                  {producto.unidades} {producto.unidades === 1 ? 'unidad' : 'unidades'}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
         Cómo te pagaron

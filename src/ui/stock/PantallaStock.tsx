@@ -1,14 +1,19 @@
 'use client'
 
+import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { repos } from '@/datos/local/repos'
 import { faltantes } from '@/dominio/stock'
-import { Importe } from '@/ui/sistema/Importe'
+import { Boton } from '@/ui/sistema/Boton'
 import { FormularioProducto } from './FormularioProducto'
 import { SubirFactura } from './SubirFactura'
 import { ActualizarPrecios } from './ActualizarPrecios'
+import { CatalogoStock } from './CatalogoStock'
+
+type Pestaña = 'catalogo' | 'cargar' | 'precios'
 
 export function PantallaStock() {
+  const [pestaña, setPestaña] = useState<Pestaña>('catalogo')
   const productos = useLiveQuery(() => repos.productos.todos(), [], [])
   const faltan = faltantes(productos)
 
@@ -23,47 +28,55 @@ export function PantallaStock() {
         </div>
       )}
 
-      <h1 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
-        Cargar producto
-      </h1>
-      <div className="mt-3">
-        <FormularioProducto />
+      <div className="flex gap-2">
+        <Boton
+          variante={pestaña === 'catalogo' ? 'principal' : 'secundario'}
+          className="flex-1 !py-2 !text-[12px]"
+          onClick={() => setPestaña('catalogo')}
+        >
+          Catálogo ({productos.length})
+        </Boton>
+        <Boton
+          variante={pestaña === 'cargar' ? 'principal' : 'secundario'}
+          className="flex-1 !py-2 !text-[12px]"
+          onClick={() => setPestaña('cargar')}
+        >
+          Cargar
+        </Boton>
+        <Boton
+          variante={pestaña === 'precios' ? 'principal' : 'secundario'}
+          className="flex-1 !py-2 !text-[12px]"
+          onClick={() => setPestaña('precios')}
+        >
+          Precios
+        </Boton>
       </div>
 
-      <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
-        Cargar desde una factura
-      </h2>
-      <div className="mt-2">
-        <SubirFactura />
-      </div>
+      {pestaña === 'catalogo' && <CatalogoStock productos={productos} />}
 
-      <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
-        Actualizar precios
-      </h2>
-      <div className="mt-2">
-        <ActualizarPrecios />
-      </div>
+      {pestaña === 'cargar' && (
+        <div className="mt-4">
+          <h2 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
+            Cargar producto
+          </h2>
+          <div className="mt-3">
+            <FormularioProducto onGuardado={() => setPestaña('catalogo')} />
+          </div>
 
-      <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
-        Tu catálogo ({productos.length})
-      </h2>
-      <ul className="mt-2">
-        {productos.map((producto) => (
-          <li
-            key={producto.id}
-            className="flex items-center justify-between py-2.5"
-            style={{ borderBottom: '1px solid var(--linea)' }}
-          >
-            <div className="leading-tight">
-              <div className="text-[13px] font-medium">{producto.nombre}</div>
-              <div className="tabular text-[11px]" style={{ color: 'var(--tenue)' }}>
-                quedan {producto.stock}
-              </div>
-            </div>
-            <Importe centavos={producto.precio} tamaño="chico" />
-          </li>
-        ))}
-      </ul>
+          <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
+            Cargar desde una factura
+          </h2>
+          <div className="mt-2">
+            <SubirFactura />
+          </div>
+        </div>
+      )}
+
+      {pestaña === 'precios' && (
+        <div className="mt-4">
+          <ActualizarPrecios />
+        </div>
+      )}
     </div>
   )
 }

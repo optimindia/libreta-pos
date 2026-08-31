@@ -14,6 +14,15 @@ beforeEach(async () => {
   })
 })
 
+async function cargarProductos(cantidad: number) {
+  for (let i = 0; i < cantidad; i++) {
+    await repos.productos.guardar({
+      codigoBarras: null, nombre: `Producto ${i}`,
+      costo: 1000, precio: 2000, stock: 5, stockMinimo: 1,
+    })
+  }
+}
+
 describe('PantallaVender', () => {
   it('empieza con el ticket vacío y el total en cero', async () => {
     render(<PantallaVender />)
@@ -59,5 +68,26 @@ describe('PantallaVender', () => {
     render(<PantallaVender />)
     const boton = await screen.findByRole('button', { name: /^cobrar$/i })
     expect(boton).toHaveProperty('disabled', true)
+  })
+
+  it('el catálogo muestra el precio de cada producto', async () => {
+    render(<PantallaVender />)
+    expect(await screen.findByText('Yerba Playadito')).toBeDefined()
+    expect(screen.getByText('$4.200')).toBeDefined()
+  })
+
+  it('con pocos productos no muestra el buscador', async () => {
+    render(<PantallaVender />)
+    await screen.findByText('Yerba Playadito')
+    expect(screen.queryByLabelText('Buscar producto')).toBeNull()
+  })
+
+  it('con muchos productos aparece el buscador y filtra', async () => {
+    await cargarProductos(8)
+    render(<PantallaVender />)
+    const buscador = await screen.findByLabelText('Buscar producto')
+    fireEvent.change(buscador, { target: { value: 'Yerba' } })
+    expect(await screen.findByText('Yerba Playadito')).toBeDefined()
+    expect(screen.queryByText('Producto 0')).toBeNull()
   })
 })

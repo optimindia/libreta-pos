@@ -8,6 +8,10 @@ import { mensajeCobro, enlaceWhatsApp } from '@/dominio/mensajes'
 import { Importe } from '@/ui/sistema/Importe'
 import { Boton } from '@/ui/sistema/Boton'
 
+function iniciales(nombre: string): string {
+  return nombre.split(' ').slice(0, 2).map((palabra) => palabra.charAt(0).toUpperCase()).join('')
+}
+
 export function PantallaFiados() {
   const deudas = useLiveQuery(async () => {
     const [fiados, pagos, clientes] = await Promise.all([
@@ -53,14 +57,22 @@ export function PantallaFiados() {
       <ul className="mt-3">
         {deudas.map((deuda) => (
           <li key={deuda.clienteId} className="py-4" style={{ borderBottom: '1px solid var(--linea)' }}>
-            <div className="flex items-baseline justify-between">
-              <span className="text-[15px] font-semibold">{deuda.cliente!.nombre}</span>
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold"
+                style={{ background: 'var(--ambar-fondo)', color: 'var(--ambar)' }}
+              >
+                {iniciales(deuda.cliente!.nombre)}
+              </div>
+              <div className="flex-1 leading-tight">
+                <div className="text-[15px] font-semibold">{deuda.cliente!.nombre}</div>
+                <div className="mt-0.5 text-[11px]" style={{ color: 'var(--tenue)' }}>
+                  {deuda.diasDelMasViejo === 0
+                    ? 'anotado hoy'
+                    : `desde hace ${deuda.diasDelMasViejo} ${deuda.diasDelMasViejo === 1 ? 'día' : 'días'}`}
+                </div>
+              </div>
               <Importe centavos={deuda.saldo} style={{ color: 'var(--ambar)' }} />
-            </div>
-            <div className="mt-0.5 text-[11px]" style={{ color: 'var(--tenue)' }}>
-              {deuda.diasDelMasViejo === 0
-                ? 'anotado hoy'
-                : `desde hace ${deuda.diasDelMasViejo} ${deuda.diasDelMasViejo === 1 ? 'día' : 'días'}`}
             </div>
 
             <div className="mt-3 flex gap-2">

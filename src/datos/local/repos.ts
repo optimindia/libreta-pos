@@ -114,7 +114,11 @@ export const repos = {
 
   cierres: {
     async registrar(datos: Omit<Cierre, 'id' | 'fecha'>): Promise<Cierre> {
-      const cierre: Cierre = { ...datos, id: nuevoId(), fecha: Date.now() }
+      // La fecha siempre supera al último cierre: dos cierres guardados en el
+      // mismo milisegundo no pueden empatar, o "el último" queda ambiguo.
+      const anterior = await db.cierres.orderBy('fecha').last()
+      const fecha = Math.max(Date.now(), (anterior?.fecha ?? 0) + 1)
+      const cierre: Cierre = { ...datos, id: nuevoId(), fecha }
       await db.cierres.add(cierre)
       await encolar('cierre', 'crear', cierre)
       return cierre

@@ -13,6 +13,7 @@ beforeEach(async () => {
 describe('PantallaStock', () => {
   it('da de alta un producto con precio en pesos y lo guarda en centavos', async () => {
     render(<PantallaStock />)
+    fireEvent.click(await screen.findByRole('button', { name: /^cargar$/i }))
     fireEvent.change(await screen.findByLabelText('Nombre'), { target: { value: 'Fideos' } })
     fireEvent.change(screen.getByLabelText('Costo'), { target: { value: '800' } })
     fireEvent.change(screen.getByLabelText('Precio'), { target: { value: '1200' } })
@@ -35,6 +36,7 @@ describe('PantallaStock', () => {
 
   it('no guarda un producto sin nombre', async () => {
     render(<PantallaStock />)
+    fireEvent.click(await screen.findByRole('button', { name: /^cargar$/i }))
     fireEvent.click(await screen.findByRole('button', { name: /guardar/i }))
     await waitFor(async () => expect(await repos.productos.todos()).toHaveLength(0))
   })

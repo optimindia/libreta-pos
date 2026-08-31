@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { gananciaVenta, resumenDelDia } from '@/dominio/ganancia'
+import { gananciaVenta, resumenDelDia, masVendidos } from '@/dominio/ganancia'
 import type { Venta } from '@/dominio/tipos'
 
 function venta(parcial: Partial<Venta>): Venta {
@@ -66,5 +66,55 @@ describe('resumenDelDia', () => {
     expect(resumen.vendido).toBe(0)
     expect(resumen.ganancia).toBe(0)
     expect(resumen.cantidadVentas).toBe(0)
+  })
+})
+
+describe('masVendidos', () => {
+  const dia = new Date('2026-08-30T00:00:00')
+
+  it('suma las unidades del mismo producto entre varias ventas', () => {
+    const v1 = venta({
+      id: 'v1',
+      items: [{ productoId: 'p1', nombre: 'Yerba', cantidad: 2, precio: 420000, costo: 300000 }],
+    })
+    const v2 = venta({
+      id: 'v2',
+      items: [{ productoId: 'p1', nombre: 'Yerba', cantidad: 3, precio: 420000, costo: 300000 }],
+    })
+    const [primero] = masVendidos([v1, v2], dia)
+    expect(primero.nombre).toBe('Yerba')
+    expect(primero.unidades).toBe(5)
+  })
+
+  it('ordena de mayor a menor cantidad vendida', () => {
+    const v = venta({
+      items: [
+        { productoId: 'p1', nombre: 'Yerba', cantidad: 1, precio: 420000, costo: 300000 },
+        { productoId: 'p2', nombre: 'Fideos', cantidad: 10, precio: 120000, costo: 80000 },
+      ],
+    })
+    const resultado = masVendidos([v], dia)
+    expect(resultado[0].nombre).toBe('Fideos')
+    expect(resultado[1].nombre).toBe('Yerba')
+  })
+
+  it('sólo cuenta las ventas de ese día', () => {
+    const ayer = venta({ id: 'v0', fecha: new Date('2026-08-29T14:00:00').getTime() })
+    expect(masVendidos([ayer], dia)).toHaveLength(0)
+  })
+
+  it('sin ventas devuelve la lista vacía', () => {
+    expect(masVendidos([], dia)).toHaveLength(0)
+  })
+
+  it('respeta un límite de resultados', () => {
+    const v = venta({
+      items: [
+        { productoId: 'p1', nombre: 'A', cantidad: 3, precio: 100, costo: 50 },
+        { productoId: 'p2', nombre: 'B', cantidad: 2, precio: 100, costo: 50 },
+        { productoId: 'p3', nombre: 'C', cantidad: 1, precio: 100, costo: 50 },
+      ],
+    })
+    expect(masVendidos([v], dia, 2)).toHaveLength(2)
   })
 })

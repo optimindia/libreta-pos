@@ -9,6 +9,7 @@
   --hueso-2: #FFFFFF;
   --linea: #EDEAE4;
   --chip-fondo: #F1EEE7;
+  --sombra: 0 1px 2px rgba(27, 26, 23, 0.05);
 }
 
 [data-tema='oscuro'] {
@@ -22,6 +23,7 @@
   --hueso-2: #191917;
   --linea: #232320;
   --chip-fondo: #1D1D1A;
+  --sombra: 0 1px 2px rgba(0, 0, 0, 0.22);
 }
 
 /* Todo importe usa esta clase: dígitos de ancho fijo para que la

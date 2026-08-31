@@ -11,10 +11,12 @@ import { Cabecera } from './Cabecera'
 import { Ticket } from './Ticket'
 import { Cobro } from './Cobro'
 import { BotonEscanear } from './BotonEscanear'
+import { CatalogoVender } from './CatalogoVender'
 
 export function PantallaVender() {
   const [items, setItems] = useState<ItemVenta[]>([])
   const [cobrando, setCobrando] = useState(false)
+  const [busqueda, setBusqueda] = useState('')
   const productos = useLiveQuery(() => repos.productos.todos(), [], [])
 
   const total = totalTicket(items)
@@ -75,23 +77,12 @@ export function PantallaVender() {
         />
       </div>
 
-      <section className="mt-6 px-5">
-        <h2 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
-          Productos
-        </h2>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {productos.map((producto) => (
-            <button
-              key={producto.id}
-              className="rounded-xl px-3 py-2 text-[13px]"
-              style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)' }}
-              onClick={() => setItems((actuales) => agregarProducto(actuales, producto))}
-            >
-              {producto.nombre}
-            </button>
-          ))}
-        </div>
-      </section>
+      <CatalogoVender
+        productos={productos}
+        busqueda={busqueda}
+        onBuscar={setBusqueda}
+        onElegir={(producto) => setItems((actuales) => agregarProducto(actuales, producto))}
+      />
     </div>
   )
 }
