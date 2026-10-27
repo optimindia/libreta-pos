@@ -1,42 +1,80 @@
+/* Sistema visual "Mosaico + Pop".
+   Colores sólidos, bordes que se ven y letras grandes: nada depende de una
+   transparencia, un degradé ni un desenfoque, porque en un monitor viejo o
+   barato eso es lo primero que se pierde. Los contrastes se verifican en
+   tests/estilos/legibilidad.test.ts en los dos temas. */
 :root {
-  --verde: #12694E;
+  --verde: #0A6F5A;
   --verde-texto: #FFFFFF;
-  --ambar: #97501E;
-  --ambar-fondo: #FCF1E6;
-  --tinta: #1B1A17;
-  --tenue: #625D53;
-  --hueso: #F4F2ED;
+  --ambar: #8F4A12;
+  --ambar-fondo: #FFE3A3;
+  --tinta: #0F1B2D;
+  --tenue: #4B5565;
+  --hueso: #E9ECF1;
   --hueso-2: #FFFFFF;
-  --linea: #D3CDC1;
-  --chip-fondo: #ECE8E0;
-  --sombra: 0 1px 2px rgba(27, 26, 23, 0.05);
-  --verde-suave: #E3F0EA;
-  --superficie-sutil: #F7F5F0;
-  --sombra-panel: 0 18px 42px rgba(27, 26, 23, 0.07), 0 2px 6px rgba(27, 26, 23, 0.04);
-  --sombra-flotante: 0 12px 28px rgba(27, 26, 23, 0.11), 0 2px 6px rgba(27, 26, 23, 0.05);
-  --radio-panel: 1.25rem;
-  --radio-control: 0.8rem;
+  --linea: #9AA5B5;
+  --chip-fondo: #DCE1E9;
+  --verde-suave: #DDF4EC;
+  --superficie-sutil: #F4F6F9;
+  /* Los viejos halos suaves quedan apagados: el relieve lo da el borde. */
+  --sombra: 0 0 0 0 #0F1B2D;
+  --sombra-panel: 0 0 0 0 #0F1B2D;
+  --sombra-flotante: 0 4px 0 #0F1B2D;
+  --radio-panel: 1.5rem;
+  --radio-control: 1rem;
+
+  /* Baldosas de colores: cada una trae su color de texto. */
+  --arena: #FFE3A3;
+  --sobre-arena: #0F1B2D;
+  --coral: #FF8A65;
+  --sobre-coral: #0F1B2D;
+  --menta: #B8EBDD;
+  --sobre-menta: #0F1B2D;
+  --lima: #C6F432;
+  --sobre-lima: #0F1B2D;
+  --rojo: #B5321B;
+  --rojo-fondo: #FBE4DF;
+
+  /* Relieve "pop": contorno firme y sombra dura, sólo en lo que se toca. */
+  --contorno: #0F1B2D;
+  --sombra-pop: 0 4px 0 #0F1B2D;
+  --sombra-pop-chica: 0 3px 0 #0F1B2D;
 }
 
 [data-tema='oscuro'] {
   /* Superficies separadas y texto de alto contraste. El tema oscuro no es
      una versión apagada del claro: cada nivel tiene que poder distinguirse
      rápido bajo luz baja y con textos pequeños de operación. */
-  --verde: #39BE8C;
-  --verde-texto: #06251A;
-  --ambar: #F0A45B;
-  --ambar-fondo: #322114;
-  --tinta: #F7F5F0;
-  --tenue: #C1BBB0;
-  --hueso: #111311;
-  --hueso-2: #1C201C;
-  --linea: #454A43;
-  --chip-fondo: #282C27;
-  --sombra: 0 1px 2px rgba(0, 0, 0, 0.22);
-  --verde-suave: #163C2D;
-  --superficie-sutil: #222621;
-  --sombra-panel: 0 18px 42px rgba(0, 0, 0, 0.34), 0 2px 6px rgba(0, 0, 0, 0.2);
-  --sombra-flotante: 0 12px 28px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.25);
+  --verde: #2FD1A6;
+  --verde-texto: #04261D;
+  --ambar: #FFB866;
+  --ambar-fondo: #3A2A10;
+  --tinta: #F2F5F9;
+  --tenue: #B4BFD0;
+  --hueso: #0B1220;
+  --hueso-2: #141E32;
+  --linea: #5F7090;
+  --chip-fondo: #1E2A44;
+  --verde-suave: #123D34;
+  --superficie-sutil: #101A2C;
+  --sombra: 0 0 0 0 #000000;
+  --sombra-panel: 0 0 0 0 #000000;
+  --sombra-flotante: 0 4px 0 #000000;
+
+  --arena: #4A3B12;
+  --sobre-arena: #F2F5F9;
+  --coral: #5C2B1D;
+  --sobre-coral: #F2F5F9;
+  --menta: #12453A;
+  --sobre-menta: #F2F5F9;
+  --lima: #C6F432;
+  --sobre-lima: #0B1220;
+  --rojo: #FF8F7A;
+  --rojo-fondo: #3A1A15;
+
+  --contorno: #8FA3C4;
+  --sombra-pop: 0 4px 0 #000000;
+  --sombra-pop-chica: 0 3px 0 #000000;
 }
 
 /* Todo importe usa esta clase: dígitos de ancho fijo para que la

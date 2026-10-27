@@ -19,7 +19,7 @@ import { FuncionesControl } from './FuncionesControl'
 export function PantallaConfig() {
   const archivoLogo = useRef<HTMLInputElement>(null)
   const [nombre, setNombre] = useState('')
-  const [color, setColor] = useState('#12694E')
+  const [color, setColor] = useState('#0A6F5A')
   const [logo, setLogo] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
   const [guardado, setGuardado] = useState(false)

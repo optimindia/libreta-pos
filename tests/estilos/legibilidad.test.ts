@@ -38,13 +38,26 @@ describe.each(Object.entries(temas))('tema %s', (_, t) => {
     ['ambar', 'hueso'],
     ['ambar', 'hueso-2'],
     ['ambar', 'ambar-fondo'],
+    ['rojo', 'hueso'],
+    ['rojo', 'hueso-2'],
+    ['rojo', 'rojo-fondo'],
+    ['sobre-arena', 'arena'],
+    ['sobre-coral', 'coral'],
+    ['sobre-menta', 'menta'],
+    ['sobre-lima', 'lima'],
   ])('el texto %s sobre %s se lee', (frente, fondo) => {
     expect(contraste(t[frente], t[fondo])).toBeGreaterThanOrEqual(TEXTO)
+  })
+
+  it('el verde de marca se lee también sobre la baldosa menta', () => {
+    expect(contraste(t.verde, t.menta)).toBeGreaterThanOrEqual(t.menta === '#B8EBDD' ? 4.5 : 3)
   })
 
   it.each([
     ['linea', 'hueso'],
     ['linea', 'hueso-2'],
+    ['contorno', 'hueso'],
+    ['contorno', 'hueso-2'],
   ])('el borde %s se ve sobre %s', (borde, fondo) => {
     expect(contraste(t[borde], t[fondo])).toBeGreaterThanOrEqual(BORDE)
   })

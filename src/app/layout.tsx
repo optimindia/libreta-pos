@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from 'next'
-import { Instrument_Sans } from 'next/font/google'
+import { Sora } from 'next/font/google'
 import './globals.css'
 import '../ui/sistema/pulido-final.css'
+import '../ui/sistema/mosaico.css'
 import { RegistrarSW } from '@/ui/sistema/RegistrarSW'
 import { Sincronizador } from '@/ui/sistema/Sincronizador'
 import { TemaInicial } from '@/ui/sistema/TemaInicial'
 import { ControlAcceso } from '@/ui/sistema/ControlAcceso'
 
-const instrument = Instrument_Sans({ subsets: ['latin'] })
+const sora = Sora({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Libreta',
@@ -15,14 +16,14 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#12694E',
+  themeColor: '#0A6F5A',
   viewportFit: 'cover',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es-AR" data-tema="claro">
-      <body className={instrument.className}>
+      <body className={sora.className}>
         <RegistrarSW />
         <Sincronizador />
         <TemaInicial />

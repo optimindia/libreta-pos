@@ -1,7 +1,11 @@
+// Contorno firme y sombra dura: el botón se ve como botón aun en un monitor
+// que aplasta los tonos parecidos. Al apretarlo se hunde (ver mosaico.css).
+const RELIEVE = { border: '2px solid var(--contorno)', boxShadow: 'var(--sombra-pop-chica)' } as const
+
 const VARIANTES = {
-  principal: { background: 'var(--verde)', color: 'var(--verde-texto)', border: 'none' },
-  secundario: { background: 'var(--hueso-2)', color: 'var(--tinta)', border: '1px solid var(--linea)' },
-  fiado: { background: 'var(--ambar-fondo)', color: 'var(--ambar)', border: '1px solid var(--ambar)' },
+  principal: { background: 'var(--verde)', color: 'var(--verde-texto)', ...RELIEVE },
+  secundario: { background: 'var(--hueso-2)', color: 'var(--tinta)', ...RELIEVE },
+  fiado: { background: 'var(--ambar-fondo)', color: 'var(--ambar)', ...RELIEVE },
 } as const
 
 export function Boton({
@@ -18,7 +22,7 @@ export function Boton({
       type={type}
       {...props}
       style={{ ...VARIANTES[variante], ...style }}
-      className={`libreta-button touch-manipulation rounded-xl px-4 py-3 text-sm font-semibold transition-opacity active:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--verde)] disabled:pointer-events-none disabled:opacity-40 ${className}`}
+      className={`libreta-button touch-manipulation rounded-2xl px-5 py-3.5 text-base font-bold focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--contorno)] disabled:pointer-events-none disabled:opacity-40 ${className}`}
     />
   )
 }

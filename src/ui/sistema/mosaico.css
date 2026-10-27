@@ -1,0 +1,24 @@
+/* Capa del sistema visual nuevo ("Mosaico + Pop"). Va después de las hojas
+   anteriores para que gane donde se superponen. Colores sólidos siempre:
+   nada de transparencias, degradés ni desenfoques. */
+
+/* Lo que se toca se hunde: la sombra dura desaparece y el botón baja. */
+.libreta-button:active:not(:disabled),
+.mz-toque:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 0 var(--contorno) !important;
+}
+
+.libreta-button:disabled {
+  background: var(--chip-fondo) !important;
+  color: var(--tenue) !important;
+  box-shadow: none !important;
+  border-color: var(--linea) !important;
+  opacity: 1;
+}
+
+/* Foco visible para quien navega con teclado o con un lector. */
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--contorno);
+  outline-offset: 2px;
+}
