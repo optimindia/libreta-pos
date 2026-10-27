@@ -100,28 +100,28 @@ export type AdminSolicitud =
   | { accion: 'plan'; operacion: 'actualizar'; planId: string; nombre: string; descripcion?: string; tipo: TipoPlan; dias: number; precioCentavos: number; activo: boolean; orden: number }
   | { accion: 'plan'; operacion: 'archivar' | 'restaurar'; planId: string }
 
-async function mensajeDeError(error: unknown): Promise<string> {
-  if (!(error instanceof Error)) return 'No se pudo completar la operación.'
-  const contexto = (error as Error & { context?: unknown }).context
-  if (typeof Response !== 'undefined' && contexto instanceof Response) {
-    try {
-      const cuerpo = await contexto.clone().json() as { error?: unknown }
-      if (typeof cuerpo.error === 'string') return cuerpo.error
-    } catch {
-      // El mensaje estándar de Supabase alcanza si la respuesta no es JSON.
-    }
-  }
-  return error.message || 'No se pudo completar la operación.'
-}
-
-/** Puerta única del panel: la función Edge valida la sesión y el rol antes
- *  de ejecutar cualquier lectura o escritura administrativa. */
+/** Puerta única del panel: pasa por el puente del mismo sitio (/api/admin) y
+ *  la función Edge valida la sesión y el rol antes de ejecutar cualquier
+ *  lectura o escritura administrativa. */
 export async function adminAccion<T extends AdminListado | AdminCuentaCreada | AdminSuscripcionActualizada | AdminCuentaActualizada | AdminCredencialesRegeneradas | AdminPlanGuardado>(solicitud: AdminSolicitud): Promise<T> {
   if (!cliente) throw new Error('La nube no está configurada.')
-  const respuesta = await cliente.functions.invoke('admin', { body: solicitud })
-  if (respuesta.error) throw new Error(await mensajeDeError(respuesta.error))
-  const datos = respuesta.data as (T & { error?: unknown }) | null
+  const sesion = await cliente.auth.getSession()
+  const token = sesion.data.session?.access_token
+  if (!token) throw new Error('Hay que iniciar sesión.')
+
+  const respuesta = await fetch('/api/admin', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(solicitud),
+  })
+  let datos: (T & { error?: unknown }) | null = null
+  try {
+    datos = await respuesta.json() as T & { error?: unknown }
+  } catch {
+    // Una respuesta que no es JSON se trata abajo como error genérico.
+  }
   if (datos && typeof datos.error === 'string') throw new Error(datos.error)
+  if (!respuesta.ok) throw new Error('No se pudo completar la operación.')
   if (!datos) throw new Error('La función administrativa no devolvió una respuesta.')
   return datos as T
 }
