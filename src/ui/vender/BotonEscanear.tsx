@@ -5,8 +5,9 @@ import type { Producto } from '@/dominio/tipos'
 import { repos } from '@/datos/local/repos'
 import { escanear } from './escaner'
 import { Boton } from '@/ui/sistema/Boton'
+import { IconoCerrar, IconoEscanear } from '@/ui/sistema/iconos'
 
-export function BotonEscanear({ onProducto }: { onProducto: (producto: Producto) => void }) {
+export function BotonEscanear({ onProducto, onNoEncontrado }: { onProducto: (producto: Producto) => void; onNoEncontrado?: (codigo: string) => void }) {
   const video = useRef<HTMLVideoElement>(null)
   const detener = useRef<(() => void) | null>(null)
   const [abierto, setAbierto] = useState(false)
@@ -31,7 +32,8 @@ export function BotonEscanear({ onProducto }: { onProducto: (producto: Producto)
           onProducto(producto)
           cerrar()
         } else {
-          setAviso('Ese código todavía no está cargado. Agregalo desde Stock.')
+          setAviso('Ese código todavía no está cargado. Podés cargarlo desde Stock.')
+          onNoEncontrado?.(codigo)
         }
       })
     } catch {
@@ -41,15 +43,25 @@ export function BotonEscanear({ onProducto }: { onProducto: (producto: Producto)
 
   return (
     <>
-      <Boton variante="secundario" className="w-full !py-3 !text-[13px]" onClick={abrir}>
-        Escanear
-      </Boton>
+      <button type="button" className="sale-scan-card" onClick={() => void abrir()}>
+        <span className="sale-scan-card-icon"><IconoEscanear /></span>
+        <span className="sale-scan-card-copy"><strong>Escanear para vender</strong><small>Usá el lector o abrí la cámara para sumar al ticket.</small></span>
+        <span className="sale-scan-card-reader"><i aria-hidden="true" />Lector USB/Bluetooth · código + Enter</span>
+        <span className="sale-scan-card-action">Abrir cámara</span>
+      </button>
       {abierto && (
-        <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'var(--hueso)' }}>
-          <video ref={video} className="flex-1 object-cover" playsInline muted />
-          {aviso && <p className="px-5 py-3 text-sm" style={{ color: 'var(--ambar)' }}>{aviso}</p>}
-          <div className="p-5">
-            <Boton variante="secundario" className="w-full" onClick={cerrar}>Cerrar</Boton>
+        <div className="scanner-overlay" role="dialog" aria-modal="true" aria-label="Escanear producto para vender">
+          <div className="scanner-topbar">
+            <div><span>Venta rápida</span><strong>Escaneá el producto</strong></div>
+            <button type="button" className="scanner-close" aria-label="Cerrar escáner" onClick={cerrar}><IconoCerrar /></button>
+          </div>
+          <video ref={video} className="scanner-video" playsInline muted />
+          <div className="scanner-reticle" aria-hidden="true"><span /></div>
+          <div className="scanner-sheet">
+            <span className="scanner-sheet-icon"><IconoEscanear /></span>
+            <div><strong>Apuntá al código de barras</strong><p>Cuando lo detectemos, el producto se suma al ticket automáticamente.</p></div>
+            {aviso && <p className="scanner-warning" role="status">{aviso}</p>}
+            <Boton variante="secundario" className="button-with-icon scanner-close-button" onClick={cerrar}><IconoCerrar /> Volver a la venta</Boton>
           </div>
         </div>
       )}

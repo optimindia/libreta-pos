@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from 'next'
 import { Instrument_Sans } from 'next/font/google'
 import './globals.css'
-import { Navegacion } from '@/ui/sistema/Navegacion'
+import '../ui/sistema/pulido-final.css'
 import { RegistrarSW } from '@/ui/sistema/RegistrarSW'
 import { Sincronizador } from '@/ui/sistema/Sincronizador'
+import { TemaInicial } from '@/ui/sistema/TemaInicial'
+import { ControlAcceso } from '@/ui/sistema/ControlAcceso'
 
 const instrument = Instrument_Sans({ subsets: ['latin'] })
 
@@ -23,8 +25,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={instrument.className}>
         <RegistrarSW />
         <Sincronizador />
-        <main className="pb-20">{children}</main>
-        <Navegacion />
+        <TemaInicial />
+        <ControlAcceso>{children}</ControlAcceso>
       </body>
     </html>
   )

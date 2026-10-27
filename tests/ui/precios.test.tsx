@@ -62,5 +62,6 @@ describe('ActualizarPrecios', () => {
       const productos = await repos.productos.todos()
       expect(productos.find((p) => p.nombre === 'Yerba Playadito')?.precio).toBe(375000)
     })
+    expect(await screen.findByText(/se actualizaron 2 precios/i)).toBeDefined()
   })
 })

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { aLaNube, deLaNube } from '@/datos/nube/mapeo'
+import { aLaNube, deLaNube, preferenciasDeLaNube } from '@/datos/nube/mapeo'
 import type { Producto, Venta } from '@/dominio/tipos'
 
 const NEGOCIO = '11111111-1111-4111-8111-111111111111'
@@ -29,8 +29,8 @@ describe('aLaNube', () => {
   })
 
   it('manda las fechas como texto ISO, no como número', () => {
-    const [{ filas }] = aLaNube('producto', producto, NEGOCIO)
-    expect(filas[0].actualizado_en).toBe(new Date(1788000000000).toISOString())
+    const [{ filas }] = aLaNube('venta', venta, NEGOCIO)
+    expect(filas[0].fecha).toBe(new Date(1788000000000).toISOString())
   })
 
   it('parte la venta en la venta y sus items, que son dos tablas', () => {
@@ -44,6 +44,25 @@ describe('aLaNube', () => {
   it('una venta sin items no genera fila de items vacía', () => {
     const partes = aLaNube('venta', { ...venta, items: [] }, NEGOCIO)
     expect(partes).toHaveLength(1)
+  })
+
+  it('la subida no manda actualizado_en: la marca la pone la base', () => {
+    const producto = {
+      id: 'p1', codigoBarras: null, nombre: 'Yerba',
+      costo: 300000, precio: 420000, stock: 5, stockMinimo: 2,
+      actualizadoEn: 123456789,
+    }
+    const partes = aLaNube('producto', producto, 'neg-1')
+    expect(partes[0].filas[0]).not.toHaveProperty('actualizado_en')
+  })
+
+  it('manda null cuando una edición quita una oferta existente', () => {
+    const partes = aLaNube('producto', {
+      ...producto,
+      precioOferta: undefined,
+      ofertaHasta: undefined,
+    }, NEGOCIO)
+    expect(partes[0].filas[0]).toMatchObject({ precio_oferta: null, oferta_hasta: null })
   })
 })
 
@@ -63,9 +82,11 @@ describe('deLaNube', () => {
     expect(local).not.toHaveProperty('negocio_id')
   })
 
-  it('ida y vuelta devuelve el mismo producto', () => {
+  it('ida y vuelta devuelve el mismo producto (sin la marca, que es de la base)', () => {
     const [{ filas }] = aLaNube('producto', producto, NEGOCIO)
-    expect(deLaNube('productos', filas[0])).toEqual(producto)
+    const esperado: Partial<typeof producto> = { ...producto }
+    delete esperado.actualizadoEn
+    expect(deLaNube('productos', filas[0])).toEqual(esperado)
   })
 })
 
@@ -89,5 +110,41 @@ describe('mapeo de cierres', () => {
   it('ida y vuelta devuelve el mismo cierre', () => {
     const [{ filas }] = aLaNube('cierre', cierre, NEGOCIO)
     expect(deLaNube('cierres', filas[0])).toEqual(cierre)
+  })
+})
+
+describe('mapeo de movimientos de caja', () => {
+  const movimiento = {
+    id: 'm1', fecha: 1788000000000, tipo: 'salida', concepto: 'Proveedor', monto: 250000, medioPago: 'efectivo',
+  }
+
+  it('lo envía a la tabla sincronizada y conserva sus campos', () => {
+    const [{ tabla, filas }] = aLaNube('movimientoCaja', movimiento, NEGOCIO)
+    expect(tabla).toBe('movimientos_caja')
+    expect(filas[0]).toMatchObject({ id: 'm1', tipo: 'salida', concepto: 'Proveedor', monto: 250000, medio_pago: 'efectivo', negocio_id: NEGOCIO })
+    expect(deLaNube('movimientos_caja', filas[0])).toEqual(movimiento)
+  })
+})
+
+describe('mapeo de preferencias del negocio', () => {
+  it('sube la configuración a una fila única sin permitir un id inventado', () => {
+    const [{ tabla, filas }] = aLaNube('preferencias', {
+      id: 'unico', negocioId: NEGOCIO,
+      funciones: { vender: true, pedidos: false }, actualizadoEn: 1788000000000,
+    }, NEGOCIO)
+    expect(tabla).toBe('negocio_configuracion')
+    expect(filas[0]).toMatchObject({ negocio_id: NEGOCIO, funciones: { vender: true, pedidos: false } })
+    expect(filas[0]).not.toHaveProperty('id')
+    expect(filas[0].actualizado_en).toBe(new Date(1788000000000).toISOString())
+  })
+
+  it('vuelve a una preferencia local con id estable y marca numérica', () => {
+    const local = preferenciasDeLaNube({
+      negocio_id: NEGOCIO,
+      funciones: { vender: true, pedidos: false },
+      actualizado_en: '2026-08-30T12:00:00.000Z',
+    })
+    expect(local).toMatchObject({ id: 'unico', negocioId: NEGOCIO, funciones: { pedidos: false } })
+    expect(typeof local.actualizadoEn).toBe('number')
   })
 })

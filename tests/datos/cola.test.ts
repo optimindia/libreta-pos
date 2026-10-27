@@ -57,4 +57,16 @@ describe('cola de sincronización', () => {
     await encolar('venta', 'crear', { id: 'v1' })
     expect(await pendientes()).toHaveLength(1)
   })
+
+  it('no borra una versión nueva mientras sube la anterior', async () => {
+    await encolar('producto', 'actualizar', { id: 'p1', stock: 1 })
+    const [anterior] = await pendientes()
+    await encolar('producto', 'actualizar', { id: 'p1', stock: 2 })
+
+    await marcarSubido(anterior.id, anterior.creadoEn, anterior.datos)
+
+    expect(await pendientes()).toEqual([
+      expect.objectContaining({ datos: { id: 'p1', stock: 2 } }),
+    ])
+  })
 })

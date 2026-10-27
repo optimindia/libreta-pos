@@ -11,6 +11,8 @@
 - **Stock** con aviso de faltantes, y carga desde la foto de la factura del mayorista.
 - **Plata**: vendido y ganancia del día, medios de pago y qué reponer esta semana.
 - **Sin internet**: todo se guarda en el teléfono y sube solo cuando vuelve la señal.
+- **A la medida**: cada negocio puede ocultar módulos y herramientas que no usa;
+  la configuración se comparte automáticamente entre sus dispositivos.
 
 ## Cómo está armado
 
@@ -28,7 +30,7 @@ La regla que sostiene todo: **`dominio/` no importa nada de `datos/` ni de `ui/`
 ```bash
 npm install
 npm run dev          # http://localhost:3000
-npm test             # 134 pruebas: dominio, datos y pantallas
+  npm test             # pruebas de dominio, datos y pantallas
 npm run test:e2e     # recorrido completo, incluido el modo avión
 npm run build        # verificación de tipos + build de producción
 ```
@@ -37,6 +39,9 @@ npm run build        # verificación de tipos + build de producción
 
 - [Diseño](docs/superpowers/specs/2026-08-30-libreta-rediseno-design.md) — decisiones y el porqué de cada una
 - [Plan de implementación](docs/superpowers/plans/2026-08-30-libreta-v2.md)
+- [Funciones potentes](docs/funciones-potentes.md) — catálogo de las nuevas capacidades operativas
+- [Funciones Pro v2](docs/funciones-potentes-v2.md) — 30 capacidades adicionales de caja, crédito e inteligencia comercial
+- [Control Pro](docs/funciones-operacion-pro.md) — 30 herramientas nuevas para leer, priorizar y accionar sobre el negocio
 - [Encender la nube](docs/nube.md) — Supabase paso a paso
 
 ## En producción
@@ -54,5 +59,4 @@ La aplicación funciona completa: offline en el teléfono y sincronizando a Supa
 cuando hay señal, con el aislamiento entre negocios verificado
 (`npm run verificar:aislamiento`).
 
-Falta sólo la lectura de facturas por foto, que necesita `ANTHROPIC_API_KEY`
-cargada en Vercel.
+La lectura de facturas por foto necesita `OPENAI_API_KEY` cargada en Vercel.

@@ -10,20 +10,33 @@
   --linea: #EDEAE4;
   --chip-fondo: #F1EEE7;
   --sombra: 0 1px 2px rgba(27, 26, 23, 0.05);
+  --verde-suave: #E8F2EE;
+  --superficie-sutil: #F7F5F0;
+  --sombra-panel: 0 18px 42px rgba(27, 26, 23, 0.07), 0 2px 6px rgba(27, 26, 23, 0.04);
+  --sombra-flotante: 0 12px 28px rgba(27, 26, 23, 0.11), 0 2px 6px rgba(27, 26, 23, 0.05);
+  --radio-panel: 1.25rem;
+  --radio-control: 0.8rem;
 }
 
 [data-tema='oscuro'] {
-  --verde: #2BA97B;
-  --verde-texto: #052016;
-  --ambar: #D68B4A;
-  --ambar-fondo: #22180F;
-  --tinta: #F2F0EA;
-  --tenue: #7C776D;
-  --hueso: #141412;
-  --hueso-2: #191917;
-  --linea: #232320;
-  --chip-fondo: #1D1D1A;
+  /* Superficies separadas y texto de alto contraste. El tema oscuro no es
+     una versión apagada del claro: cada nivel tiene que poder distinguirse
+     rápido bajo luz baja y con textos pequeños de operación. */
+  --verde: #39BE8C;
+  --verde-texto: #06251A;
+  --ambar: #F0A45B;
+  --ambar-fondo: #322114;
+  --tinta: #F7F5F0;
+  --tenue: #C1BBB0;
+  --hueso: #111311;
+  --hueso-2: #191C19;
+  --linea: #383C37;
+  --chip-fondo: #242824;
   --sombra: 0 1px 2px rgba(0, 0, 0, 0.22);
+  --verde-suave: #163C2D;
+  --superficie-sutil: #20241F;
+  --sombra-panel: 0 18px 42px rgba(0, 0, 0, 0.34), 0 2px 6px rgba(0, 0, 0, 0.2);
+  --sombra-flotante: 0 12px 28px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 /* Todo importe usa esta clase: dígitos de ancho fijo para que la

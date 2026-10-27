@@ -10,12 +10,7 @@ import { mensajeCierre, enlaceWhatsApp } from '@/dominio/mensajes'
 import { repos } from '@/datos/local/repos'
 import { Importe } from '@/ui/sistema/Importe'
 import { Boton } from '@/ui/sistema/Boton'
-
-const campo = {
-  background: 'var(--hueso-2)',
-  border: '1px solid var(--linea)',
-  color: 'var(--tinta)',
-}
+import { IconoEfectivo } from '@/ui/sistema/iconos'
 
 /** Cuadrar la caja: la app dice cuánto debería haber, el almacenero
  *  cuenta y la diferencia queda registrada. */
@@ -25,14 +20,15 @@ export function CierreCaja() {
     const ahora = Date.now()
     const ultimo = await repos.cierres.ultimo()
     const desde = ultimo?.fecha ?? 0
-    const [ventas, pagos, cierres] = await Promise.all([
+    const [ventas, pagos, cierres, movimientosCaja] = await Promise.all([
       repos.ventas.todas(),
       repos.fiados.pagos(),
       repos.cierres.todos(),
+      repos.movimientosCaja.todos(),
     ])
     return {
       fondoSugerido: ultimo?.contado ?? 0,
-      movimientos: movimientosEfectivo(ventas, pagos, desde, ahora),
+      movimientos: movimientosEfectivo(ventas, pagos, desde, ahora, movimientosCaja),
       resumen: resumenDelDia(ventas, new Date(ahora)),
       cierres,
     }
@@ -66,7 +62,7 @@ function PanelCierre({
   resumen,
   onTerminado,
 }: {
-  movimientos: { ventasEfectivo: number; pagosFiadoEfectivo: number }
+  movimientos: { ventasEfectivo: number; pagosFiadoEfectivo: number; entradasCaja?: number; salidasCaja?: number }
   fondoSugerido: number
   resumen: { vendido: number; ganancia: number }
   onTerminado: () => void
@@ -79,12 +75,15 @@ function PanelCierre({
   const esperado = esperadoEnCaja(fondoInicial, movimientos)
   const diferencia = contado === '' ? null : diferenciaCaja(contadoCentavos, esperado)
 
-  async function cerrar() {
+  async function cerrar(evento?: React.FormEvent<HTMLFormElement>) {
+    evento?.preventDefault()
     if (contado === '' || contadoCentavos < 0) return
     await repos.cierres.registrar({
       fondoInicial,
       ventasEfectivo: movimientos.ventasEfectivo,
       pagosFiadoEfectivo: movimientos.pagosFiadoEfectivo,
+      entradasCaja: movimientos.entradasCaja ?? 0,
+      salidasCaja: movimientos.salidasCaja ?? 0,
       esperado,
       contado: contadoCentavos,
     })
@@ -92,40 +91,49 @@ function PanelCierre({
   }
 
   return (
-    <div className="rounded-2xl px-4 py-4" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)' }}>
-      <h3 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
-        En el cajón debería haber
-      </h3>
-      <dl className="mt-2 text-[13px]">
+    <form className="form-shell form-card caja-close-form" onSubmit={(evento) => void cerrar(evento)}>
+      <div className="form-intro">
+        <span className="form-intro-icon" aria-hidden="true"><IconoEfectivo /></span>
+        <div><strong>Cuadrá tu caja</strong><p>Revisá el cálculo, contá el efectivo y guardá el resultado.</p></div>
+      </div>
+      <section className="form-section caja-breakdown">
+        <div className="form-section-heading">
+          <span className="form-step">1</span>
+          <div><h3>Lo que debería haber</h3><p>Podés corregir el fondo inicial si hoy empezaste con otro importe.</p></div>
+        </div>
+        <dl>
         <Fila nombre="Fondo inicial">
           <input
             aria-label="Fondo inicial" inputMode="decimal"
-            className="tabular w-28 rounded-lg px-2 py-1 text-right text-[13px]"
-            style={campo}
+            placeholder="Ej. 5.000"
+            className="form-input form-input-inline tabular"
             value={fondo}
             onChange={(evento) => setFondo(evento.target.value)}
           />
         </Fila>
         <Fila nombre="Ventas en efectivo"><Importe centavos={movimientos.ventasEfectivo} tamaño="chico" /></Fila>
         <Fila nombre="Pagos de fiado"><Importe centavos={movimientos.pagosFiadoEfectivo} tamaño="chico" /></Fila>
+        {(movimientos.entradasCaja ?? 0) > 0 && <Fila nombre="Entradas manuales"><Importe centavos={movimientos.entradasCaja ?? 0} tamaño="chico" /></Fila>}
+        {(movimientos.salidasCaja ?? 0) > 0 && <Fila nombre="Salidas manuales"><Importe centavos={-(movimientos.salidasCaja ?? 0)} tamaño="chico" /></Fila>}
         <Fila nombre="Esperado" fuerte>
           <Importe centavos={esperado} tamaño="normal" />
         </Fila>
-      </dl>
+        </dl>
+      </section>
 
-      <label className="mt-4 block text-[12px]" style={{ color: 'var(--tenue)' }}>
-        ¿Cuánto contaste?
-        <input
-          aria-label="Contado en el cajón" inputMode="decimal" autoFocus
-          className="tabular mt-1 w-full rounded-xl px-3 py-2.5 text-[16px]"
-          style={campo}
-          value={contado}
-          onChange={(evento) => setContado(evento.target.value)}
-        />
-      </label>
+      <section className="form-section caja-count-section">
+        <div className="form-section-heading">
+          <span className="form-step">2</span>
+          <div><h3>Contá el efectivo</h3><p>Sumá billetes y monedas del cajón. La diferencia se calcula sola.</p></div>
+        </div>
+        <label className="form-field">
+          <span className="form-field-label">¿Cuánto contaste? <em>importe real</em></span>
+          <div className="form-input-with-prefix"><span aria-hidden="true">$</span><input aria-label="Contado en el cajón" inputMode="decimal" autoFocus placeholder="Ej. 5.000" className="form-input form-input-large tabular" value={contado} onChange={(evento) => setContado(evento.target.value)} /></div>
+        </label>
+      </section>
 
       {diferencia !== null && (
-        <div className="mt-3 flex items-baseline justify-between">
+        <div className="caja-difference-card">
           <span className="text-[12px]" style={{ color: 'var(--tenue)' }}>
             {diferencia === 0 ? 'La caja cuadra' : diferencia < 0 ? 'Te faltó' : 'Te sobró'}
           </span>
@@ -137,7 +145,7 @@ function PanelCierre({
         </div>
       )}
 
-      <Boton variante="principal" className="mt-4 w-full" disabled={contado === ''} onClick={cerrar}>
+      <Boton type="submit" variante="principal" className="w-full" disabled={contado === ''}>
         Guardar cierre
       </Boton>
 
@@ -157,7 +165,7 @@ function PanelCierre({
           Mandar el resumen por WhatsApp
         </a>
       )}
-    </div>
+    </form>
   )
 }
 

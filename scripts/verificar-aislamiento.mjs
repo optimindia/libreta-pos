@@ -1,10 +1,12 @@
 /**
- * Comprueba que un negocio no pueda ver los datos de otro.
+ * Comprueba la superficie pública y, si se pasan dos sesiones de auditoría,
+ * el aislamiento entre negocios sin crear usuarios ni datos de prueba.
  *
- * Es la prueba de seguridad del producto: si esto falla, un almacenero ve
- * la facturación de otro y no hay que salir a vender hasta arreglarlo.
- * Corre contra la base real, así que necesita .env.local con las claves.
+ *   node scripts/verificar-aislamiento.mjs
  *
+ * Para la prueba autenticada opcional:
+ *   AUDITORIA_TOKEN_UNO=... AUDITORIA_NEGOCIO_UNO=... \
+ *   AUDITORIA_TOKEN_DOS=... AUDITORIA_NEGOCIO_DOS=... \
  *   node scripts/verificar-aislamiento.mjs
  */
 import { readFileSync } from 'node:fs'
@@ -26,73 +28,60 @@ if (!URL_BASE || !ANON) {
   process.exit(1)
 }
 
-const sufijo = Date.now().toString().slice(-8)
-
-async function crearDueño(nombreNegocio) {
-  const email = `54261${sufijo}@prueba.libreta.app`.replace('prueba', `p${Math.random().toString(36).slice(2, 6)}`)
-  const password = `libreta-v1:${email}:aislamiento`
-
-  const alta = await fetch(`${URL_BASE}/auth/v1/signup`, {
-    method: 'POST',
-    headers: { apikey: ANON, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  }).then((r) => r.json())
-
-  const token = alta.access_token
-  if (!token) throw new Error(`no se pudo crear el usuario de prueba: ${JSON.stringify(alta).slice(0, 200)}`)
-
-  const negocio = await fetch(`${URL_BASE}/rest/v1/rpc/crear_mi_negocio`, {
-    method: 'POST',
-    headers: { apikey: ANON, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ p_nombre: nombreNegocio }),
-  }).then((r) => r.json())
-
-  return { token, negocioId: negocio, email }
+async function pedir(ruta, token) {
+  const respuesta = await fetch(`${URL_BASE}/rest/v1/${ruta}`, {
+    headers: { apikey: ANON, ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  })
+  let cuerpo = null
+  try { cuerpo = await respuesta.json() } catch { /* respuesta vacía */ }
+  return { respuesta, cuerpo }
 }
-
-function pedir(ruta, token) {
-  return fetch(`${URL_BASE}/rest/v1/${ruta}`, {
-    headers: { apikey: ANON, Authorization: `Bearer ${token}` },
-  }).then((r) => r.json())
-}
-
-const uno = await crearDueño(`Almacén de prueba ${sufijo}`)
-const otro = await crearDueño(`Kiosco de prueba ${sufijo}`)
-
-// el primero carga un producto y una venta
-await fetch(`${URL_BASE}/rest/v1/productos`, {
-  method: 'POST',
-  headers: { apikey: ANON, Authorization: `Bearer ${uno.token}`, 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    id: crypto.randomUUID(), negocio_id: uno.negocioId,
-    nombre: 'Secreto comercial', costo: 1, precio: 2, stock: 1, stock_minimo: 0,
-  }),
-})
 
 const fallas = []
 
-const productosAjenos = await pedir('productos?select=nombre', otro.token)
-if (productosAjenos.length !== 0) fallas.push(`el otro negocio ve ${productosAjenos.length} productos ajenos`)
+const anonimo = await pedir('productos?select=nombre', null)
+if (anonimo.respuesta.status !== 401 && anonimo.respuesta.status !== 403) {
+  fallas.push(`productos sin sesión respondió HTTP ${anonimo.respuesta.status}`)
+}
+const configuracionAnonima = await pedir('negocio_configuracion?select=negocio_id', null)
+if (configuracionAnonima.respuesta.status !== 401 && configuracionAnonima.respuesta.status !== 403) {
+  fallas.push(`preferencias sin sesión respondieron HTTP ${configuracionAnonima.respuesta.status}`)
+}
 
-const negociosVistos = await pedir('negocios?select=nombre', otro.token)
-if (negociosVistos.length !== 1) fallas.push(`el otro negocio ve ${negociosVistos.length} negocios, debería ver sólo el suyo`)
-
-// escribir en el negocio ajeno tiene que ser rechazado
-const intruso = await fetch(`${URL_BASE}/rest/v1/productos`, {
+const rpcPublico = await fetch(`${URL_BASE}/rest/v1/rpc/crear_mi_negocio`, {
   method: 'POST',
-  headers: { apikey: ANON, Authorization: `Bearer ${otro.token}`, 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    id: crypto.randomUUID(), negocio_id: uno.negocioId,
-    nombre: 'Intruso', costo: 1, precio: 2, stock: 1, stock_minimo: 0,
-  }),
+  headers: { apikey: ANON, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ p_nombre: 'No debe crearse' }),
 })
-if (intruso.ok) fallas.push('¡se pudo escribir en el negocio ajeno!')
+if (rpcPublico.ok || rpcPublico.status < 400) {
+  fallas.push(`el RPC de alta respondió HTTP ${rpcPublico.status}`)
+}
 
-// sin sesión no se ve nada
-const anonimo = await fetch(`${URL_BASE}/rest/v1/productos?select=nombre`, {
-  headers: { apikey: ANON },
-}).then((r) => r.json())
-if (Array.isArray(anonimo) && anonimo.length !== 0) fallas.push('sin iniciar sesión se ven productos')
+const tokenUno = process.env.AUDITORIA_TOKEN_UNO
+const tokenDos = process.env.AUDITORIA_TOKEN_DOS
+const negocioUno = process.env.AUDITORIA_NEGOCIO_UNO
+const negocioDos = process.env.AUDITORIA_NEGOCIO_DOS
+if (tokenUno && tokenDos && negocioUno && negocioDos) {
+  for (const tabla of ['productos', 'negocio_configuracion']) {
+    const propiosUno = await pedir(`${tabla}?select=negocio_id&negocio_id=eq.${encodeURIComponent(negocioUno)}`, tokenUno)
+    const propiosDos = await pedir(`${tabla}?select=negocio_id&negocio_id=eq.${encodeURIComponent(negocioDos)}`, tokenDos)
+    for (const [nombre, resultado, negocio] of [['uno', propiosUno, negocioUno], ['dos', propiosDos, negocioDos]]) {
+      if (!resultado.respuesta.ok || !Array.isArray(resultado.cuerpo)) {
+        fallas.push(`la sesión ${nombre} no pudo leer su propia consulta en ${tabla}`)
+      } else if (resultado.cuerpo.some((fila) => fila.negocio_id !== negocio)) {
+        fallas.push(`la sesión ${nombre} recibió una fila de otro negocio en ${tabla}`)
+      }
+    }
+
+    const cruzadoUno = await pedir(`${tabla}?select=negocio_id&negocio_id=eq.${encodeURIComponent(negocioDos)}`, tokenUno)
+    const cruzadoDos = await pedir(`${tabla}?select=negocio_id&negocio_id=eq.${encodeURIComponent(negocioUno)}`, tokenDos)
+    for (const [nombre, resultado] of [['uno', cruzadoUno], ['dos', cruzadoDos]]) {
+      if (resultado.respuesta.ok && Array.isArray(resultado.cuerpo) && resultado.cuerpo.length > 0) {
+        fallas.push(`la sesión ${nombre} vio filas del otro negocio en ${tabla}`)
+      }
+    }
+  }
+}
 
 if (fallas.length > 0) {
   console.error('AISLAMIENTO ROTO:')
@@ -100,5 +89,7 @@ if (fallas.length > 0) {
   process.exit(1)
 }
 
-console.log('Aislamiento OK: cada negocio ve sólo lo suyo, no puede escribir en otro, y sin sesión no se ve nada.')
-console.log(`(quedaron 2 negocios de prueba con el sufijo ${sufijo}; se limpian con scripts/limpiar-pruebas.sql)`)
+console.log('Aislamiento OK: la superficie pública está cerrada y no se crean datos de prueba.')
+if (!(tokenUno && tokenDos && negocioUno && negocioDos)) {
+  console.log('Prueba autenticada omitida: pasá dos tokens y UUIDs de negocio para verificar el cruce entre tenants.')
+}

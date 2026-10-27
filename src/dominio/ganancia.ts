@@ -9,6 +9,7 @@ export interface ResumenDia {
 }
 
 export function gananciaVenta(venta: Venta): Centavos {
+  if (venta.estado === 'anulada') return 0
   return sumar(
     ...venta.items.map((item) =>
       multiplicar(item.precio - item.costo, item.cantidad),
@@ -34,7 +35,7 @@ export interface ProductoVendido {
 /** Los productos del día ordenados de más a menos vendidos: la lista que
  *  responde "¿qué se movió hoy?" de un vistazo, sin ir a buscarlo en el ticket. */
 export function masVendidos(ventas: Venta[], dia: Date, limite: number = 3): ProductoVendido[] {
-  const delDia = ventas.filter((venta) => esMismoDia(venta.fecha, dia))
+  const delDia = ventas.filter((venta) => venta.estado !== 'anulada' && esMismoDia(venta.fecha, dia))
   const porProducto = new Map<UUID, ProductoVendido>()
 
   for (const venta of delDia) {
@@ -51,7 +52,7 @@ export function masVendidos(ventas: Venta[], dia: Date, limite: number = 3): Pro
 }
 
 export function resumenDelDia(ventas: Venta[], dia: Date): ResumenDia {
-  const delDia = ventas.filter((venta) => esMismoDia(venta.fecha, dia))
+  const delDia = ventas.filter((venta) => venta.estado !== 'anulada' && esMismoDia(venta.fecha, dia))
   const porMedioPago: Record<MedioPago, Centavos> = {
     efectivo: 0, transferencia: 0, qr: 0, fiado: 0,
   }

@@ -2,7 +2,7 @@ import { db, type EnCola } from '@/datos/local/db'
 import type { Table } from 'dexie'
 import { pendientes, marcarSubido, marcarFallido } from '@/datos/local/cola'
 import { cliente } from './cliente'
-import { aLaNube, deLaNube, type Fila } from './mapeo'
+import { aLaNube, deLaNube, preferenciasDeLaNube, type Fila } from './mapeo'
 import type { UUID } from '@/dominio/tipos'
 
 export type SubirFn = (item: EnCola) => Promise<void>
@@ -18,12 +18,12 @@ export async function sincronizar(
   for (const item of cola) {
     try {
       await subir(item)
-      await marcarSubido(item.id)
+      await marcarSubido(item.id, item.creadoEn, item.datos)
       subidos++
-    } catch {
+    } catch (error) {
       // El dato ya está guardado en el teléfono: un fallo de red
       // no pierde nada, sólo posterga la subida.
-      await marcarFallido(item.id)
+      await marcarFallido(item.id, error)
       fallidos++
     }
   }
@@ -37,14 +37,100 @@ export async function sincronizar(
 export function subirASupabase(negocioId: UUID): SubirFn {
   return async (item) => {
     if (!cliente) throw new Error('nube apagada')
-    for (const parte of aLaNube(item.entidad, item.datos, negocioId)) {
-      const { error } = await cliente.from(parte.tabla).upsert(parte.filas)
+    if (item.entidad === 'movimientoStock') {
+      const datos = item.datos as { id: string; productoId: UUID; cantidad: number; origen: string; referenciaId?: string }
+      const { error } = await cliente.rpc('registrar_movimiento_stock', {
+        p_movimiento_id: datos.id,
+        p_negocio_id: negocioId,
+        p_producto_id: datos.productoId,
+        p_cantidad: datos.cantidad,
+        p_origen: datos.origen,
+        p_referencia_id: datos.referenciaId ?? null,
+      })
       if (error) throw error
+      return
+    }
+    if (item.operacion === 'eliminar') {
+      const tablas: Record<EnCola['entidad'], string> = {
+        producto: 'productos', venta: 'ventas', fiado: 'fiados', fiadoPago: 'fiado_pagos',
+        ingreso: 'ingresos', cliente: 'clientes', cierre: 'cierres', movimientoCaja: 'movimientos_caja', movimientoStock: 'movimientos_stock', pedido: 'pedidos', preferencias: 'negocio_configuracion',
+      }
+      const id = (item.datos as { id?: string }).id
+      if (item.entidad !== 'preferencias' && !id) throw new Error('operación de borrado sin id')
+      if (item.entidad === 'producto') {
+        const eliminadoEn = (item.datos as { eliminadoEn?: number }).eliminadoEn ?? Date.now()
+        const { error } = await cliente
+          .from(tablas[item.entidad])
+          .update({ eliminado_en: new Date(eliminadoEn).toISOString() })
+          .eq('id', id)
+          .eq('negocio_id', negocioId)
+        if (error) throw error
+        return
+      }
+      const consulta = item.entidad === 'preferencias'
+        ? cliente.from(tablas[item.entidad]).delete().eq('negocio_id', negocioId)
+        : cliente.from(tablas[item.entidad]).delete().eq('id', id).eq('negocio_id', negocioId)
+      const { error } = await consulta
+      if (error) throw error
+      return
+    }
+    for (const parte of aLaNube(item.entidad, item.datos, negocioId)) {
+      if (parte.tabla === 'negocio_configuracion') {
+        const respuesta = await cliente
+          .from(parte.tabla)
+          .upsert(parte.filas, { onConflict: 'negocio_id' })
+          .select('*')
+          .single()
+        if (respuesta.error) throw respuesta.error
+        if (respuesta.data) {
+          await db.preferencias.put(preferenciasDeLaNube(respuesta.data as Fila) as never)
+        }
+      } else if (parte.tabla === 'productos') {
+        // El servidor es la autoridad para `actualizado_en`. Guardar esa
+        // marca de vuelta en el aparato evita que el reloj adelantado de una
+        // PC vieja haga parecer que los cambios de otro dispositivo son más
+        // antiguos y los descarte.
+        // La ficha (precio, costo, nombre) no transporta stock. Así una
+        // edición de precio nunca puede pisar una venta de otro dispositivo.
+        const filas = item.operacion === 'actualizar'
+          ? parte.filas.map((fila) => {
+              const ficha = { ...fila }
+              delete ficha.stock
+              delete ficha.eliminado_en
+              return ficha
+            })
+          : parte.filas
+        const respuesta = await cliente
+          .from(parte.tabla)
+          .upsert(filas)
+          .select('*')
+          .single()
+        if (respuesta.error) throw respuesta.error
+        if (respuesta.data) {
+          const remoto = deLaNube('productos', respuesta.data as Fila) as Fila
+          const id = remoto.id as string | undefined
+          const local = id ? await db.productos.get(id) : undefined
+          const versionLocal = (item.datos as Fila).actualizadoEn
+          // No pises una edición que ocurrió mientras la petición estaba en
+          // vuelo; quedó otra operación pendiente con esa versión.
+          if (local && local.actualizadoEn === versionLocal) {
+            await db.productos.put({
+              ...local,
+              ...remoto,
+              categoria: local.categoria,
+              favorito: local.favorito,
+            } as never)
+          }
+        }
+      } else {
+        const { error } = await cliente.from(parte.tabla).upsert(parte.filas)
+        if (error) throw error
+      }
     }
   }
 }
 
-const DESTINO: Record<string, () => Table<unknown, unknown>> = {
+export const DESTINO: Record<string, () => Table<unknown, unknown>> = {
   productos: () => db.productos as unknown as Table<unknown, unknown>,
   ventas: () => db.ventas as unknown as Table<unknown, unknown>,
   clientes: () => db.clientes as unknown as Table<unknown, unknown>,
@@ -52,6 +138,9 @@ const DESTINO: Record<string, () => Table<unknown, unknown>> = {
   fiado_pagos: () => db.fiadoPagos as unknown as Table<unknown, unknown>,
   ingresos: () => db.ingresos as unknown as Table<unknown, unknown>,
   cierres: () => db.cierres as unknown as Table<unknown, unknown>,
+  movimientos_caja: () => db.movimientosCaja as unknown as Table<unknown, unknown>,
+  pedidos: () => db.pedidos as unknown as Table<unknown, unknown>,
+  negocio_configuracion: () => db.preferencias as unknown as Table<unknown, unknown>,
 }
 
 /** Primera apertura en un teléfono nuevo: la nube devuelve lo que el
@@ -63,13 +152,65 @@ export async function bajarTodo(traer: TraerFn): Promise<number> {
     try {
       const filas = await traer(tabla)
       if (filas.length === 0) continue
-      await destino().bulkPut(filas)
-      escritas += filas.length
+      if (tabla === 'negocio_configuracion') {
+        for (const fila of filas as Fila[]) {
+          const local = await db.preferencias.get('unico')
+          const marcaRemota = (fila.actualizadoEn as number | undefined) ?? 0
+          if (local && local.actualizadoEn > marcaRemota) continue
+          await destino().put({ ...fila, id: 'unico' })
+          escritas++
+        }
+      } else if (tabla === 'productos') {
+        for (const fila of filas as Fila[]) {
+          const pendiente = await db.cola.get(`producto:${fila.id as string}`)
+          const movimientosPendientes = (await db.cola.toArray()).some(
+            (item) => item.entidad === 'movimientoStock' && (item.datos as { productoId?: string }).productoId === fila.id,
+          )
+          if (pendiente || movimientosPendientes) continue
+          if (typeof fila.eliminadoEn === 'number') {
+            await db.productos.delete(fila.id as string)
+            await db.cola.delete(`producto:${fila.id as string}`)
+            escritas++
+            continue
+          }
+          const local = await db.productos.get(fila.id as string)
+          if (local) {
+            fila.categoria = local.categoria
+            fila.favorito = local.favorito
+          }
+          await destino().put(fila)
+          escritas++
+        }
+      } else {
+        await destino().bulkPut(filas)
+        escritas += filas.length
+      }
     } catch {
       // se sigue con la próxima tabla: bajar algo es mejor que no bajar nada
     }
   }
   return escritas
+}
+
+/** Las ventas y los ingresos viven en la nube en dos tablas y la
+ *  aplicación los usa juntas: los items se rearman con su cabecera. */
+export function rearmarItems(
+  tabla: 'ventas' | 'ingresos' | 'pedidos',
+  cabeceras: Fila[],
+  items: Fila[],
+): unknown[] {
+  const claveDelPadre = tabla === 'ventas' ? 'venta_id' : tabla === 'ingresos' ? 'ingreso_id' : 'pedido_id'
+  return cabeceras.map((fila) => ({
+    ...deLaNube(tabla, fila),
+    items: items
+      .filter((item) => item[claveDelPadre] === fila.id)
+      .map((item) => {
+        const local = deLaNube(`${tabla === 'ventas' ? 'venta' : tabla === 'ingresos' ? 'ingreso' : 'pedido'}_items`, item) as Fila
+        delete local[tabla === 'ventas' ? 'ventaId' : tabla === 'ingresos' ? 'ingresoId' : 'pedidoId']
+        delete local.id
+        return local
+      }),
+  }))
 }
 
 /** La bajada real contra Supabase. Las ventas se rearman con sus items,
@@ -78,31 +219,20 @@ export async function bajarTodo(traer: TraerFn): Promise<number> {
 export const traerDeSupabase: TraerFn = async (tabla) => {
   if (!cliente) throw new Error('nube apagada')
 
-  if (tabla === 'ventas' || tabla === 'ingresos') {
-    const tablaItems = tabla === 'ventas' ? 'venta_items' : 'ingreso_items'
-    const claveDelPadre = tabla === 'ventas' ? 'venta_id' : 'ingreso_id'
-
+  if (tabla === 'ventas' || tabla === 'ingresos' || tabla === 'pedidos') {
+    const tablaItems = tabla === 'ventas' ? 'venta_items' : tabla === 'ingresos' ? 'ingreso_items' : 'pedido_items'
     const [cabeceras, items] = await Promise.all([
       cliente.from(tabla).select('*'),
       cliente.from(tablaItems).select('*'),
     ])
     if (cabeceras.error) throw cabeceras.error
     if (items.error) throw items.error
-
-    return (cabeceras.data ?? []).map((fila) => ({
-      ...deLaNube(tabla, fila as Fila),
-      items: (items.data ?? [])
-        .filter((item) => (item as Fila)[claveDelPadre] === (fila as Fila).id)
-        .map((item) => {
-          const local = deLaNube(tablaItems, item as Fila) as Fila
-          delete local[claveDelPadre === 'venta_id' ? 'ventaId' : 'ingresoId']
-          delete local.id
-          return local
-        }),
-    }))
+    return rearmarItems(tabla, cabeceras.data ?? [], items.data ?? [])
   }
 
   const { data, error } = await cliente.from(tabla).select('*')
   if (error) throw error
-  return (data ?? []).map((fila) => deLaNube(tabla, fila as Fila))
+  return tabla === 'negocio_configuracion'
+    ? (data ?? []).map((fila) => preferenciasDeLaNube(fila as Fila))
+    : (data ?? []).map((fila) => deLaNube(tabla, fila as Fila))
 }

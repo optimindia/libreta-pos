@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/datos/local/db'
 import { nubeActiva } from '@/datos/nube/cliente'
+import { accesoSaasObligatorio } from '@/datos/nube/acceso'
 import { crearRespaldo } from '@/datos/nube/sesion'
 import { Boton } from '@/ui/sistema/Boton'
+import { IconoNube } from '@/ui/sistema/iconos'
 
 const VENTAS_PARA_OFRECER = 10
 const PRODUCTOS_PARA_OFRECER = 5
@@ -31,19 +33,26 @@ export function Respaldo() {
     negocio: await db.negocio.get('unico'),
   }))
 
-  async function respaldar() {
+  async function respaldar(evento?: React.FormEvent<HTMLFormElement>) {
+    evento?.preventDefault()
     setTrabajando(true)
     setAviso(null)
-    const resultado = await crearRespaldo(telefono, pin)
-    setAviso(
-      resultado.ok
-        ? 'Listo. Tus datos ahora se guardan también en la nube.'
-        : resultado.motivo,
-    )
-    setTrabajando(false)
+    try {
+      const resultado = await crearRespaldo(telefono, pin)
+      setAviso(
+        resultado.ok
+          ? 'Listo. Tus datos ahora se guardan también en la nube.'
+          : resultado.motivo,
+      )
+    } catch {
+      setAviso('No se pudo crear el respaldo. Probá de nuevo cuando tengas señal.')
+    } finally {
+      setTrabajando(false)
+    }
   }
 
   if (!datos) return null
+  if (accesoSaasObligatorio()) return null
   if (!convieneRespaldarAhora(datos.ventas, datos.productos)) return null
 
   if (!nubeActiva()) {
@@ -55,49 +64,60 @@ export function Respaldo() {
   }
 
   return (
-    <div className="mt-6 rounded-xl px-3.5 py-3.5" style={{ background: 'var(--chip-fondo)' }}>
-      <p className="text-[13px] font-semibold">Guardá una copia</p>
-      <p className="mt-1 text-[12px]" style={{ color: 'var(--tenue)' }}>
+    <form className="form-shell form-card mt-6" onSubmit={(evento) => void respaldar(evento)}>
+      <div className="form-intro">
+        <span className="form-intro-icon" aria-hidden="true"><IconoNube /></span>
+        <div><strong>Guardá una copia en la nube</strong><p>Tu negocio queda protegido aunque cambies o pierdas el celular.</p></div>
+      </div>
+      <p className="form-callout">
         Ya tenés {datos.productos} productos y {datos.ventas} ventas anotadas. Con tu teléfono y un
         PIN te guardamos una copia, por si el celu se pierde o se rompe.
       </p>
       {datos.negocio?.negocioId ? (
-        <p className="mt-2 text-[12px]" style={{ color: 'var(--verde)' }}>
+        <p className="form-message form-message-success" role="status">
           Ya tenés tu copia guardada. Se actualiza sola cuando hay señal.
         </p>
       ) : (
         <>
-          <input
+          <label className="form-field">
+            <span className="form-field-label">Teléfono <em>para recuperar tu negocio</em></span>
+            <input
             aria-label="Tu teléfono"
             inputMode="tel"
-            placeholder="Tu teléfono (261...)"
-            className="tabular mt-3 w-full rounded-xl px-3 py-2.5 text-[14px]"
-            style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)' }}
+            placeholder="Ej. 261 555 1234"
+            className="form-input tabular"
             value={telefono}
             onChange={(evento) => setTelefono(evento.target.value)}
-          />
-          <input
+            />
+            <span className="form-field-help">Usá el mismo número si después querés entrar desde otro aparato.</span>
+          </label>
+          <label className="form-field">
+            <span className="form-field-label">PIN <em>6 números · privado</em></span>
+            <input
             aria-label="PIN de 6 números"
             inputMode="numeric"
             placeholder="PIN de 6 números"
-            className="tabular mt-2 w-full rounded-xl px-3 py-2.5 text-[14px]"
-            style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)' }}
+            type="password"
+            autoComplete="new-password"
+            className="form-input tabular"
             value={pin}
             onChange={(evento) => setPin(evento.target.value)}
-          />
+            />
+            <span className="form-field-help">Elegí un PIN que puedas recordar y no compartas.</span>
+          </label>
           <Boton
             variante="principal"
-            className="mt-3 w-full !py-3 !text-[13px]"
+            type="submit"
+            className="w-full !py-3 !text-[13px]"
             disabled={trabajando}
-            onClick={respaldar}
           >
             {trabajando ? 'Guardando…' : 'Crear mi copia de seguridad'}
           </Boton>
           {aviso && (
-            <p className="mt-2 text-[12px]" style={{ color: 'var(--ambar)' }}>{aviso}</p>
+            <p className="form-message form-message-error" role="alert">{aviso}</p>
           )}
         </>
       )}
-    </div>
+    </form>
   )
 }

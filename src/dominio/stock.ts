@@ -14,6 +14,7 @@ export function stockCalculado(
 
   let salieron = 0
   for (const venta of ventas) {
+    if (venta.estado === 'anulada') continue
     for (const item of venta.items) {
       if (item.productoId === productoId) salieron += item.cantidad
     }

@@ -1,16 +1,19 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type {
-  Cierre, Cliente, Fiado, FiadoPago, Ingreso, Negocio, Producto, Venta,
+  Cierre, Cliente, Fiado, FiadoPago, Ingreso, MovimientoCaja, Negocio, Producto, Venta,
+  Pedido, PreferenciasNegocio,
 } from '@/dominio/tipos'
 
 /** Una operación pendiente de subir a la nube. */
 export interface EnCola {
   id: string
-  entidad: 'venta' | 'producto' | 'fiado' | 'fiadoPago' | 'ingreso' | 'cliente' | 'cierre'
-  operacion: 'crear' | 'actualizar'
+  entidad: 'venta' | 'producto' | 'movimientoStock' | 'fiado' | 'fiadoPago' | 'ingreso' | 'cliente' | 'cierre' | 'movimientoCaja' | 'pedido' | 'preferencias'
+  operacion: 'crear' | 'actualizar' | 'eliminar'
   datos: unknown
   intentos: number
   creadoEn: number
+  ultimoError?: string
+  ultimoIntentoEn?: number
 }
 
 export const db = new Dexie('libreta') as Dexie & {
@@ -21,6 +24,9 @@ export const db = new Dexie('libreta') as Dexie & {
   fiadoPagos: EntityTable<FiadoPago, 'id'>
   ingresos: EntityTable<Ingreso, 'id'>
   cierres: EntityTable<Cierre, 'id'>
+  movimientosCaja: EntityTable<MovimientoCaja, 'id'>
+  pedidos: EntityTable<Pedido, 'id'>
+  preferencias: EntityTable<PreferenciasNegocio, 'id'>
   negocio: EntityTable<Negocio, 'id'>
   cola: EntityTable<EnCola, 'id'>
 }
@@ -38,4 +44,16 @@ db.version(1).stores({
 
 db.version(2).stores({
   cierres: 'id, fecha',
+})
+
+db.version(3).stores({
+  movimientosCaja: 'id, fecha, tipo, medioPago',
+})
+
+db.version(4).stores({
+  pedidos: 'id, fecha, estado, clienteId, fechaEntrega, actualizadoEn',
+})
+
+db.version(5).stores({
+  preferencias: 'id, negocioId, actualizadoEn',
 })

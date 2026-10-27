@@ -1,35 +1,58 @@
-/** Todos con el mismo grosor de línea y las mismas puntas redondeadas.
- *  Nunca emojis: cada sistema los dibuja distinto y no son de la marca. */
-const base = {
-  width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none',
-  stroke: 'currentColor', strokeWidth: 1.9,
-  strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const,
+import type { LucideIcon } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowRightLeft, ArrowUpDown, BadgeCheck, Banknote, Bookmark, CalendarClock, CalendarDays, ChartNoAxesColumnIncreasing, Check, CircleAlert, CircleCheck, CircleDollarSign, CircleX, ClipboardList, Cloud, CreditCard, Download, Grid2X2, ListFilter, LockKeyhole, MapPin, MessageCircle, Minus, Package, Pencil, Percent, Plus, QrCode, ReceiptText, RefreshCw, ScanLine, Search, Settings, ShieldCheck, ShoppingCart, Star, StickyNote, Trash2, Truck, Upload, UserRoundPlus, UsersRound, X } from 'lucide-react'
+
+/** Un único lenguaje visual: misma familia, peso y proporción en toda la app. */
+function crearIcono(Icono: LucideIcon, relleno = false) {
+  return function IconoLibreta() {
+    return <Icono size={22} strokeWidth={1.9} fill={relleno ? 'currentColor' : 'none'} aria-hidden="true" focusable="false" />
+  }
 }
 
-export const IconoVender = () => (
-  <svg {...base}>
-    <path d="M3 4h2l2.5 11h10L20 7H6.5" />
-    <circle cx="9.5" cy="19" r="1.4" />
-    <circle cx="17" cy="19" r="1.4" />
-  </svg>
-)
-
-export const IconoFiados = () => (
-  <svg {...base}>
-    <path d="M5 3h14v18l-7-3.5L5 21z" />
-    <path d="M9 8h6M9 12h4" />
-  </svg>
-)
-
-export const IconoStock = () => (
-  <svg {...base}>
-    <path d="M3 8l9-4.5L21 8v8l-9 4.5L3 16z" />
-    <path d="M3 8l9 4.5L21 8M12 12.5V21" />
-  </svg>
-)
-
-export const IconoPlata = () => (
-  <svg {...base}>
-    <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
-  </svg>
-)
+export const IconoVender = crearIcono(ShoppingCart)
+export const IconoFiados = crearIcono(Bookmark)
+export const IconoStock = crearIcono(Package)
+export const IconoPlata = crearIcono(ChartNoAxesColumnIncreasing)
+export const IconoConfig = crearIcono(Settings)
+export const IconoCuenta = crearIcono(BadgeCheck)
+export const IconoHistorial = crearIcono(ReceiptText)
+export const IconoMas = crearIcono(Grid2X2)
+export const IconoNuevaVenta = crearIcono(Plus)
+export const IconoNuevoCliente = crearIcono(UserRoundPlus)
+export const IconoBuscar = crearIcono(Search)
+export const IconoFavorito = crearIcono(Star)
+export const IconoMenos = crearIcono(Minus)
+export const IconoMasCantidad = crearIcono(Plus)
+export const IconoFlechaDerecha = crearIcono(ArrowRight)
+export const IconoFlechaIzquierda = crearIcono(ArrowLeft)
+export const IconoSincronizado = crearIcono(CircleCheck)
+export const IconoReintentar = crearIcono(RefreshCw)
+export const IconoEscanear = crearIcono(ScanLine)
+export const IconoDescargar = crearIcono(Download)
+export const IconoSubir = crearIcono(Upload)
+export const IconoCerrar = crearIcono(X)
+export const IconoEfectivo = crearIcono(Banknote)
+export const IconoTransferencia = crearIcono(ArrowRightLeft)
+export const IconoQR = crearIcono(QrCode)
+export const IconoEditar = crearIcono(Pencil)
+export const IconoPorcentaje = crearIcono(Percent)
+export const IconoNube = crearIcono(Cloud)
+export const IconoMovimiento = crearIcono(ArrowUpDown)
+export const IconoCalendarioCuenta = crearIcono(CalendarClock)
+export const IconoTarjeta = crearIcono(CreditCard)
+export const IconoAlerta = crearIcono(CircleAlert)
+export const IconoBloqueo = crearIcono(LockKeyhole)
+export const IconoCuentaSegura = crearIcono(ShieldCheck)
+export const IconoCuentaActiva = crearIcono(CircleCheck)
+export const IconoCuentaCerrada = crearIcono(CircleX)
+export const IconoPedidos = crearIcono(ClipboardList)
+export const IconoEntrega = crearIcono(Truck)
+export const IconoCalendario = crearIcono(CalendarDays)
+export const IconoUbicacion = crearIcono(MapPin)
+export const IconoNota = crearIcono(StickyNote)
+export const IconoConfirmar = crearIcono(Check)
+export const IconoReloj = crearIcono(CalendarClock)
+export const IconoCobrar = crearIcono(CircleDollarSign)
+export const IconoClientes = crearIcono(UsersRound)
+export const IconoFiltro = crearIcono(ListFilter)
+export const IconoWhatsApp = crearIcono(MessageCircle)
+export const IconoEliminar = crearIcono(Trash2)
