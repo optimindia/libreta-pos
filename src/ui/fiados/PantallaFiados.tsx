@@ -243,8 +243,8 @@ export function PantallaFiados() {
         <div>
           <span className="page-kicker">Relación con clientes</span>
           <h1 className="page-title">Fiados</h1>
-          <div className="mt-2 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Te deben</div>
-          <Importe centavos={totalDeuda} tamaño="grande" style={{ color: 'var(--ambar)' }} />
+          <div className="mt-2 text-[12px] font-semibold uppercase tracking-wider">Te deben</div>
+          <Importe centavos={totalDeuda} tamaño="grande" />
         </div>
         <Boton variante="secundario" className="button-with-icon !py-2.5 !text-[12px]" onClick={() => setFormularioCliente('nuevo')}>
           <IconoNuevoCliente /> Nuevo cliente

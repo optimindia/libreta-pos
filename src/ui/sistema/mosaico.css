@@ -1189,3 +1189,140 @@ summary:focus-visible {
   background: var(--verde-suave);
   color: var(--tinta);
 }
+
+/* ───────────── Cabecera de módulo (Fiados, Stock, Plata, Más…) ─────────────
+   Mismo idioma que el Inicio: fondo verde sólido, borde firme y sombra dura.
+   Sin círculos translúcidos ni textos atenuados por transparencia. */
+
+.page-module-head,
+.app-header {
+  border: 2px solid var(--contorno);
+  border-radius: 20px;
+  background: var(--hero-fondo);
+  background-image: none;
+  color: var(--hero-texto);
+  box-shadow: var(--sombra-pop);
+}
+
+.page-module-head::before,
+.page-module-head::after,
+.app-header::before,
+.app-header::after {
+  display: none;
+  content: none;
+}
+
+.page-module-head .page-kicker,
+.page-module-head .page-description,
+.page-module-head .page-title {
+  color: var(--hero-texto);
+}
+
+.page-module-head .page-kicker {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.page-module-head .page-title {
+  font-size: clamp(2rem, 6vw, 2.6rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.page-module-head .page-description {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.page-module-head > .libreta-button,
+.page-module-head > .pedidos-new-button,
+.page-module-head > .clientes-new-button {
+  border: 2px solid var(--contorno) !important;
+  background: var(--arena) !important;
+  color: var(--tinta) !important;
+  box-shadow: var(--sombra-pop) !important;
+  font-weight: 800;
+}
+
+.page-module-head > .libreta-button:hover,
+.page-module-head > .pedidos-new-button:hover,
+.page-module-head > .clientes-new-button:hover {
+  border-color: var(--contorno) !important;
+  background: var(--lima) !important;
+}
+
+.page-head-stat,
+.page-module-head .page-head-stat {
+  border: 2px solid var(--contorno);
+  background: var(--arena);
+  color: var(--tinta);
+  box-shadow: var(--sombra-pop);
+}
+
+.page-module-head .page-head-stat strong,
+.page-module-head .page-head-stat span {
+  color: var(--tinta);
+}
+
+/* Textos sueltos dentro de la cabecera: siempre claros sobre el verde. */
+.page-module-head :where(div, span, strong, p):not(.page-head-stat *) {
+  color: inherit;
+}
+
+.mz-boton-cabecera {
+  border: 2px solid var(--contorno);
+  background: var(--arena);
+  color: var(--tinta);
+  box-shadow: var(--sombra-pop);
+  font-weight: 800;
+}
+
+/* ───────────── Tarjetas de los módulos: relieve Pop sólido ───────────── */
+
+.fiados-summary-card,
+.fiado-card,
+.plata-operation-card,
+.plata-report-card,
+.control-action-card,
+.stock-scan-card,
+.caja-difference-card,
+.invoice-total-card {
+  border: 2px solid var(--contorno);
+  background: var(--hueso-2);
+  background-image: none;
+  box-shadow: var(--sombra-pop);
+}
+
+.fiados-summary-card:nth-child(1) { background: var(--menta); }
+.fiados-summary-card:nth-child(2) { background: var(--arena); }
+.fiados-summary-card:nth-child(3) { background: var(--hueso-2); }
+.fiados-summary-card,
+.fiados-summary-card span,
+.fiados-summary-card strong { color: var(--tinta) !important; }
+
+.control-center,
+.plata-kpis > *,
+.plata-periodos {
+  background-image: none;
+}
+
+.control-center {
+  border: 2px solid var(--contorno);
+  background: var(--arena);
+  box-shadow: var(--sombra-pop);
+}
+
+.control-center .page-kicker,
+.control-center :where(h2, p, small, strong) {
+  color: var(--tinta);
+}
+
+.plata-kpis > * {
+  border: 2px solid var(--contorno);
+  background: var(--hueso-2);
+  box-shadow: var(--sombra-pop);
+}
+
+.plata-kpis > *:nth-child(2) { background: var(--menta); }
+.plata-kpis > * :where(div, span, p) { color: var(--tinta); }

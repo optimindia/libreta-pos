@@ -239,8 +239,8 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
         </Boton>
         <select
           aria-label="Ordenar stock"
-          className="flex-1 rounded-2xl px-3 text-[12px] font-semibold"
-          style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)', color: 'var(--tinta)' }}
+          className="min-w-0 flex-1 rounded-2xl px-3 text-[12px] font-semibold"
+          style={{ background: 'var(--hueso-2)', border: '2px solid var(--contorno)', color: 'var(--tinta)' }}
           value={orden}
           onChange={(evento) => setOrden(evento.target.value as Orden)}
         >
