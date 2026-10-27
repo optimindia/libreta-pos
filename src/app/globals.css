@@ -2617,7 +2617,11 @@ button.pedidos-metric:active {
   height: 7px;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 13%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ambar) 13%, transparent);
+}
+
+.control-center-status.is-ok .control-center-status-dot {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--verde) 13%, transparent);
 }
 
 .control-action-grid {

@@ -44,5 +44,13 @@
     "typescript": "^5",
     "vitest": "^4.1.11",
     "workbox-cli": "^7.4.1"
-  }
+  },
+  "browserslist": [
+    "chrome >= 99",
+    "edge >= 99",
+    "firefox >= 97",
+    "safari >= 15.4",
+    "ios_saf >= 15.4",
+    "samsung >= 18"
+  ]
 }
