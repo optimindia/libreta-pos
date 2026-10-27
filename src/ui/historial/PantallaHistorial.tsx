@@ -51,7 +51,7 @@ function DetalleVenta({ venta, onCerrar, onAnulada }: { venta: Venta; onCerrar: 
   return (
     <div className="mt-3 rounded-2xl px-3.5 py-3" style={{ background: 'var(--chip-fondo)', border: '1px solid var(--linea)' }}>
       <div className="flex items-baseline justify-between">
-        <div><h2 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Detalle de venta</h2><div className="mt-1 text-[11px]" style={{ color: 'var(--tenue)' }}>{fechaVenta(venta.fecha)} · {MEDIOS[venta.medioPago]}{venta.estado === 'anulada' ? ' · Anulada' : ''}</div></div>
+        <div><h2 className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Detalle de venta</h2><div className="mt-1 text-[12px]" style={{ color: 'var(--tenue)' }}>{fechaVenta(venta.fecha)} · {MEDIOS[venta.medioPago]}{venta.estado === 'anulada' ? ' · Anulada' : ''}</div></div>
         <button type="button" className="text-[12px]" style={{ color: 'var(--tenue)' }} onClick={onCerrar}>Cerrar</button>
       </div>
       {venta.estado === 'anulada' && <div className="history-void-banner"><strong>Venta anulada</strong><span>{venta.motivoAnulacion || 'Sin motivo detallado'} · stock devuelto</span></div>}
@@ -105,10 +105,10 @@ export function PantallaHistorial() {
       <input aria-label="Buscar en historial" placeholder="Buscar producto o medio de pago…" className="historial-search mt-4 w-full rounded-xl px-3 py-2.5 text-[14px]" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)', color: 'var(--tinta)' }} value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} />
       <div className="historial-filters mt-2 grid grid-cols-4 gap-1.5">
         {(['hoy', '7dias', '30dias', 'todo'] as PeriodoReporte[]).map((opcion) => (
-          <Boton key={opcion} variante={periodo === opcion ? 'principal' : 'secundario'} className="!rounded-xl !px-1 !py-2 !text-[10px]" onClick={() => setPeriodo(opcion)}>{opcion === 'todo' ? 'Todo' : opcion === 'hoy' ? 'Hoy' : opcion}</Boton>
+          <Boton key={opcion} variante={periodo === opcion ? 'principal' : 'secundario'} className="!rounded-xl !px-1 !py-2 !text-[12px]" onClick={() => setPeriodo(opcion)}>{opcion === 'todo' ? 'Todo' : opcion === 'hoy' ? 'Hoy' : opcion}</Boton>
         ))}
       </div>
-      <button type="button" className="historial-export mt-2 w-full rounded-xl py-2.5 text-[11px] font-semibold" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)', color: 'var(--tinta)' }} onClick={() => descargarCsv(`ventas-${new Date().toISOString().slice(0, 10)}.csv`, ventasACsv(filtradas))}>Exportar estas ventas a CSV</button>
+      <button type="button" className="historial-export mt-2 w-full rounded-xl py-2.5 text-[12px] font-semibold" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)', color: 'var(--tinta)' }} onClick={() => descargarCsv(`ventas-${new Date().toISOString().slice(0, 10)}.csv`, ventasACsv(filtradas))}>Exportar estas ventas a CSV</button>
       <div className={`historial-layout${seleccionada ? ' historial-layout-detail' : ''}`}>
       {seleccionada && <DetalleVenta venta={seleccionada} onCerrar={() => setSeleccionada(null)} onAnulada={(venta) => setSeleccionada(venta)} />}
       {filtradas.length === 0 ? (
@@ -128,8 +128,8 @@ export function PantallaHistorial() {
           {filtradas.map((venta) => (
             <li key={venta.id}>
               <button type="button" className="historial-row flex w-full items-center gap-3 py-3 text-left active:opacity-70" style={{ borderBottom: '1px solid var(--linea)' }} onClick={() => setSeleccionada(venta)} aria-label={`Ver venta de ${ImporteLabel(venta.total)} de ${fechaVenta(venta.fecha)}`}>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold" style={{ background: 'var(--chip-fondo)', color: 'var(--tenue)' }}>{venta.items.length}</span>
-                <span className="min-w-0 flex-1"><span className="block truncate text-[13px] font-medium" style={{ textDecoration: venta.estado === 'anulada' ? 'line-through' : undefined }}>{venta.items.map((item) => item.nombre).join(', ')}</span><span className="text-[11px]" style={{ color: venta.estado === 'anulada' ? 'var(--ambar)' : 'var(--tenue)' }}>{fechaVenta(venta.fecha)} · {MEDIOS[venta.medioPago]}{venta.estado === 'anulada' ? ' · Anulada' : ''}</span></span>
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[12px] font-bold" style={{ background: 'var(--chip-fondo)', color: 'var(--tenue)' }}>{venta.items.length}</span>
+                <span className="min-w-0 flex-1"><span className="block truncate text-[13px] font-medium" style={{ textDecoration: venta.estado === 'anulada' ? 'line-through' : undefined }}>{venta.items.map((item) => item.nombre).join(', ')}</span><span className="text-[12px]" style={{ color: venta.estado === 'anulada' ? 'var(--ambar)' : 'var(--tenue)' }}>{fechaVenta(venta.fecha)} · {MEDIOS[venta.medioPago]}{venta.estado === 'anulada' ? ' · Anulada' : ''}</span></span>
                 <Importe centavos={venta.total} tamaño="chico" style={{ color: venta.estado === 'anulada' ? 'var(--tenue)' : undefined, textDecoration: venta.estado === 'anulada' ? 'line-through' : undefined }} />
               </button>
             </li>

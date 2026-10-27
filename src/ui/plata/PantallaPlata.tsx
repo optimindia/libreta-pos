@@ -68,7 +68,7 @@ export function PantallaPlata() {
           <div className="mt-1 text-[12px] font-semibold" style={{ color: 'var(--tenue)' }}>{etiquetaPeriodo(periodo)}</div>
         </div>
         <a
-          className="rounded-xl px-3 py-2 text-[11px] font-semibold"
+          className="rounded-xl px-3 py-2 text-[12px] font-semibold"
           style={{ background: 'var(--chip-fondo)', color: 'var(--tinta)' }}
           target="_blank"
           rel="noreferrer"
@@ -85,7 +85,7 @@ export function PantallaPlata() {
           <Boton
             key={opcion}
             variante={periodo === opcion ? 'principal' : 'secundario'}
-            className="!rounded-xl !px-1 !py-2 !text-[10px]"
+            className="!rounded-xl !px-1 !py-2 !text-[12px]"
             aria-pressed={periodo === opcion}
             onClick={() => setPeriodo(opcion)}
           >
@@ -96,14 +96,14 @@ export function PantallaPlata() {
 
       <div className="plata-kpis mt-5 grid grid-cols-2 gap-2">
         <div className="rounded-2xl px-3.5 py-3" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)' }}>
-          <div className="text-[11px]" style={{ color: 'var(--tenue)' }}>Vendiste</div>
+          <div className="text-[12px]" style={{ color: 'var(--tenue)' }}>Vendiste</div>
           <Importe centavos={datos.resumen.vendido} tamaño="grande" className="mt-0.5 !text-2xl" />
-          <div className="mt-1 text-[10.5px]" style={{ color: 'var(--tenue)' }}>{datos.resumen.cantidadVentas} ventas</div>
+          <div className="mt-1 text-[12px]" style={{ color: 'var(--tenue)' }}>{datos.resumen.cantidadVentas} ventas</div>
         </div>
         <div className="rounded-2xl px-3.5 py-3" style={{ background: 'var(--chip-fondo)', border: '1px solid var(--linea)' }}>
-          <div className="text-[11px]" style={{ color: 'var(--tenue)' }}>Ganaste</div>
+          <div className="text-[12px]" style={{ color: 'var(--tenue)' }}>Ganaste</div>
           <Importe centavos={datos.resumen.ganancia} tamaño="grande" className="mt-0.5 !text-2xl" style={{ color: 'var(--verde)' }} />
-          <div className="mt-1 text-[10.5px]" style={{ color: 'var(--tenue)' }}>{porcentajeMargen(datos.resumen.vendido, datos.resumen.ganancia)}% de margen</div>
+          <div className="mt-1 text-[12px]" style={{ color: 'var(--tenue)' }}>{porcentajeMargen(datos.resumen.vendido, datos.resumen.ganancia)}% de margen</div>
         </div>
       </div>
 
@@ -114,17 +114,17 @@ export function PantallaPlata() {
 
       <div className="plata-report-grid">
       <section className="plata-report-card">
-      <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Lo que más rindió</h2>
+      <h2 className="mt-8 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Lo que más rindió</h2>
       {datos.ranking.length === 0 ? (
         <p className="mt-2 text-[13px]" style={{ color: 'var(--tenue)' }}>Todavía no hay ventas en este período.</p>
       ) : (
         <ul className="mt-2 space-y-2">
           {datos.ranking.map((producto, indice) => (
             <li key={producto.productoId} className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ background: indice === 0 ? 'var(--chip-fondo)' : 'var(--hueso-2)', border: '1px solid var(--linea)' }}>
-              <span className="tabular flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold" style={{ background: 'var(--linea)', color: 'var(--tenue)' }}>{indice + 1}</span>
+              <span className="tabular flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-bold" style={{ background: 'var(--linea)', color: 'var(--tenue)' }}>{indice + 1}</span>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13px] font-medium">{producto.nombre}</div>
-                <div className="text-[10.5px]" style={{ color: 'var(--tenue)' }}>{producto.unidades} unidades · ganancia {<Importe centavos={producto.ganancia} tamaño="chico" />}</div>
+                <div className="text-[12px]" style={{ color: 'var(--tenue)' }}>{producto.unidades} unidades · ganancia {<Importe centavos={producto.ganancia} tamaño="chico" />}</div>
               </div>
               <Importe centavos={producto.vendido} tamaño="chico" />
             </li>
@@ -134,7 +134,7 @@ export function PantallaPlata() {
 
       </section>
       <section className="plata-report-card">
-      <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Cómo te pagaron</h2>
+      <h2 className="mt-8 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Cómo te pagaron</h2>
       {medios.length === 0 ? (
         <p className="mt-2 text-[13px]" style={{ color: 'var(--tenue)' }}>Todavía no cobraste en este período.</p>
       ) : (
@@ -142,7 +142,7 @@ export function PantallaPlata() {
           {medios.map(([medio, monto]) => (
             <li key={medio} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--linea)' }}>
               <span className="text-[13px]">{NOMBRE_MEDIO[medio]}</span>
-              <span className="flex items-center gap-2"><span className="text-[10.5px]" style={{ color: 'var(--tenue)' }}>{datos.resumen.porcentajePorMedio[medio as keyof typeof datos.resumen.porcentajePorMedio]}%</span><Importe centavos={monto} tamaño="chico" /></span>
+              <span className="flex items-center gap-2"><span className="text-[12px]" style={{ color: 'var(--tenue)' }}>{datos.resumen.porcentajePorMedio[medio as keyof typeof datos.resumen.porcentajePorMedio]}%</span><Importe centavos={monto} tamaño="chico" /></span>
             </li>
           ))}
         </ul>
@@ -153,7 +153,7 @@ export function PantallaPlata() {
 
       <div className="plata-operations-grid">
       <section id="caja" className="plata-operation-card">
-      <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Caja</h2>
+      <h2 className="mt-8 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Caja</h2>
       <div className="mt-2"><CierreCaja /></div>
       <MovimientosCaja />
       </section>
@@ -169,7 +169,7 @@ export function PantallaPlata() {
       </section>
 
       <section className="plata-operation-card">
-      <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Tenés que reponer</h2>
+      <h2 className="mt-8 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Tenés que reponer</h2>
       {datos.compras.length === 0 ? (
         <p className="mt-2 text-[13px]" style={{ color: 'var(--tenue)' }}>Por ahora no te falta nada.</p>
       ) : (
@@ -177,7 +177,7 @@ export function PantallaPlata() {
           <ul className="mt-2">
             {datos.compras.map((compra) => (
               <li key={compra.producto.id} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--linea)' }}>
-                <div className="leading-tight"><div className="text-[13px] font-medium">{compra.producto.nombre}</div><div className="text-[11px]" style={{ color: 'var(--tenue)' }}>{textoDuracion(compra.diasRestantes)}</div></div>
+                <div className="leading-tight"><div className="text-[13px] font-medium">{compra.producto.nombre}</div><div className="text-[12px]" style={{ color: 'var(--tenue)' }}>{textoDuracion(compra.diasRestantes)}</div></div>
                 <span className="tabular text-[13px] font-semibold">{compra.cantidadSugerida}</span>
               </li>
             ))}

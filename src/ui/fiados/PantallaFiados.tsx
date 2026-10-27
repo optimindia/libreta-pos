@@ -132,7 +132,7 @@ function HistorialCliente({ clienteId, nombre, onCerrar }: { clienteId: UUID; no
   return (
     <div className="mt-3 rounded-2xl px-3.5 py-3" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)' }}>
       <div className="flex items-baseline justify-between">
-        <h2 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Historial de {nombre}</h2>
+        <h2 className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Historial de {nombre}</h2>
         <button type="button" className="text-[12px]" style={{ color: 'var(--tenue)' }} onClick={onCerrar}>Cerrar</button>
       </div>
       <div className="mt-2 flex items-baseline justify-between">
@@ -147,7 +147,7 @@ function HistorialCliente({ clienteId, nombre, onCerrar }: { clienteId: UUID; no
             <li key={movimiento.id} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--linea)' }}>
               <div>
                 <div className="text-[12px] font-medium">{movimiento.tipo}</div>
-                <div className="text-[10.5px]" style={{ color: 'var(--tenue)' }}>{new Date(movimiento.fecha).toLocaleDateString('es-AR')}</div>
+                <div className="text-[12px]" style={{ color: 'var(--tenue)' }}>{new Date(movimiento.fecha).toLocaleDateString('es-AR')}</div>
               </div>
               <Importe centavos={movimiento.monto} tamaño="chico" style={{ color: movimiento.signo > 0 ? 'var(--ambar)' : 'var(--verde)' }} />
             </li>
@@ -243,7 +243,7 @@ export function PantallaFiados() {
         <div>
           <span className="page-kicker">Relación con clientes</span>
           <h1 className="page-title">Fiados</h1>
-          <div className="mt-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Te deben</div>
+          <div className="mt-2 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Te deben</div>
           <Importe centavos={totalDeuda} tamaño="grande" style={{ color: 'var(--ambar)' }} />
         </div>
         <Boton variante="secundario" className="button-with-icon !py-2.5 !text-[12px]" onClick={() => setFormularioCliente('nuevo')}>
@@ -277,10 +277,10 @@ export function PantallaFiados() {
       )}
 
       <div className="fiados-toolbar mt-2 flex gap-2">
-        <Boton variante={soloVencidos ? 'fiado' : 'secundario'} className="flex-1 !py-2.5 !text-[11px]" aria-pressed={soloVencidos} onClick={() => setSoloVencidos((actual) => !actual)}>
+        <Boton variante={soloVencidos ? 'fiado' : 'secundario'} className="flex-1 !py-2.5 !text-[12px]" aria-pressed={soloVencidos} onClick={() => setSoloVencidos((actual) => !actual)}>
           {soloVencidos ? 'Mostrando vencidos' : `Vencidos (${vencidas})`}
         </Boton>
-        <span className="flex items-center rounded-2xl px-2.5 text-[10.5px]" style={{ background: 'var(--chip-fondo)', color: 'var(--tenue)' }}>Riesgo y límite activos</span>
+        <span className="flex items-center rounded-2xl px-2.5 text-[12px]" style={{ background: 'var(--chip-fondo)', color: 'var(--tenue)' }}>Riesgo y límite activos</span>
       </div>
 
       {ultimoPago && (() => {
@@ -320,17 +320,17 @@ export function PantallaFiados() {
                 </div>
                 <div className="min-w-0 flex-1 leading-tight">
                   <div className="truncate text-[15px] font-semibold">{deuda.cliente!.nombre}</div>
-                  <div className="mt-0.5 text-[11px]" style={{ color: 'var(--tenue)' }}>
+                  <div className="mt-0.5 text-[12px]" style={{ color: 'var(--tenue)' }}>
                     {deuda.diasDelMasViejo === 0 ? 'anotado hoy' : `desde hace ${deuda.diasDelMasViejo} ${deuda.diasDelMasViejo === 1 ? 'día' : 'días'}`}
                   </div>
                   <div className="mt-1 flex flex-wrap gap-1">
-                    <span className="rounded-full px-1.5 py-0.5 text-[9px] font-semibold" style={{ background: deuda.riesgo === 'alto' ? 'var(--ambar-fondo)' : 'var(--hueso-2)', color: deuda.riesgo === 'alto' ? 'var(--ambar)' : 'var(--tenue)' }}>{etiquetaRiesgo(deuda.riesgo)}</span>
-                    <span className="rounded-full px-1.5 py-0.5 text-[9px]" style={{ background: deuda.estado === 'vencido' ? 'var(--ambar-fondo)' : 'var(--hueso-2)', color: deuda.estado === 'vencido' ? 'var(--ambar)' : 'var(--tenue)' }}>{etiquetaVencimiento(deuda.vence)}</span>
+                    <span className="rounded-full px-1.5 py-0.5 text-[12px] font-semibold" style={{ background: deuda.riesgo === 'alto' ? 'var(--ambar-fondo)' : 'var(--hueso-2)', color: deuda.riesgo === 'alto' ? 'var(--ambar)' : 'var(--tenue)' }}>{etiquetaRiesgo(deuda.riesgo)}</span>
+                    <span className="rounded-full px-1.5 py-0.5 text-[12px]" style={{ background: deuda.estado === 'vencido' ? 'var(--ambar-fondo)' : 'var(--hueso-2)', color: deuda.estado === 'vencido' ? 'var(--ambar)' : 'var(--tenue)' }}>{etiquetaVencimiento(deuda.vence)}</span>
                   </div>
                 </div>
                 <Importe centavos={deuda.saldo} style={{ color: 'var(--ambar)' }} />
               </div>
-              {deuda.porcentajeLimite !== null && <div className="mt-2"><div className="flex justify-between text-[10px]" style={{ color: 'var(--tenue)' }}><span>Uso de límite</span><span>{deuda.porcentajeLimite}%</span></div><div className="mt-1 h-1.5 overflow-hidden rounded-full" style={{ background: 'var(--linea)' }}><div className="h-full rounded-full" style={{ width: `${Math.min(100, deuda.porcentajeLimite)}%`, background: deuda.porcentajeLimite >= 100 ? 'var(--ambar)' : 'var(--verde)' }} /></div></div>}
+              {deuda.porcentajeLimite !== null && <div className="mt-2"><div className="flex justify-between text-[12px]" style={{ color: 'var(--tenue)' }}><span>Uso de límite</span><span>{deuda.porcentajeLimite}%</span></div><div className="mt-1 h-1.5 overflow-hidden rounded-full" style={{ background: 'var(--linea)' }}><div className="h-full rounded-full" style={{ width: `${Math.min(100, deuda.porcentajeLimite)}%`, background: deuda.porcentajeLimite >= 100 ? 'var(--ambar)' : 'var(--verde)' }} /></div></div>}
 
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <Boton variante="principal" className="!py-2.5 !text-[12px]" onClick={() => void cobrarTodo(deuda.clienteId, deuda.saldo)}>

@@ -43,10 +43,10 @@ export function CatalogoVender({
   return (
     <section className="catalogo-venta mt-6 px-5">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
+        <h2 className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
           Productos
         </h2>
-        <span className="text-[11px]" style={{ color: 'var(--tenue)' }}>{productos.length}</span>
+        <span className="text-[12px]" style={{ color: 'var(--tenue)' }}>{productos.length}</span>
       </div>
 
       <div className="catalog-search-wrap mt-2">
@@ -60,11 +60,11 @@ export function CatalogoVender({
           onChange={(evento) => onBuscar(evento.target.value)}
         />
       </div>
-      <p className="mt-1 text-[10px]" style={{ color: 'var(--tenue)' }}>Atajos: / buscar · Esc limpiar · Ctrl+Enter cobrar</p>
+      <p className="mt-1 text-[12px]" style={{ color: 'var(--tenue)' }}>Atajos: / buscar · Esc limpiar · Ctrl+Enter cobrar</p>
 
-      {categorias.length > 0 && <div className="catalogo-categories mt-2 flex gap-1.5 overflow-x-auto pb-0.5"><button type="button" className="shrink-0 rounded-full px-2.5 py-1.5 text-[10px] font-semibold" style={{ background: categoria === '' ? 'var(--verde)' : 'var(--hueso-2)', color: categoria === '' ? 'var(--verde-texto)' : 'var(--tinta)', border: '1px solid var(--linea)' }} onClick={() => setCategoria('')}>Todo</button>{categorias.map((opcion) => <button type="button" key={opcion} className="shrink-0 rounded-full px-2.5 py-1.5 text-[10px] font-semibold" style={{ background: categoria === opcion ? 'var(--verde)' : 'var(--hueso-2)', color: categoria === opcion ? 'var(--verde-texto)' : 'var(--tinta)', border: '1px solid var(--linea)' }} onClick={() => setCategoria(opcion)}>{opcion}</button>)}</div>}
+      {categorias.length > 0 && <div className="catalogo-categories mt-2 flex gap-1.5 overflow-x-auto pb-0.5"><button type="button" className="shrink-0 rounded-full px-2.5 py-1.5 text-[12px] font-semibold" style={{ background: categoria === '' ? 'var(--verde)' : 'var(--hueso-2)', color: categoria === '' ? 'var(--verde-texto)' : 'var(--tinta)', border: '1px solid var(--linea)' }} onClick={() => setCategoria('')}>Todo</button>{categorias.map((opcion) => <button type="button" key={opcion} className="shrink-0 rounded-full px-2.5 py-1.5 text-[12px] font-semibold" style={{ background: categoria === opcion ? 'var(--verde)' : 'var(--hueso-2)', color: categoria === opcion ? 'var(--verde-texto)' : 'var(--tinta)', border: '1px solid var(--linea)' }} onClick={() => setCategoria(opcion)}>{opcion}</button>)}</div>}
 
-      {busqueda.trim() === '' && favoritos.length > 0 && <div className="catalogo-favoritos mt-4"><div className="flex items-baseline justify-between"><h3 className="text-[10.5px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Favoritos rápidos</h3><span className="text-[10px]" style={{ color: 'var(--tenue)' }}>{favoritos.length}</span></div><div className="mt-2 flex gap-2 overflow-x-auto pb-1">{favoritos.map((producto) => <button type="button" key={producto.id} className="favorito-card min-w-28 rounded-xl px-2.5 py-2 text-left" style={{ background: 'var(--chip-fondo)', border: '1px solid var(--linea)' }} onClick={() => onElegir(producto)}><div className="truncate text-[11px] font-medium">{producto.nombre}</div><Importe centavos={producto.precio} tamaño="chico" className="mt-0.5" /></button>)}</div></div>}
+      {busqueda.trim() === '' && favoritos.length > 0 && <div className="catalogo-favoritos mt-4"><div className="flex items-baseline justify-between"><h3 className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Favoritos rápidos</h3><span className="text-[12px]" style={{ color: 'var(--tenue)' }}>{favoritos.length}</span></div><div className="mt-2 flex gap-2 overflow-x-auto pb-1">{favoritos.map((producto) => <button type="button" key={producto.id} className="favorito-card min-w-28 rounded-xl px-2.5 py-2 text-left" style={{ background: 'var(--chip-fondo)', border: '1px solid var(--linea)' }} onClick={() => onElegir(producto)}><div className="truncate text-[12px] font-medium">{producto.nombre}</div><Importe centavos={producto.precio} tamaño="chico" className="mt-0.5" /></button>)}</div></div>}
 
       {visibles.length === 0 ? (
         <div className="catalog-empty mt-5 text-center">
@@ -94,7 +94,7 @@ export function CatalogoVender({
                   </span>
                   <span className="catalogo-producto-add">{producto.stock <= 0 ? 'No disponible' : <><IconoNuevaVenta /> Agregar</>}</span>
                 </span>
-                <span className="mt-1 block text-[10px] font-semibold" style={{ color: producto.stock <= 0 ? 'var(--ambar)' : tieneOfertaVigente(producto) ? 'var(--verde)' : 'var(--tenue)' }}>{producto.stock <= 0 ? 'Sin stock · no vendible' : tieneOfertaVigente(producto) ? `Oferta activa · ${producto.stock} disponibles` : `${producto.stock} disponibles`}</span>
+                <span className="mt-1 block text-[12px] font-semibold" style={{ color: producto.stock <= 0 ? 'var(--ambar)' : tieneOfertaVigente(producto) ? 'var(--verde)' : 'var(--tenue)' }}>{producto.stock <= 0 ? 'Sin stock · no vendible' : tieneOfertaVigente(producto) ? `Oferta activa · ${producto.stock} disponibles` : `${producto.stock} disponibles`}</span>
               </button>
             </div>
           ))}

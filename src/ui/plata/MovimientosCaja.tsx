@@ -54,14 +54,14 @@ export function MovimientosCaja() {
       <div className="flex items-center justify-between gap-2">
         <div>
           <h3 className="text-[12px] font-semibold">Movimientos manuales</h3>
-          <p className="mt-0.5 text-[10.5px]" style={{ color: 'var(--tenue)' }}>Solo los de efectivo impactan el cierre.</p>
+          <p className="mt-0.5 text-[12px]" style={{ color: 'var(--tenue)' }}>Solo los de efectivo impactan el cierre.</p>
         </div>
-        <Boton variante="secundario" className="!px-2.5 !py-2 !text-[11px]" onClick={() => setAbierto((actual) => !actual)}>
+        <Boton variante="secundario" className="!px-2.5 !py-2 !text-[12px]" onClick={() => setAbierto((actual) => !actual)}>
           {abierto ? 'Cerrar' : 'Agregar'}
         </Boton>
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
+      <div className="mt-2 grid grid-cols-2 gap-2 text-[12px]">
         <div className="rounded-xl px-2.5 py-2" style={{ background: 'var(--chip-fondo)' }}>
           <span style={{ color: 'var(--tenue)' }}>Entradas</span><div className="mt-0.5 font-semibold" style={{ color: 'var(--verde)' }}>{formatearPesos(entradas)}</div>
         </div>
@@ -112,7 +112,7 @@ export function MovimientosCaja() {
         <ul className="mt-3">
           {(movimientos ?? []).slice(0, 8).map((movimiento) => (
             <li key={movimiento.id} className="flex items-center gap-2 py-2" style={{ borderTop: '1px solid var(--linea)' }}>
-              <span className="flex-1 min-w-0"><span className="block truncate text-[11.5px]">{movimiento.concepto}</span><span className="text-[10px]" style={{ color: 'var(--tenue)' }}>{new Date(movimiento.fecha).toLocaleDateString('es-AR')} · {movimiento.medioPago}</span></span>
+              <span className="flex-1 min-w-0"><span className="block truncate text-[12px]">{movimiento.concepto}</span><span className="text-[12px]" style={{ color: 'var(--tenue)' }}>{new Date(movimiento.fecha).toLocaleDateString('es-AR')} · {movimiento.medioPago}</span></span>
               <Importe centavos={movimiento.tipo === 'salida' ? -movimiento.monto : movimiento.monto} tamaño="chico" style={{ color: movimiento.tipo === 'salida' ? 'var(--ambar)' : 'var(--verde)' }} />
               <button type="button" aria-label={`Eliminar movimiento ${movimiento.concepto}`} className="icon-action-button" style={{ color: 'var(--tenue)' }} onClick={() => void eliminar(movimiento.id)}><IconoCerrar /></button>
             </li>

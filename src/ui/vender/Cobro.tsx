@@ -237,7 +237,7 @@ function Fiado({
                 >
                   <span className="text-[13px] font-medium">{cliente.nombre}</span>
                   {cliente.telefono && (
-                    <span className="text-[11px]" style={{ color: 'var(--tenue)' }}>{cliente.telefono}</span>
+                    <span className="text-[12px]" style={{ color: 'var(--tenue)' }}>{cliente.telefono}</span>
                   )}
                 </button>
               ))

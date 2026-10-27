@@ -88,7 +88,7 @@ export function PantallaStock() {
           </div>
 
           {importarFactura && <>
-            <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
+            <h2 className="mt-8 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
               Cargar desde una factura
             </h2>
             <div className="mt-2">

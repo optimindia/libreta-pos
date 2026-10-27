@@ -63,7 +63,7 @@ export function Cabecera() {
         )}
         <div className="flex-1 leading-tight">
           <div className="text-[13px] font-semibold">{datos.negocio?.nombre ?? 'Tu almacén'}</div>
-          <div className="text-[11px]" style={{ color: 'var(--tenue)' }}>
+          <div className="text-[12px]" style={{ color: 'var(--tenue)' }}>
             {fechaLarga(new Date())}
           </div>
         </div>
@@ -90,12 +90,12 @@ export function Cabecera() {
       </div>
 
       <div className="app-header-metric mt-4">
-        <div className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
+        <div className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
           Vendido hoy
         </div>
         <Importe centavos={datos.resumen.vendido} tamaño="grande" />
         {datos.contraSemanaPasada !== null && (
-          <div className="app-header-delta mt-0.5 text-[11.5px]" style={{ color: 'var(--tenue)' }}>
+          <div className="app-header-delta mt-0.5 text-[12px]" style={{ color: 'var(--tenue)' }}>
             {datos.contraSemanaPasada >= 0
               ? `${datos.contraSemanaPasada}% más`
               : `${Math.abs(datos.contraSemanaPasada)}% menos`}{' '}
@@ -109,12 +109,11 @@ export function Cabecera() {
         style={{ border: '1px solid var(--linea)', background: 'var(--hueso-2)' }}
       >
         <div className="flex-1 px-3 py-2.5">
-          <div className="text-[10.5px]" style={{ color: 'var(--tenue)' }}>Ganancia</div>
+          <div className="text-[12px]" style={{ color: 'var(--tenue)' }}>Ganancia</div>
           <Importe centavos={datos.resumen.ganancia} className="text-[17px]" style={{ color: 'var(--verde)' }} />
         </div>
-        <div style={{ width: 1, background: 'var(--linea)' }} />
-        <div className="flex-1 px-3 py-2.5">
-          <div className="text-[10.5px]" style={{ color: 'var(--tenue)' }}>Te deben</div>
+        <div className="flex-1 px-3 py-2.5" style={{ borderLeft: '1px solid var(--linea)' }}>
+          <div className="text-[12px]" style={{ color: 'var(--tenue)' }}>Te deben</div>
           <Importe centavos={datos.teDeben} className="text-[17px]" style={{ color: 'var(--ambar)' }} />
         </div>
       </div>

@@ -24,5 +24,5 @@ function estadoServidor(): boolean {
 export function EstadoConexion() {
   const online = useSyncExternalStore(suscribirse, estadoActual, estadoServidor)
 
-  return <span className="hidden text-[10px] sm:inline" aria-live="polite" style={{ color: online ? 'var(--verde)' : 'var(--ambar)' }}>{online ? 'Conectado' : 'Sin conexión'}</span>
+  return <span className="hidden text-[12px] sm:inline" aria-live="polite" style={{ color: online ? 'var(--verde)' : 'var(--ambar)' }}>{online ? 'Conectado' : 'Sin conexión'}</span>
 }

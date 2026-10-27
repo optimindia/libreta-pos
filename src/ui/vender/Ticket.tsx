@@ -44,14 +44,14 @@ export function Ticket({
         {!confirmandoVaciar ? (
           <button
             type="button"
-            className="text-[11px] font-medium"
+            className="text-[12px] font-medium"
             style={{ color: 'var(--tenue)' }}
             onClick={() => setConfirmandoVaciar(true)}
           >
             Vaciar venta
           </button>
         ) : (
-          <div className="flex items-center gap-2 text-[11px]">
+          <div className="flex items-center gap-2 text-[12px]">
             <span style={{ color: 'var(--tenue)' }}>¿Borrar todo?</span>
             <button
               type="button"
@@ -75,7 +75,7 @@ export function Ticket({
             style={{ borderBottom: '1px solid var(--linea)' }}
           >
             <div
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-[11px] font-semibold"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[12px] font-semibold"
               style={{ background: 'var(--chip-fondo)', color: 'var(--tenue)' }}
             >
               {iniciales(item.nombre)}
@@ -93,7 +93,7 @@ export function Ticket({
                 >
                   <IconoMenos />
                 </button>
-                <span className="tabular text-[11px]" style={{ color: 'var(--tenue)' }}>
+                <span className="tabular text-[12px]" style={{ color: 'var(--tenue)' }}>
                   {item.cantidad} × {(item.precio / 100).toLocaleString('es-AR')}
                 </span>
                 <button

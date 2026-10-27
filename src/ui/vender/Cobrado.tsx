@@ -31,7 +31,7 @@ export function Cobrado({
       style={{ background: 'var(--chip-fondo)' }}
     >
       <div className="flex items-baseline justify-between">
-        <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
+        <span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
           Cobrado
         </span>
         <Importe centavos={venta.total} tamaño="grande" className="!text-2xl" style={{ color: 'var(--verde)' }} />

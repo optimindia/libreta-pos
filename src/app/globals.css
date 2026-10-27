@@ -32,7 +32,7 @@ body {
 .clientes-new-button {
   min-height: 2.75rem;
   padding: 0.7rem 0.9rem;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 
@@ -88,7 +88,7 @@ body {
 .clientes-highlight-copy p {
   margin-top: 0.2rem;
   color: var(--tenue);
-  font-size: 0.67rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -104,7 +104,7 @@ body {
 .pedidos-command-total span,
 .clientes-highlight-debt span {
   color: var(--tenue);
-  font-size: 0.59rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -159,7 +159,7 @@ button.pedidos-metric:active {
 .clientes-metrics span {
   overflow: hidden;
   color: var(--tenue);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -181,7 +181,7 @@ button.pedidos-metric:active {
 .clientes-metrics small {
   overflow: hidden;
   color: var(--tenue);
-  font-size: 0.58rem;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -255,7 +255,7 @@ button.pedidos-metric:active {
   background: var(--hueso-2);
   color: var(--tenue);
   font: inherit;
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
@@ -331,7 +331,7 @@ button.pedidos-metric:active {
   border-radius: 0.75rem;
   background: var(--chip-fondo);
   color: var(--verde);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -356,7 +356,7 @@ button.pedidos-metric:active {
 .cliente-card-copy small {
   overflow: hidden;
   color: var(--tenue);
-  font-size: 0.59rem;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -368,7 +368,7 @@ button.pedidos-metric:active {
   gap: 0.28rem;
   padding: 0.32rem 0.45rem;
   border-radius: 999px;
-  font-size: 0.56rem;
+  font-size: 0.75rem;
   font-weight: 750;
   white-space: nowrap;
 }
@@ -400,7 +400,7 @@ button.pedidos-metric:active {
   gap: 0.5rem 0.8rem;
   margin-top: 0.7rem;
   color: var(--tenue);
-  font-size: 0.61rem;
+  font-size: 0.75rem;
 }
 
 .pedido-card-info span {
@@ -439,7 +439,7 @@ button.pedidos-metric:active {
   justify-content: space-between;
   gap: 0.5rem;
   color: var(--tinta);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
 }
 
 .pedido-card-items li > span:first-child {
@@ -460,7 +460,7 @@ button.pedidos-metric:active {
   border-radius: 0.65rem;
   background: var(--chip-fondo);
   color: var(--tenue);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -477,7 +477,7 @@ button.pedidos-metric:active {
 
 .pedido-card-total > span {
   color: var(--tenue);
-  font-size: 0.61rem;
+  font-size: 0.75rem;
 }
 
 .pedido-card-total strong {
@@ -496,7 +496,7 @@ button.pedidos-metric:active {
   flex: 1 1 12rem;
   padding: 0.55rem 0.7rem;
   border-radius: 0.7rem;
-  font-size: 0.64rem;
+  font-size: 0.75rem;
 }
 
 .pedido-action-main svg,
@@ -522,7 +522,7 @@ button.pedidos-metric:active {
   background: var(--hueso-2);
   color: var(--tinta);
   font: inherit;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 720;
   text-decoration: none;
   cursor: pointer;
@@ -568,12 +568,12 @@ button.pedidos-metric:active {
 
 .pedido-payment-box strong {
   color: var(--tinta);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 .pedido-payment-box small {
   color: var(--tenue);
-  font-size: 0.58rem;
+  font-size: 0.75rem;
 }
 
 .pedido-payment-actions {
@@ -594,7 +594,7 @@ button.pedidos-metric:active {
   background: var(--hueso-2);
   color: var(--tinta);
   font: inherit;
-  font-size: 0.55rem;
+  font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -617,7 +617,7 @@ button.pedidos-metric:active {
   justify-content: center;
   border: 1px solid currentColor;
   border-radius: 999px;
-  font-size: 0.57rem;
+  font-size: 0.75rem;
 }
 
 .pedidos-notice,
@@ -631,7 +631,7 @@ button.pedidos-metric:active {
   border-radius: 0.75rem;
   background: color-mix(in srgb, var(--verde) 6%, var(--hueso-2));
   color: var(--verde);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
 }
 
 .pedidos-notice svg {
@@ -683,13 +683,13 @@ button.pedidos-metric:active {
 .cliente-delete-confirmation strong {
   display: block;
   color: var(--tinta);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .cliente-delete-confirmation p {
   margin-top: 0.18rem;
   color: var(--tenue);
-  font-size: 0.61rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -708,7 +708,7 @@ button.pedidos-metric:active {
   background: var(--hueso-2);
   color: var(--tinta);
   font: inherit;
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   font-weight: 750;
   cursor: pointer;
 }
@@ -743,7 +743,7 @@ button.pedidos-metric:active {
   border-radius: 0.8rem;
   background: var(--chip-fondo);
   color: var(--tenue);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
@@ -801,7 +801,7 @@ button.pedidos-metric:active {
 .clientes-empty p {
   max-width: 25rem;
   color: var(--tenue);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
@@ -810,7 +810,7 @@ button.pedidos-metric:active {
   min-height: 2.6rem;
   margin-top: 0.7rem;
   padding: 0.65rem 0.85rem;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 .pedido-form,
@@ -878,7 +878,7 @@ button.pedidos-metric:active {
 .pedido-client-option strong,
 .pedido-product-option strong {
   overflow: hidden;
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -887,7 +887,7 @@ button.pedidos-metric:active {
 .pedido-product-option small {
   overflow: hidden;
   color: var(--tenue);
-  font-size: 0.57rem;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -902,7 +902,7 @@ button.pedidos-metric:active {
   border-radius: 0.55rem;
   background: var(--chip-fondo);
   color: var(--verde);
-  font-size: 0.58rem;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -921,13 +921,13 @@ button.pedidos-metric:active {
   flex-direction: column;
   align-items: flex-end;
   color: var(--verde);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   font-weight: 750;
 }
 
 .pedido-product-option-price del {
   color: var(--tenue);
-  font-size: 0.54rem;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
@@ -939,7 +939,7 @@ button.pedidos-metric:active {
   justify-content: center;
   gap: 0.4rem;
   color: var(--tenue);
-  font-size: 0.63rem;
+  font-size: 0.75rem;
 }
 
 .pedido-items-empty {
@@ -956,7 +956,7 @@ button.pedidos-metric:active {
 }
 
 .pedido-items-empty small {
-  font-size: 0.58rem;
+  font-size: 0.75rem;
 }
 
 .pedido-inline-action {
@@ -964,7 +964,7 @@ button.pedidos-metric:active {
   margin-top: 0.55rem;
   padding: 0.5rem 0.65rem;
   border-radius: 0.7rem;
-  font-size: 0.62rem;
+  font-size: 0.75rem;
 }
 
 .pedido-inline-action svg {
@@ -990,7 +990,7 @@ button.pedidos-metric:active {
   align-items: center;
   gap: 0.4rem;
   color: var(--tinta);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 .pedido-new-client-heading svg {
@@ -1003,7 +1003,7 @@ button.pedidos-metric:active {
   margin-left: auto;
   color: var(--verde);
   font: inherit;
-  font-size: 0.58rem;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -1031,14 +1031,14 @@ button.pedidos-metric:active {
 
 .pedido-item-copy strong {
   overflow: hidden;
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .pedido-item-copy small {
   color: var(--tenue);
-  font-size: 0.56rem;
+  font-size: 0.75rem;
 }
 
 .pedido-item-controls {
@@ -1069,7 +1069,7 @@ button.pedidos-metric:active {
 .pedido-item-controls span {
   min-width: 1.2rem;
   color: var(--tinta);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 750;
   text-align: center;
 }
@@ -1081,7 +1081,7 @@ button.pedidos-metric:active {
   gap: 0.5rem;
   margin-top: 0.75rem;
   color: var(--tenue);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
 }
 
 .pedido-total-row strong {
@@ -1128,12 +1128,12 @@ button.pedidos-metric:active {
 }
 
 .pedido-delivery-choice strong {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
 }
 
 .pedido-delivery-choice small {
   color: var(--tenue);
-  font-size: 0.55rem;
+  font-size: 0.75rem;
 }
 
 .pedido-input-with-icon {
@@ -1187,12 +1187,12 @@ button.pedidos-metric:active {
 
 .pedido-reservation-toggle strong {
   color: var(--tinta);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
 }
 
 .pedido-reservation-toggle small {
   color: var(--tenue);
-  font-size: 0.57rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -1242,7 +1242,7 @@ button.pedidos-metric:active {
 .cliente-favorite-products {
   overflow: hidden;
   color: var(--tenue);
-  font-size: 0.58rem;
+  font-size: 0.75rem;
   line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1264,7 +1264,7 @@ button.pedidos-metric:active {
 
 .cliente-card-total small {
   color: var(--tenue);
-  font-size: 0.56rem;
+  font-size: 0.75rem;
 }
 
 .cliente-card-bottom {
@@ -1291,7 +1291,7 @@ button.pedidos-metric:active {
   align-items: center;
   gap: 0.25rem;
   color: var(--ambar);
-  font-size: 0.59rem;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -1302,7 +1302,7 @@ button.pedidos-metric:active {
 .cliente-quick-link {
   min-height: 2rem;
   padding: 0 0.5rem;
-  font-size: 0.56rem;
+  font-size: 0.75rem;
 }
 
 .cliente-quick-link.cliente-delete-link {
@@ -1343,7 +1343,7 @@ button.pedidos-metric:active {
 .cliente-detail-head p {
   margin-top: 0.2rem;
   color: var(--tenue);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
 }
 
 .cliente-detail-actions {
@@ -1366,7 +1366,7 @@ button.pedidos-metric:active {
   background: var(--hueso-2);
   color: var(--tinta);
   font: inherit;
-  font-size: 0.57rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
@@ -1414,7 +1414,7 @@ button.pedidos-metric:active {
 .cliente-detail-history h3 {
   display: block;
   color: var(--tenue);
-  font-size: 0.56rem;
+  font-size: 0.75rem;
 }
 
 .cliente-detail-stats strong {
@@ -1444,7 +1444,7 @@ button.pedidos-metric:active {
   border-radius: 999px;
   background: color-mix(in srgb, var(--verde) 9%, var(--hueso-2));
   color: var(--verde);
-  font-size: 0.58rem;
+  font-size: 0.75rem;
 }
 
 .cliente-detail-history {
@@ -1464,7 +1464,7 @@ button.pedidos-metric:active {
   padding: 0.45rem 0;
   border-top: 1px solid var(--linea);
   color: var(--tinta);
-  font-size: 0.59rem;
+  font-size: 0.75rem;
 }
 
 .cliente-detail-history li span {
@@ -1476,7 +1476,7 @@ button.pedidos-metric:active {
 .cliente-detail-history > p {
   margin-top: 0.4rem;
   color: var(--tenue);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
 }
 
 .clientes-footer-actions {
@@ -1512,12 +1512,12 @@ button.pedidos-metric:active {
 }
 
 .clientes-footer-link strong {
-  font-size: 0.64rem;
+  font-size: 0.75rem;
 }
 
 .clientes-footer-link small {
   color: var(--tenue);
-  font-size: 0.57rem;
+  font-size: 0.75rem;
 }
 
 .clientes-footer-link > svg:last-child {
@@ -1536,7 +1536,7 @@ button.pedidos-metric:active {
 
 .catalogo-producto-old-price {
   color: var(--tenue);
-  font-size: 0.55rem;
+  font-size: 0.75rem;
   text-decoration: line-through;
 }
 
@@ -1653,7 +1653,7 @@ button.pedidos-metric:active {
   .clientes-new-button {
     min-height: 2.45rem;
     padding: 0.55rem 0.65rem;
-    font-size: 0.62rem;
+    font-size: 0.75rem;
   }
 
   .pedido-card-actions {
@@ -1750,7 +1750,7 @@ button.pedidos-metric:active {
 .admin-summary-card span,
 .admin-summary-card small {
   color: var(--tenue);
-  font-size: 0.63rem;
+  font-size: 0.75rem;
 }
 
 .admin-summary-card strong {
@@ -1764,7 +1764,7 @@ button.pedidos-metric:active {
 .admin-section-caption {
   margin-top: 0.25rem;
   color: var(--tenue);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
 }
 
 .admin-filter-bar {
@@ -1809,7 +1809,7 @@ button.pedidos-metric:active {
   background: transparent;
   color: var(--tinta);
   font: inherit;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 .admin-filter-select {
@@ -1854,7 +1854,7 @@ button.pedidos-metric:active {
   background: transparent;
   color: var(--ambar);
   font: inherit;
-  font-size: 0.63rem;
+  font-size: 0.75rem;
   font-weight: 750;
   cursor: pointer;
 }
@@ -1878,7 +1878,7 @@ button.pedidos-metric:active {
   border-radius: 0.65rem;
   background: var(--chip-fondo);
   color: var(--tenue);
-  font-size: 0.63rem;
+  font-size: 0.75rem;
   line-height: 1.35;
 }
 
@@ -1904,7 +1904,7 @@ button.pedidos-metric:active {
   min-height: 2.45rem;
   flex: 0 0 auto;
   padding: 0 0.75rem;
-  font-size: 0.65rem;
+  font-size: 0.75rem;
 }
 
 .admin-plans-grid {
@@ -1948,7 +1948,7 @@ button.pedidos-metric:active {
   align-items: center;
   padding: 0 0.45rem;
   border-radius: 999px;
-  font-size: 0.55rem;
+  font-size: 0.75rem;
   font-weight: 760;
 }
 
@@ -1983,7 +1983,7 @@ button.pedidos-metric:active {
 .admin-plan-card > p {
   min-height: 2.2em;
   color: var(--tenue);
-  font-size: 0.63rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -2001,13 +2001,13 @@ button.pedidos-metric:active {
 
 .admin-plan-data small {
   color: var(--tenue);
-  font-size: 0.56rem;
+  font-size: 0.75rem;
 }
 
 .admin-plan-data strong {
   overflow: hidden;
   color: var(--tinta);
-  font-size: 0.67rem;
+  font-size: 0.75rem;
   font-weight: 760;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2020,7 +2020,7 @@ button.pedidos-metric:active {
 .admin-plan-actions .admin-action-secondary {
   min-height: 2.15rem;
   padding: 0 0.55rem;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
 }
 
 .admin-plan-editor {
@@ -2046,7 +2046,7 @@ button.pedidos-metric:active {
 .admin-security-action p {
   margin-top: 0.2rem;
   color: var(--tenue);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -2065,7 +2065,7 @@ button.pedidos-metric:active {
   align-items: center;
   gap: 0.45rem;
   color: var(--tinta);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   cursor: pointer;
 }
 
@@ -2124,7 +2124,7 @@ button.pedidos-metric:active {
 .admin-modal-header p {
   margin-top: 0.3rem;
   color: var(--tenue);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -2193,7 +2193,7 @@ button.pedidos-metric:active {
 .admin-pin-warning strong {
   overflow: hidden;
   color: var(--tinta);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 780;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2205,7 +2205,7 @@ button.pedidos-metric:active {
 .admin-security-action p,
 .admin-pin-warning p {
   color: var(--tenue);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   line-height: 1.35;
 }
 
@@ -2213,7 +2213,7 @@ button.pedidos-metric:active {
   width: 2rem;
   height: 2rem;
   border-radius: 0.6rem;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .admin-modal-account-strip .admin-status {
@@ -2405,7 +2405,7 @@ button.pedidos-metric:active {
   display: block;
   margin-top: 4px;
   color: var(--tenue);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.45;
 }
 
@@ -2439,7 +2439,7 @@ button.pedidos-metric:active {
 
 .payment-confirm-check small {
   color: var(--tenue);
-  font-size: 10.5px;
+  font-size: 12px;
   line-height: 1.35;
 }
 
@@ -2526,7 +2526,7 @@ button.pedidos-metric:active {
   border-radius: 14px;
   background: var(--ambar-fondo);
   color: var(--ambar);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.35;
 }
 
@@ -2542,7 +2542,7 @@ button.pedidos-metric:active {
   padding-top: 10px;
   border-top: 1px solid var(--linea);
   color: var(--tenue);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .history-payment-reference strong {
@@ -2554,7 +2554,7 @@ button.pedidos-metric:active {
 .history-void-note {
   margin-top: 12px;
   color: var(--tenue);
-  font-size: 11px;
+  font-size: 12px;
   text-align: center;
 }
 
@@ -2589,7 +2589,7 @@ button.pedidos-metric:active {
 .control-center-heading p {
   margin: 5px 0 0;
   color: var(--tenue);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -2602,7 +2602,7 @@ button.pedidos-metric:active {
   border: 1px solid color-mix(in srgb, var(--ambar) 30%, var(--linea));
   border-radius: 999px;
   color: var(--ambar);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -2693,7 +2693,7 @@ button.pedidos-metric:active {
 .control-action-copy small {
   overflow: hidden;
   color: var(--tenue);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2744,7 +2744,7 @@ button.pedidos-metric:active {
 
 .control-center-clear span:not(.control-center-clear-icon) {
   color: var(--tenue);
-  font-size: 10.5px;
+  font-size: 12px;
   line-height: 1.35;
 }
 
@@ -2761,7 +2761,7 @@ button.pedidos-metric:active {
 
   .control-center-status {
     padding: 6px 8px;
-    font-size: 9px;
+    font-size: 12px;
   }
 
   .control-action-grid {
@@ -2906,7 +2906,7 @@ textarea:focus {
   justify-content: center;
   gap: 0.125rem;
   border-radius: 0.75rem;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
 }
 
 .mobile-nav-link:active,
@@ -2921,7 +2921,7 @@ textarea:focus {
   border-radius: 999px;
   background: var(--ambar);
   color: var(--hueso);
-  font-size: 0.5625rem;
+  font-size: 0.75rem;
   font-weight: 700;
   line-height: 1.15;
 }
@@ -2981,7 +2981,7 @@ textarea:focus {
 .sidebar-business-copy small {
   margin-top: 0.25rem;
   color: var(--tenue);
-  font-size: 0.625rem;
+  font-size: 0.75rem;
 }
 
 .sidebar-business {
@@ -3033,7 +3033,7 @@ textarea:focus {
 .sidebar-section-label {
   margin: 0 0 0.5rem 0.625rem;
   color: var(--tenue);
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -3102,7 +3102,7 @@ textarea:focus {
   margin-top: auto;
   padding-top: 1.5rem;
   color: var(--tenue);
-  font-size: 0.625rem;
+  font-size: 0.75rem;
 }
 
 .sidebar-status {
@@ -3316,7 +3316,7 @@ textarea:focus {
 
 .vender-eyebrow {
   color: var(--tenue);
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -3325,7 +3325,7 @@ textarea:focus {
 .vender-item-count,
 .vender-catalog-count {
   color: var(--tenue);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   text-align: right;
 }
 
@@ -3342,7 +3342,7 @@ textarea:focus {
 }
 
 .vender-catalog-count span {
-  font-size: 0.625rem;
+  font-size: 0.75rem;
 }
 
 .vender-total {
@@ -3374,7 +3374,7 @@ textarea:focus {
 
 .vender-scanner-hint {
   color: var(--tenue);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 
 @media (min-width: 768px) {
@@ -3508,7 +3508,7 @@ textarea:focus {
 .page-kicker {
   display: block;
   color: var(--tenue);
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 750;
   letter-spacing: 0.14em;
   line-height: 1;
@@ -3543,7 +3543,7 @@ textarea:focus {
   background: var(--hueso-2);
   box-shadow: var(--sombra);
   color: var(--tenue);
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -3606,7 +3606,7 @@ textarea:focus {
   display: block;
   overflow: hidden;
   color: var(--tenue);
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -4211,7 +4211,7 @@ textarea:focus {
 .stock-load-heading span:first-child {
   display: block;
   color: var(--tenue);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 750;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -4230,7 +4230,7 @@ textarea:focus {
   border-radius: 999px;
   background: color-mix(in srgb, var(--verde) 10%, var(--hueso-2));
   color: var(--verde);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   font-weight: 750;
 }
 
@@ -4241,7 +4241,7 @@ textarea:focus {
   border-radius: 0 0.7rem 0.7rem 0;
   background: var(--chip-fondo);
   color: var(--tenue);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
@@ -4294,13 +4294,13 @@ textarea:focus {
 }
 
 .stock-scan-card-copy strong { font-size: 0.82rem; }
-.stock-scan-card-copy small { color: var(--tenue); font-size: 0.69rem; line-height: 1.4; }
+.stock-scan-card-copy small { color: var(--tenue); font-size: 0.75rem; line-height: 1.4; }
 
 .stock-scan-card-action {
   grid-column: 2;
   margin-top: 0.2rem;
   color: var(--verde);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 750;
   white-space: nowrap;
 }
@@ -4340,8 +4340,8 @@ textarea:focus {
 .sale-scan-card-icon svg { width: 1.2rem; height: 1.2rem; stroke-width: 2; }
 .sale-scan-card-copy { display: grid; min-width: 0; gap: 0.16rem; }
 .sale-scan-card-copy strong { font-size: 0.78rem; }
-.sale-scan-card-copy small { color: var(--tenue); font-size: 0.66rem; line-height: 1.35; }
-.sale-scan-card-action { grid-column: 2; color: var(--verde); font-size: 0.66rem; font-weight: 750; }
+.sale-scan-card-copy small { color: var(--tenue); font-size: 0.75rem; line-height: 1.35; }
+.sale-scan-card-action { grid-column: 2; color: var(--verde); font-size: 0.75rem; font-weight: 750; }
 
 @media (min-width: 768px) {
   .vender-scanner-row {
@@ -4366,7 +4366,7 @@ textarea:focus {
 
   .sale-scan-card-copy { gap: 0.12rem; }
   .sale-scan-card-copy strong { font-size: 0.84rem; }
-  .sale-scan-card-copy small { font-size: 0.68rem; }
+  .sale-scan-card-copy small { font-size: 0.75rem; }
 
   .sale-scan-card-reader {
     display: inline-flex;
@@ -4377,7 +4377,7 @@ textarea:focus {
     border-radius: 999px;
     background: color-mix(in srgb, var(--verde) 7%, var(--hueso-2));
     color: var(--verde);
-    font-size: 0.63rem;
+    font-size: 0.75rem;
     font-weight: 700;
     white-space: nowrap;
   }
@@ -4398,7 +4398,7 @@ textarea:focus {
     border-radius: 0.7rem;
     background: var(--hueso-2);
     color: var(--tinta);
-    font-size: 0.67rem;
+    font-size: 0.75rem;
     white-space: nowrap;
   }
 }
@@ -4429,7 +4429,7 @@ textarea:focus {
     max-width: 100%;
     overflow: hidden;
     padding: 0.3rem 0.45rem;
-    font-size: 0.58rem;
+    font-size: 0.75rem;
     text-overflow: ellipsis;
   }
 
@@ -4437,7 +4437,7 @@ textarea:focus {
     grid-column: 3;
     grid-row: 1 / span 2;
     padding: 0.5rem 0.55rem;
-    font-size: 0.61rem;
+    font-size: 0.75rem;
   }
 }
 
@@ -4469,8 +4469,8 @@ textarea:focus {
   }
 
   .sale-scan-card-copy strong { font-size: 0.84rem; }
-  .sale-scan-card-copy small { font-size: 0.7rem; }
-  .sale-scan-card-action { margin-top: 0.3rem; font-size: 0.7rem; }
+  .sale-scan-card-copy small { font-size: 0.75rem; }
+  .sale-scan-card-action { margin-top: 0.3rem; font-size: 0.75rem; }
 
   /* Venta tiene una composición propia en celular: superficies separadas,
      márgenes constantes y objetivos táctiles cómodos. */
@@ -4529,7 +4529,7 @@ textarea:focus {
   }
 }
 
-.stock-scan-help { margin: 0.7rem 0 0; color: var(--tenue); font-size: 0.68rem; line-height: 1.45; }
+.stock-scan-help { margin: 0.7rem 0 0; color: var(--tenue); font-size: 0.75rem; line-height: 1.45; }
 
 .scanner-overlay {
   position: fixed;
@@ -4555,7 +4555,7 @@ textarea:focus {
   background: linear-gradient(#11110fbb, transparent);
 }
 
-.scanner-topbar span { display: block; color: #ffffffa3; font-size: 0.65rem; font-weight: 750; letter-spacing: 0.1em; text-transform: uppercase; }
+.scanner-topbar span { display: block; color: #ffffffa3; font-size: 0.75rem; font-weight: 750; letter-spacing: 0.1em; text-transform: uppercase; }
 .scanner-topbar strong { display: block; margin-top: 0.2rem; font-size: 1.1rem; }
 
 .scanner-close {
@@ -4612,7 +4612,7 @@ textarea:focus {
 }
 
 .scanner-sheet strong { display: block; font-size: 0.88rem; }
-.scanner-sheet p { margin: 0.28rem 0 0; color: var(--tenue); font-size: 0.72rem; line-height: 1.45; }
+.scanner-sheet p { margin: 0.28rem 0 0; color: var(--tenue); font-size: 0.75rem; line-height: 1.45; }
 .scanner-sheet .scanner-warning { grid-column: 1 / -1; margin: 0; color: var(--ambar); }
 .scanner-close-button { grid-column: 1 / -1; width: 100%; min-height: 2.75rem; font-size: 0.75rem; }
 
@@ -4627,7 +4627,7 @@ textarea:focus {
   border-radius: 0.8rem;
   background: var(--ambar-fondo);
   color: var(--ambar);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 650;
   line-height: 1.4;
 }
@@ -4651,7 +4651,7 @@ textarea:focus {
 }
 
 .charge-button-copy strong { font-size: 0.9rem; line-height: 1.1; }
-.charge-button-copy small { color: color-mix(in srgb, var(--verde-texto) 68%, transparent); font-size: 0.66rem; font-weight: 550; }
+.charge-button-copy small { color: color-mix(in srgb, var(--verde-texto) 68%, transparent); font-size: 0.75rem; font-weight: 550; }
 
 .charge-button-icon {
   display: inline-flex;
@@ -4695,7 +4695,7 @@ textarea:focus {
 
 .vender-payment-heading span {
   color: var(--tenue);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   font-weight: 750;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -4712,7 +4712,7 @@ textarea:focus {
 .vender-payment-cancel {
   flex: 0 0 auto;
   color: var(--tenue);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 650;
 }
 
@@ -4789,7 +4789,7 @@ textarea:focus {
 .stock-empty-kicker {
   margin-top: 1.25rem;
   color: var(--verde);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 750;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -4856,7 +4856,7 @@ textarea:focus {
 .historial-empty-kicker {
   margin-top: 1rem;
   color: var(--verde);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 750;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -5314,7 +5314,7 @@ textarea:focus {
   border-radius: 0.55rem;
   background: color-mix(in srgb, var(--verde) 8%, var(--hueso-2));
   color: var(--verde);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   font-weight: 750;
   line-height: 1;
   white-space: nowrap;
@@ -5330,7 +5330,7 @@ textarea:focus {
   border-color: var(--linea);
   background: var(--chip-fondo);
   color: var(--tenue);
-  font-size: 0.58rem;
+  font-size: 0.75rem;
 }
 
 .catalogo-producto::before,
@@ -5432,7 +5432,7 @@ textarea:focus {
 .stock-adjust-warning {
   margin: 0.55rem 0 0;
   color: var(--ambar);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -5453,7 +5453,7 @@ textarea:focus {
   border-radius: 0.65rem;
   background: var(--hueso-2);
   color: var(--tinta);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 
@@ -5466,7 +5466,7 @@ textarea:focus {
   min-width: 0;
   overflow: hidden;
   color: var(--tenue);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -5505,7 +5505,7 @@ textarea:focus {
 }
 
 .invoice-upload-copy strong { font-size: 0.75rem; }
-.invoice-upload-copy small { color: var(--tenue); font-size: 0.66rem; line-height: 1.35; }
+.invoice-upload-copy small { color: var(--tenue); font-size: 0.75rem; line-height: 1.35; }
 
 .invoice-upload-button {
   min-height: 2.3rem;
@@ -5514,7 +5514,7 @@ textarea:focus {
   border-radius: 0.65rem;
   background: var(--hueso-2);
   color: var(--tinta);
-  font-size: 0.67rem;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 
@@ -5540,7 +5540,7 @@ textarea:focus {
   .mobile-nav-link {
     min-height: 3.05rem;
     border-radius: 0.95rem;
-    font-size: 0.64rem;
+    font-size: 0.75rem;
   }
 
   .mobile-nav-link[aria-current='page'],
@@ -5670,7 +5670,7 @@ textarea:focus {
 .form-intro p {
   margin: 0.2rem 0 0;
   color: var(--tenue);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -5701,7 +5701,7 @@ textarea:focus {
 .form-section-heading p {
   margin: 0.18rem 0 0;
   color: var(--tenue);
-  font-size: 0.67rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -5716,7 +5716,7 @@ textarea:focus {
   border-radius: 0.55rem;
   background: color-mix(in srgb, var(--verde) 9%, var(--chip-fondo));
   color: var(--verde);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 800;
 }
 
@@ -5738,14 +5738,14 @@ textarea:focus {
   align-items: baseline;
   gap: 0.35rem;
   color: var(--tinta);
-  font-size: 0.73rem;
+  font-size: 0.75rem;
   font-weight: 700;
   line-height: 1.25;
 }
 
 .form-field-label em {
   color: var(--tenue);
-  font-size: 0.63rem;
+  font-size: 0.75rem;
   font-style: normal;
   font-weight: 600;
 }
@@ -5844,7 +5844,7 @@ select.form-input {
 
 .goal-input-row > span:last-child {
   padding-inline: 0.15rem 0.8rem;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 650;
 }
 
@@ -5879,7 +5879,7 @@ select.form-input {
 
 .form-field-help {
   color: var(--tenue);
-  font-size: 0.67rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -5890,7 +5890,7 @@ select.form-input {
   border-radius: 0 0.7rem 0.7rem 0;
   background: color-mix(in srgb, var(--verde) 6%, var(--chip-fondo));
   color: var(--tenue);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
@@ -5899,7 +5899,7 @@ select.form-input {
   display: block;
   margin: 0;
   color: var(--ambar);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -5912,7 +5912,7 @@ select.form-input {
 
 .form-message {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .form-message-success {
@@ -5966,7 +5966,7 @@ select.form-input {
 
 .payment-credit-callout span {
   color: var(--tenue);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 .payment-change-card {
@@ -6004,7 +6004,7 @@ select.form-input {
 .payment-method-card > small {
   display: block;
   color: var(--tenue);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.25;
 }
@@ -6077,12 +6077,12 @@ select.form-input {
 }
 
 .stock-adjust-heading strong {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
 }
 
 .stock-adjust-heading span {
   color: var(--tenue);
-  font-size: 0.63rem;
+  font-size: 0.75rem;
 }
 
 .stock-adjust-controls {
@@ -6098,7 +6098,7 @@ select.form-input {
   border-radius: 0.75rem;
   background: var(--verde);
   color: var(--verde-texto);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 750;
 }
 
@@ -6123,13 +6123,13 @@ select.form-input {
 }
 
 .price-mode-button strong {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   line-height: 1.2;
 }
 
 .price-mode-button small {
   color: var(--tenue);
-  font-size: 0.63rem;
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.25;
 }
@@ -6159,7 +6159,7 @@ select.form-input {
 .invoice-items-heading {
   padding: 0 0.1rem;
   color: var(--tenue);
-  font-size: 0.61rem;
+  font-size: 0.75rem;
   font-weight: 750;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -6175,7 +6175,7 @@ select.form-input {
   min-width: 0;
   overflow: hidden;
   color: var(--tinta);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 650;
   line-height: 1.3;
   text-overflow: ellipsis;
@@ -6197,7 +6197,7 @@ select.form-input {
   left: 0.5rem;
   z-index: 1;
   color: var(--tenue);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 750;
   pointer-events: none;
   transform: translateY(-50%);
@@ -6209,7 +6209,7 @@ select.form-input {
   border-radius: 0.85rem;
   background: color-mix(in srgb, var(--verde) 6%, var(--hueso-2));
   color: var(--tenue);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 650;
 }
 
@@ -6300,11 +6300,11 @@ select.form-input {
   }
 
   .invoice-items-heading {
-    font-size: 0.56rem;
+    font-size: 0.75rem;
   }
 
   .invoice-item-name {
-    font-size: 0.68rem;
+    font-size: 0.75rem;
   }
 
   .payment-method-card {
@@ -6374,7 +6374,7 @@ select.form-input {
 
 .access-brand span:not(.access-brand-mark) {
   color: var(--tenue);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
 }
 
 .access-brand-mark {
@@ -6401,7 +6401,7 @@ select.form-input {
   gap: 0.25rem;
   padding-top: 0.25rem;
   color: var(--tenue);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   line-height: 1.4;
   text-align: center;
 }
@@ -6440,7 +6440,7 @@ select.form-input {
 .access-status-label {
   margin-top: 0.55rem;
   color: var(--ambar);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   font-weight: 780;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -6472,7 +6472,7 @@ select.form-input {
   border-radius: 0.85rem;
   background: var(--chip-fondo);
   color: var(--tenue);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
 }
 
 .access-expiry strong {
@@ -6509,7 +6509,7 @@ select.form-input {
   border: 1px solid var(--linea);
   border-radius: 0.9rem;
   color: var(--verde);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 760;
   text-decoration: none;
 }
@@ -6542,12 +6542,12 @@ select.form-input {
 }
 
 .access-security-note strong {
-  font-size: 0.67rem;
+  font-size: 0.75rem;
 }
 
 .access-security-note small {
   color: var(--tenue);
-  font-size: 0.61rem;
+  font-size: 0.75rem;
   line-height: 1.35;
 }
 
@@ -6584,7 +6584,7 @@ select.form-input {
 .admin-brand-lockup p {
   margin-top: 0.35rem;
   color: var(--tenue);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .admin-logout,
@@ -6603,7 +6603,7 @@ select.form-input {
   color: var(--tenue);
   cursor: pointer;
   font: inherit;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 720;
   transition: border-color 160ms ease, color 160ms ease, background 160ms ease, opacity 160ms ease;
 }
@@ -6660,7 +6660,7 @@ select.form-input {
 .admin-flow-banner p {
   margin-top: 0.22rem;
   color: var(--tenue);
-  font-size: 0.69rem;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
@@ -6685,7 +6685,7 @@ select.form-input {
 .admin-summary span,
 .admin-summary small {
   color: var(--tenue);
-  font-size: 0.63rem;
+  font-size: 0.75rem;
 }
 
 .admin-summary strong {
@@ -6736,7 +6736,7 @@ select.form-input {
 .admin-history-section > div > p {
   margin-top: 0.3rem;
   color: var(--tenue);
-  font-size: 0.69rem;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
@@ -6769,7 +6769,7 @@ select.form-input {
 .admin-credentials > div:first-child p {
   margin-top: 0.2rem;
   color: var(--tenue);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
 }
 
 .admin-credential-line {
@@ -6782,7 +6782,7 @@ select.form-input {
   border: 1px solid var(--linea);
   border-radius: 0.65rem;
   background: var(--hueso-2);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 .admin-credential-line span {
@@ -6799,7 +6799,7 @@ select.form-input {
   padding: 0 0.45rem;
   border: 0;
   background: var(--chip-fondo);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
 }
 
 .admin-credential-line button:hover {
@@ -6809,7 +6809,7 @@ select.form-input {
 .admin-whatsapp-button {
   min-height: 2.7rem;
   border-radius: 0.75rem;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
 }
 
 .admin-accounts-section {
@@ -6834,7 +6834,7 @@ select.form-input {
   margin-top: 0.7rem;
   padding: 0.65rem 0.75rem;
   border-radius: 0.7rem;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -6903,7 +6903,7 @@ select.form-input {
   overflow: hidden;
   margin-top: 0.22rem;
   color: var(--tenue);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -6915,7 +6915,7 @@ select.form-input {
   align-items: center;
   padding: 0 0.5rem;
   border-radius: 999px;
-  font-size: 0.59rem;
+  font-size: 0.75rem;
   font-weight: 760;
 }
 
@@ -6950,13 +6950,13 @@ select.form-input {
 
 .admin-account-meta small {
   color: var(--tenue);
-  font-size: 0.58rem;
+  font-size: 0.75rem;
 }
 
 .admin-account-meta strong {
   overflow: hidden;
   color: var(--tinta);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 720;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -6971,7 +6971,7 @@ select.form-input {
 .admin-action-secondary {
   min-height: 2.35rem;
   padding: 0 0.7rem;
-  font-size: 0.63rem;
+  font-size: 0.75rem;
 }
 
 .admin-action-primary {
@@ -7000,7 +7000,7 @@ select.form-input {
   border: 1px dashed var(--linea);
   border-radius: 1rem;
   color: var(--tenue);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   text-align: center;
 }
 
@@ -7056,7 +7056,7 @@ select.form-input {
 .admin-history-row strong {
   overflow: hidden;
   color: var(--tinta);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -7064,7 +7064,7 @@ select.form-input {
 .admin-history-row span:not(.admin-history-dot) {
   overflow: hidden;
   color: var(--tenue);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -7072,7 +7072,7 @@ select.form-input {
 .admin-history-empty {
   align-self: center;
   color: var(--tenue);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
 }
 
 .config-session-card {
@@ -7097,7 +7097,7 @@ select.form-input {
   max-width: 32rem;
   margin-top: 0.25rem;
   color: var(--tenue);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -7150,13 +7150,13 @@ select.form-input {
 
 .subscription-expiry-banner strong {
   color: var(--tinta);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
 }
 
 .subscription-expiry-banner p {
   overflow: hidden;
   color: var(--ambar);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -7178,7 +7178,7 @@ select.form-input {
   border: 1px solid color-mix(in srgb, var(--ambar) 30%, var(--linea));
   border-radius: 0.65rem;
   color: var(--ambar);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   font-weight: 780;
   text-decoration: none;
   white-space: nowrap;
@@ -7216,7 +7216,7 @@ select.form-input {
   border-radius: 0.8rem;
   background: var(--hueso-2);
   color: var(--tinta);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 720;
   text-decoration: none;
   white-space: nowrap;
@@ -7278,7 +7278,7 @@ select.form-input {
 .account-status-title p {
   margin-top: 0.32rem;
   color: var(--tenue);
-  font-size: 0.69rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -7317,7 +7317,7 @@ select.form-input {
   border-radius: 999px;
   background: color-mix(in srgb, var(--verde) 9%, var(--hueso-2));
   color: var(--verde);
-  font-size: 0.63rem;
+  font-size: 0.75rem;
   font-weight: 780;
   white-space: nowrap;
 }
@@ -7361,7 +7361,7 @@ select.form-input {
 
 .account-status-main-copy > span {
   color: var(--tenue);
-  font-size: 0.61rem;
+  font-size: 0.75rem;
   font-weight: 750;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -7378,7 +7378,7 @@ select.form-input {
 .account-status-main-copy p {
   max-width: 38rem;
   color: var(--tenue);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
@@ -7408,7 +7408,7 @@ select.form-input {
 
 .account-status-days span {
   margin-top: 0.2rem;
-  font-size: 0.58rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-align: center;
 }
@@ -7435,7 +7435,7 @@ select.form-input {
   align-items: center;
   gap: 0.35rem;
   color: var(--tenue);
-  font-size: 0.61rem;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -7448,7 +7448,7 @@ select.form-input {
   overflow: hidden;
   margin: 0;
   color: var(--tinta);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 760;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -7477,14 +7477,14 @@ select.form-input {
 .account-renewal-alert strong,
 .account-blocked-alert strong {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .account-renewal-alert p,
 .account-blocked-alert p {
   margin-top: 0.2rem;
   color: color-mix(in srgb, var(--ambar) 82%, var(--tinta));
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -7519,13 +7519,13 @@ select.form-input {
 }
 
 .account-security-note strong {
-  font-size: 0.66rem;
+  font-size: 0.75rem;
 }
 
 .account-security-note small {
   max-width: 29rem;
   color: var(--tenue);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   line-height: 1.35;
 }
 
@@ -7545,7 +7545,7 @@ select.form-input {
   border-radius: 0.8rem;
   background: var(--verde);
   color: var(--verde-texto);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 760;
   text-decoration: none;
   white-space: nowrap;
@@ -7590,7 +7590,7 @@ select.form-input {
 .account-status-local-copy p {
   margin-top: 0.25rem;
   color: var(--tenue);
-  font-size: 0.67rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -7627,12 +7627,12 @@ select.form-input {
 
 .account-page-note strong {
   color: var(--tinta);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
 }
 
 .account-page-note p {
   margin-top: 0.2rem;
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 

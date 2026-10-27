@@ -1,16 +1,16 @@
 :root {
   --verde: #12694E;
   --verde-texto: #FFFFFF;
-  --ambar: #B4642A;
-  --ambar-fondo: #FDF6EF;
+  --ambar: #97501E;
+  --ambar-fondo: #FCF1E6;
   --tinta: #1B1A17;
-  --tenue: #8C877D;
-  --hueso: #FCFBF8;
+  --tenue: #625D53;
+  --hueso: #F4F2ED;
   --hueso-2: #FFFFFF;
-  --linea: #EDEAE4;
-  --chip-fondo: #F1EEE7;
+  --linea: #D3CDC1;
+  --chip-fondo: #ECE8E0;
   --sombra: 0 1px 2px rgba(27, 26, 23, 0.05);
-  --verde-suave: #E8F2EE;
+  --verde-suave: #E3F0EA;
   --superficie-sutil: #F7F5F0;
   --sombra-panel: 0 18px 42px rgba(27, 26, 23, 0.07), 0 2px 6px rgba(27, 26, 23, 0.04);
   --sombra-flotante: 0 12px 28px rgba(27, 26, 23, 0.11), 0 2px 6px rgba(27, 26, 23, 0.05);
@@ -29,12 +29,12 @@
   --tinta: #F7F5F0;
   --tenue: #C1BBB0;
   --hueso: #111311;
-  --hueso-2: #191C19;
-  --linea: #383C37;
-  --chip-fondo: #242824;
+  --hueso-2: #1C201C;
+  --linea: #454A43;
+  --chip-fondo: #282C27;
   --sombra: 0 1px 2px rgba(0, 0, 0, 0.22);
   --verde-suave: #163C2D;
-  --superficie-sutil: #20241F;
+  --superficie-sutil: #222621;
   --sombra-panel: 0 18px 42px rgba(0, 0, 0, 0.34), 0 2px 6px rgba(0, 0, 0, 0.2);
   --sombra-flotante: 0 12px 28px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.25);
 }

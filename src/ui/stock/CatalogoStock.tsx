@@ -91,11 +91,11 @@ function DetalleProducto({ producto, onCerrar }: { producto: Producto; onCerrar:
   if (!datos) return null
   return (
     <div className="mt-3 rounded-2xl px-3.5 py-3" style={{ background: 'var(--chip-fondo)', border: '1px solid var(--linea)' }}>
-      <div className="flex items-baseline justify-between"><div><h3 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Rendimiento</h3><div className="mt-1 text-[14px] font-semibold">{producto.nombre}</div></div><button type="button" className="text-[12px]" style={{ color: 'var(--tenue)' }} onClick={onCerrar}>Cerrar</button></div>
-      <div className="mt-3 grid grid-cols-3 gap-1.5 text-center"><div className="rounded-xl px-1 py-2" style={{ background: 'var(--hueso-2)' }}><div className="text-[10px]" style={{ color: 'var(--tenue)' }}>Margen</div><div className="mt-0.5 text-[14px] font-bold">{margenProducto(producto)}%</div></div><div className="rounded-xl px-1 py-2" style={{ background: 'var(--hueso-2)' }}><div className="text-[10px]" style={{ color: 'var(--tenue)' }}>Vendidas</div><div className="mt-0.5 text-[14px] font-bold">{datos.rotacion.unidadesVendidas}</div></div><div className="rounded-xl px-1 py-2" style={{ background: 'var(--hueso-2)' }}><div className="text-[10px]" style={{ color: 'var(--tenue)' }}>Cobertura</div><div className="mt-0.5 text-[14px] font-bold">{datos.rotacion.diasCobertura === null ? '—' : `${datos.rotacion.diasCobertura}d`}</div></div></div>
-      {datos.alertas.length > 0 && <p className="mt-2 text-[11px]" style={{ color: 'var(--ambar)' }}>{datos.alertas.join(' · ')}</p>}
-      <h4 className="mt-3 text-[10.5px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Últimos movimientos</h4>
-      {datos.movimientos.length === 0 ? <p className="mt-2 text-[11px]" style={{ color: 'var(--tenue)' }}>Todavía no hay ventas ni ingresos para este producto.</p> : <ul className="mt-1">{datos.movimientos.map((movimiento) => <li key={movimiento.id} className="flex justify-between py-1.5 text-[11px]" style={{ borderTop: '1px solid var(--linea)' }}><span>{movimiento.texto} · {new Date(movimiento.fecha).toLocaleDateString('es-AR')}</span><span className="tabular" style={{ color: movimiento.cantidad > 0 ? 'var(--verde)' : 'var(--ambar)' }}>{movimiento.cantidad > 0 ? '+' : ''}{movimiento.cantidad}</span></li>)}</ul>}
+      <div className="flex items-baseline justify-between"><div><h3 className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Rendimiento</h3><div className="mt-1 text-[14px] font-semibold">{producto.nombre}</div></div><button type="button" className="text-[12px]" style={{ color: 'var(--tenue)' }} onClick={onCerrar}>Cerrar</button></div>
+      <div className="mt-3 grid grid-cols-3 gap-1.5 text-center"><div className="rounded-xl px-1 py-2" style={{ background: 'var(--hueso-2)' }}><div className="text-[12px]" style={{ color: 'var(--tenue)' }}>Margen</div><div className="mt-0.5 text-[14px] font-bold">{margenProducto(producto)}%</div></div><div className="rounded-xl px-1 py-2" style={{ background: 'var(--hueso-2)' }}><div className="text-[12px]" style={{ color: 'var(--tenue)' }}>Vendidas</div><div className="mt-0.5 text-[14px] font-bold">{datos.rotacion.unidadesVendidas}</div></div><div className="rounded-xl px-1 py-2" style={{ background: 'var(--hueso-2)' }}><div className="text-[12px]" style={{ color: 'var(--tenue)' }}>Cobertura</div><div className="mt-0.5 text-[14px] font-bold">{datos.rotacion.diasCobertura === null ? '—' : `${datos.rotacion.diasCobertura}d`}</div></div></div>
+      {datos.alertas.length > 0 && <p className="mt-2 text-[12px]" style={{ color: 'var(--ambar)' }}>{datos.alertas.join(' · ')}</p>}
+      <h4 className="mt-3 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Últimos movimientos</h4>
+      {datos.movimientos.length === 0 ? <p className="mt-2 text-[12px]" style={{ color: 'var(--tenue)' }}>Todavía no hay ventas ni ingresos para este producto.</p> : <ul className="mt-1">{datos.movimientos.map((movimiento) => <li key={movimiento.id} className="flex justify-between py-1.5 text-[12px]" style={{ borderTop: '1px solid var(--linea)' }}><span>{movimiento.texto} · {new Date(movimiento.fecha).toLocaleDateString('es-AR')}</span><span className="tabular" style={{ color: movimiento.cantidad > 0 ? 'var(--verde)' : 'var(--ambar)' }}>{movimiento.cantidad > 0 ? '+' : ''}{movimiento.cantidad}</span></li>)}</ul>}
     </div>
   )
 }
@@ -203,12 +203,12 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
       {avisoVisual}
       <div className="rounded-2xl px-3.5 py-3" style={{ background: 'var(--chip-fondo)', border: '1px solid var(--linea)' }}>
         <div className="flex items-baseline justify-between">
-          <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Valor del inventario</span>
-          <span className="tabular text-[11px]" style={{ color: 'var(--tenue)' }}>{inventario.unidades} unidades</span>
+          <span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Valor del inventario</span>
+          <span className="tabular text-[12px]" style={{ color: 'var(--tenue)' }}>{inventario.unidades} unidades</span>
         </div>
         <div className="mt-1 flex items-baseline justify-between gap-2">
           <Importe centavos={inventario.costo} tamaño="normal" />
-          <span className="text-[11px]" style={{ color: 'var(--tenue)' }}>a costo · <Importe centavos={inventario.venta} tamaño="chico" /></span>
+          <span className="text-[12px]" style={{ color: 'var(--tenue)' }}>a costo · <Importe centavos={inventario.venta} tamaño="chico" /></span>
         </div>
       </div>
 
@@ -265,15 +265,15 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
               style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)', boxShadow: 'var(--sombra)' }}
             >
               <div className="flex items-start gap-1"><div className="min-w-0 flex-1 truncate text-[13px] font-medium">{producto.nombre}</div><button type="button" aria-label={producto.favorito ? 'Quitar favorito' : 'Agregar favorito'} title={producto.nombre} className="product-favorite-button" data-active={producto.favorito ? 'true' : 'false'} onClick={() => void repos.productos.marcarFavorito(producto.id, !producto.favorito)}><IconoFavorito /></button></div>
-              {producto.categoria && <div className="mt-0.5 truncate text-[10px]" style={{ color: 'var(--tenue)' }}>{producto.categoria}</div>}
+              {producto.categoria && <div className="mt-0.5 truncate text-[12px]" style={{ color: 'var(--tenue)' }}>{producto.categoria}</div>}
               <Importe centavos={producto.precio} tamaño="chico" className="mt-0.5" />
               <div className="mt-2 h-1.5 overflow-hidden rounded-full" style={{ background: 'var(--linea)' }}>
                 <div className="h-full rounded-full" style={{ width: `${nivel(producto) * 100}%`, background: colorNivel(producto) }} />
               </div>
-              <div className="tabular mt-1 text-[11px]" style={{ color: colorNivel(producto) }}>
+              <div className="tabular mt-1 text-[12px]" style={{ color: colorNivel(producto) }}>
                 {producto.stock <= 0 ? 'sin stock' : `quedan ${producto.stock}`}
               </div>
-              <div className="mt-1 text-[10px]" style={{ color: producto.precio < producto.costo ? 'var(--ambar)' : 'var(--tenue)' }}>{margenProducto(producto)}% margen</div>
+              <div className="mt-1 text-[12px]" style={{ color: producto.precio < producto.costo ? 'var(--ambar)' : 'var(--tenue)' }}>{margenProducto(producto)}% margen</div>
               <div className="stock-product-actions">
                 <button
                   type="button"
@@ -293,7 +293,7 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
                 </button>
               </div>
               <button type="button" className="stock-product-delete" aria-label={`Eliminar ${producto.nombre}`} onClick={() => solicitarEliminacion(producto)}><IconoEliminar /> <span>Eliminar producto</span></button>
-              <button type="button" className="mt-1.5 w-full rounded-lg py-1.5 text-[10px] font-semibold active:opacity-70" style={{ color: 'var(--tinta)', border: '1px solid var(--linea)' }} onClick={() => setDetalle(producto)}>Ver rendimiento</button>
+              <button type="button" className="mt-1.5 w-full rounded-lg py-1.5 text-[12px] font-semibold active:opacity-70" style={{ color: 'var(--tinta)', border: '1px solid var(--linea)' }} onClick={() => setDetalle(producto)}>Ver rendimiento</button>
               {ajustando === producto.id && (
                 <AjustarStock producto={producto} onTerminado={() => setAjustando(null)} />
               )}
