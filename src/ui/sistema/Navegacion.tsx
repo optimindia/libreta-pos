@@ -9,25 +9,29 @@ import { repos } from '@/datos/local/repos'
 import { hayPendientes } from '@/datos/local/cola'
 import { ChipEstado } from './ChipEstado'
 import { EstadoConexion } from './EstadoConexion'
-import { IconoVender, IconoPedidos, IconoFiados, IconoStock, IconoPlata, IconoHistorial, IconoConfig, IconoCuenta, IconoClientes, IconoMas, IconoNuevaVenta, IconoPorcentaje } from './iconos'
+import { IconoInicio, IconoVender, IconoPedidos, IconoFiados, IconoStock, IconoPlata, IconoHistorial, IconoConfig, IconoCuenta, IconoClientes, IconoMas, IconoNuevaVenta, IconoPorcentaje } from './iconos'
 import { funcionActiva, type ClaveFuncion } from '@/dominio/funciones'
 import { useFuncionesNegocio } from './usoFuncionesNegocio'
 
-const SECCIONES = [
-  { href: '/', texto: 'Vender', Icono: IconoVender, funcion: 'vender' },
+type Seccion = { href: string; texto: string; Icono: () => React.JSX.Element; funcion: ClaveFuncion | null }
+
+// Inicio no depende de ninguna función: siempre está.
+const SECCIONES: readonly Seccion[] = [
+  { href: '/', texto: 'Inicio', Icono: IconoInicio, funcion: null },
+  { href: '/vender', texto: 'Vender', Icono: IconoVender, funcion: 'vender' },
   { href: '/pedidos', texto: 'Pedidos', Icono: IconoPedidos, funcion: 'pedidos' },
   { href: '/fiados', texto: 'Fiados', Icono: IconoFiados, funcion: 'fiados' },
   { href: '/stock', texto: 'Stock', Icono: IconoStock, funcion: 'stock' },
   { href: '/plata', texto: 'Plata', Icono: IconoPlata, funcion: 'plata' },
-] as const
+]
 
-const SECUNDARIAS = [
+const SECUNDARIAS: readonly Seccion[] = [
   { href: '/clientes', texto: 'Clientes', Icono: IconoClientes, funcion: 'clientes' },
   { href: '/operacion', texto: 'Control Pro', Icono: IconoPorcentaje, funcion: 'controlPro' },
   { href: '/cuenta', texto: 'Cuenta y suscripción', Icono: IconoCuenta, funcion: 'cuenta' },
   { href: '/historial', texto: 'Historial', Icono: IconoHistorial, funcion: 'historial' },
   { href: '/config', texto: 'Configuración', Icono: IconoConfig, funcion: 'configuracion' },
-] as const
+]
 
 function esActiva(ruta: string, href: string): boolean {
   return href === '/' ? ruta === '/' : ruta.startsWith(href)
@@ -47,12 +51,19 @@ export function Navegacion() {
   const pendientes = useLiveQuery(() => hayPendientes(), [], false)
   const nombre = negocio?.nombre?.trim() || 'Tu almacén'
   const inicial = nombre.charAt(0).toUpperCase()
-  const seccionesVisibles = SECCIONES.filter((item) => funcionActiva(funciones, item.funcion as ClaveFuncion))
-  const secundariasVisibles = SECUNDARIAS.filter((item) => funcionActiva(funciones, item.funcion as ClaveFuncion))
-  const movilPrincipales = seccionesVisibles.slice(0, 4)
-  const movilMas = [...seccionesVisibles.slice(4), ...secundariasVisibles]
+  const visible = (item: Seccion) => item.funcion === null || funcionActiva(funciones, item.funcion)
+  const seccionesVisibles = SECCIONES.filter(visible)
+  const secundariasVisibles = SECUNDARIAS.filter(visible)
 
-  const enlace = ({ href, texto, Icono }: (typeof SECCIONES[number] | typeof SECUNDARIAS[number])) => {
+  // En el celu: Inicio y Fiados a la izquierda, el botón de VENDER al centro,
+  // Stock y Plata a la derecha, y "Más" con todo lo demás.
+  const izquierda = seccionesVisibles.filter(({ href }) => href === '/' || href === '/fiados')
+  const derecha = seccionesVisibles.filter(({ href }) => href === '/stock' || href === '/plata')
+  const movilMas = [...seccionesVisibles.filter(({ href }) => href === '/pedidos'), ...secundariasVisibles]
+  const hayVender = seccionesVisibles.some(({ href }) => href === '/vender')
+  const masActivo = movilMas.some(({ href }) => esActiva(ruta, href))
+
+  const enlace = ({ href, texto, Icono }: Seccion) => {
     const activa = esActiva(ruta, href)
     return (
       <Link
@@ -70,6 +81,14 @@ export function Navegacion() {
     )
   }
 
+  const enlaceMovil = ({ href, texto, Icono }: Seccion) => (
+    <Link key={href} href={href} aria-current={esActiva(ruta, href) ? 'page' : undefined} className="mz-nav-enlace">
+      <Icono />
+      <span>{texto}</span>
+      {href === '/fiados' && fiadosAbiertos > 0 && <span className="mz-nav-insignia">{fiadosAbiertos}</span>}
+    </Link>
+  )
+
   return (
     <>
       <aside className="desktop-sidebar" aria-label="Navegación de Libreta">
@@ -81,7 +100,7 @@ export function Navegacion() {
           <span className="sidebar-business-avatar">{inicial}</span>
           <span className="sidebar-business-copy"><strong>{nombre}</strong><small>Panel de operación</small></span>
         </div>
-        <Link href="/" className="sidebar-new-sale" title="Nueva venta"><span className="sidebar-new-sale-icon"><IconoNuevaVenta /></span><span className="sidebar-label">Nueva venta</span></Link>
+        <Link href="/vender" className="sidebar-new-sale" title="Nueva venta"><span className="sidebar-new-sale-icon"><IconoNuevaVenta /></span><span className="sidebar-label">Nueva venta</span></Link>
         <div className="sidebar-section-label">Operación</div>
         <nav className="sidebar-menu" aria-label="Secciones principales">
           {seccionesVisibles.map(enlace)}
@@ -96,30 +115,33 @@ export function Navegacion() {
         </div>
       </aside>
 
-      <nav aria-label="Secciones principales" className="mobile-bottom-nav">
-        <div className="mobile-bottom-nav-inner">
-          {movilPrincipales.map(({ href, texto, Icono }) => {
-            const activa = esActiva(ruta, href)
-            return <Link key={href} href={href} aria-current={activa ? 'page' : undefined} className="mobile-nav-link" style={{ color: activa ? 'var(--verde)' : 'var(--tenue)' }}><Icono /><span className={activa ? 'font-bold' : ''}>{texto}</span>{href === '/fiados' && fiadosAbiertos > 0 && <span className="mobile-nav-badge">{fiadosAbiertos}</span>}</Link>
-          })}
-          <div className="mobile-more-wrap">
+      <nav aria-label="Secciones principales" className="mz-nav">
+        <div className="mz-nav-grupo">{izquierda.map(enlaceMovil)}</div>
+        {hayVender ? (
+          <Link href="/vender" className="mz-fab" aria-current={esActiva(ruta, '/vender') ? 'page' : undefined}>
+            <span className="mz-fab-circulo"><IconoVender /></span>
+            <span>Vender</span>
+          </Link>
+        ) : <span />}
+        <div className="mz-nav-grupo">
+          {derecha.map(enlaceMovil)}
+          <div className="mz-nav-mas">
             <button
               type="button"
-              className="mobile-nav-link"
+              className="mz-nav-enlace"
               aria-expanded={masAbierto}
               aria-haspopup="menu"
-              style={{ color: movilMas.some(({ href }) => esActiva(ruta, href)) || masAbierto ? 'var(--verde)' : 'var(--tenue)' }}
+              data-activa={masActivo || masAbierto ? 'true' : 'false'}
               onClick={() => setMasAbierto((actual) => !actual)}
             >
               <IconoMas />
-              <span className={masAbierto || movilMas.some(({ href }) => esActiva(ruta, href)) ? 'font-bold' : ''}>Más</span>
+              <span>Más</span>
             </button>
             {masAbierto && (
-              <div className="mobile-more-panel" role="menu" aria-label="Más secciones">
-                {movilMas.map(({ href, texto, Icono }) => {
-                  const activa = esActiva(ruta, href)
-                  return <Link key={href} href={href} role="menuitem" className="mobile-more-link" aria-current={activa ? 'page' : undefined} onClick={() => setMasAbierto(false)}><Icono /><span>{texto}</span></Link>
-                })}
+              <div className="mz-nav-panel" role="menu" aria-label="Más secciones">
+                {movilMas.map(({ href, texto, Icono }) => (
+                  <Link key={href} href={href} role="menuitem" aria-current={esActiva(ruta, href) ? 'page' : undefined} onClick={() => setMasAbierto(false)}><Icono /><span>{texto}</span></Link>
+                ))}
               </div>
             )}
           </div>

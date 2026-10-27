@@ -1,5 +1,5 @@
-import { PantallaVender } from '@/ui/vender/PantallaVender'
+import { PantallaInicio } from '@/ui/inicio/PantallaInicio'
 
 export default function Pagina() {
-  return <PantallaVender />
+  return <PantallaInicio />
 }

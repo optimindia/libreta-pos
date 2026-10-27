@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { ArrowLeft, ArrowRight, ArrowRightLeft, ArrowUpDown, BadgeCheck, Banknote, Bookmark, CalendarClock, CalendarDays, ChartNoAxesColumnIncreasing, Check, CircleAlert, CircleCheck, CircleDollarSign, CircleX, ClipboardList, Cloud, CreditCard, Download, Grid2X2, ListFilter, LockKeyhole, MapPin, MessageCircle, Minus, Package, Pencil, Percent, Plus, QrCode, ReceiptText, RefreshCw, ScanLine, Search, Settings, ShieldCheck, ShoppingCart, Star, StickyNote, Trash2, Truck, Upload, UserRoundPlus, UsersRound, X } from 'lucide-react'
+import { Camera, House, ArrowLeft, ArrowRight, ArrowRightLeft, ArrowUpDown, BadgeCheck, Banknote, Bookmark, CalendarClock, CalendarDays, ChartNoAxesColumnIncreasing, Check, CircleAlert, CircleCheck, CircleDollarSign, CircleX, ClipboardList, Cloud, CreditCard, Download, Grid2X2, ListFilter, LockKeyhole, MapPin, MessageCircle, Minus, Package, Pencil, Percent, Plus, QrCode, ReceiptText, RefreshCw, ScanLine, Search, Settings, ShieldCheck, ShoppingCart, Star, StickyNote, Trash2, Truck, Upload, UserRoundPlus, UsersRound, X } from 'lucide-react'
 
 /** Un único lenguaje visual: misma familia, peso y proporción en toda la app. */
 function crearIcono(Icono: LucideIcon, relleno = false) {
@@ -56,3 +56,5 @@ export const IconoClientes = crearIcono(UsersRound)
 export const IconoFiltro = crearIcono(ListFilter)
 export const IconoWhatsApp = crearIcono(MessageCircle)
 export const IconoEliminar = crearIcono(Trash2)
+export const IconoCamara = crearIcono(Camera)
+export const IconoInicio = crearIcono(House)

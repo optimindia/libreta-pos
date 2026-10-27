@@ -99,7 +99,7 @@ export function PantallaHistorial() {
   return (
     <div className="page-historial px-5 pt-6">
       <div className="page-module-head historial-head">
-        <div><Link href="/" className="history-back-link" style={{ color: 'var(--verde)' }}><IconoFlechaIzquierda /> Vender</Link><span className="page-kicker mt-3 block">Registro</span><h1 className="page-title">Historial de ventas</h1></div>
+        <div><Link href="/vender" className="history-back-link" style={{ color: 'var(--verde)' }}><IconoFlechaIzquierda /> Vender</Link><span className="page-kicker mt-3 block">Registro</span><h1 className="page-title">Historial de ventas</h1></div>
         <span className="tabular text-[12px]" style={{ color: 'var(--tenue)' }}>{filtradas.length} ventas</span>
       </div>
       <input aria-label="Buscar en historial" placeholder="Buscar producto o medio de pago…" className="historial-search mt-4 w-full rounded-xl px-3 py-2.5 text-[14px]" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)', color: 'var(--tinta)' }} value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} />
@@ -118,7 +118,7 @@ export function PantallaHistorial() {
             <span className="historial-empty-kicker">Registro en blanco</span>
             <h2 id="historial-empty-title">Todavía no hay ventas</h2>
             <p>Las ventas cobradas van a quedar ordenadas acá para revisarlas y exportarlas cuando lo necesites.</p>
-            <Link href="/" className="historial-empty-action">Ir a vender <IconoFlechaDerecha /></Link>
+            <Link href="/vender" className="historial-empty-action">Ir a vender <IconoFlechaDerecha /></Link>
           </section>
         ) : (
           <p className="py-14 text-center text-[13px]" style={{ color: 'var(--tenue)' }}>No hay ventas en {etiquetaPeriodo(periodo).toLowerCase()}.</p>

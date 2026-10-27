@@ -35,6 +35,12 @@
   --rojo: #B5321B;
   --rojo-fondo: #FBE4DF;
 
+  /* La tarjeta grande del inicio ("Vendiste hoy") y su gráfico de barras. */
+  --hero-fondo: #0A6F5A;
+  --hero-texto: #FFFFFF;
+  --hero-barra: #B8EBDD;
+  --hero-barra-fuerte: #C6F432;
+
   /* Relieve "pop": contorno firme y sombra dura, sólo en lo que se toca. */
   --contorno: #0F1B2D;
   --sombra-pop: 0 4px 0 #0F1B2D;
@@ -71,6 +77,11 @@
   --sobre-lima: #0B1220;
   --rojo: #FF8F7A;
   --rojo-fondo: #3A1A15;
+
+  --hero-fondo: #123D34;
+  --hero-texto: #F2F5F9;
+  --hero-barra: #2FD1A6;
+  --hero-barra-fuerte: #C6F432;
 
   --contorno: #8FA3C4;
   --sombra-pop: 0 4px 0 #000000;

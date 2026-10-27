@@ -9,6 +9,7 @@ import { DEFINICIONES_FUNCION, funcionActiva, normalizarFunciones, type ClaveFun
 import { IconoBloqueo, IconoConfig } from './iconos'
 
 const RUTAS_PROTEGIDAS: readonly { prefijo: string; clave: ClaveFuncion }[] = [
+  { prefijo: '/vender', clave: 'vender' },
   { prefijo: '/operacion', clave: 'controlPro' },
   { prefijo: '/historial', clave: 'historial' },
   { prefijo: '/clientes', clave: 'clientes' },
@@ -19,7 +20,6 @@ const RUTAS_PROTEGIDAS: readonly { prefijo: string; clave: ClaveFuncion }[] = [
 ] as const
 
 function claveParaRuta(ruta: string): ClaveFuncion | null {
-  if (ruta === '/') return 'vender'
   return RUTAS_PROTEGIDAS.find(({ prefijo }) => ruta === prefijo || ruta.startsWith(`${prefijo}/`))?.clave ?? null
 }
 
