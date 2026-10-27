@@ -7,15 +7,18 @@ const VARIANTES = {
 export function Boton({
   variante = 'principal',
   className = '',
+  type = 'button',
+  style,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variante?: keyof typeof VARIANTES
 }) {
   return (
     <button
+      type={type}
       {...props}
-      style={{ ...VARIANTES[variante], ...props.style }}
-      className={`rounded-2xl px-4 py-4 text-base font-semibold active:opacity-80 disabled:opacity-40 ${className}`}
+      style={{ ...VARIANTES[variante], ...style }}
+      className={`libreta-button touch-manipulation rounded-xl px-4 py-3 text-sm font-semibold transition-opacity active:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--verde)] disabled:pointer-events-none disabled:opacity-40 ${className}`}
     />
   )
 }

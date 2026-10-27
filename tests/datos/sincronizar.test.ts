@@ -84,4 +84,14 @@ describe('bajarTodo', () => {
     })
     expect(await bajarTodo(traer)).toBe(1)
   })
+
+  it('la bajada completa respeta un producto que todavía está pendiente de subir', async () => {
+    await db.productos.put({ ...producto, stock: 8 })
+    await encolar('producto', 'actualizar', { ...producto, stock: 8 })
+    const traer = vi.fn(async (tabla: string) => (tabla === 'productos' ? [{ ...producto, stock: 2 }] : []))
+
+    await bajarTodo(traer)
+
+    expect((await db.productos.get('p1'))?.stock).toBe(8)
+  })
 })

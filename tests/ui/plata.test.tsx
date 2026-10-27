@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { db } from '@/datos/local/db'
 import { repos } from '@/datos/local/repos'
 import { PantallaPlata } from '@/ui/plata/PantallaPlata'
@@ -20,9 +20,9 @@ describe('PantallaPlata', () => {
       items: [{ productoId: producto.id, nombre: 'Yerba', cantidad: 1, precio: 420000, costo: 300000 }],
     })
     render(<PantallaPlata />)
-    // $4.200 sale dos veces y está bien: es lo vendido y es el total en efectivo.
-    expect((await screen.findAllByText('$4.200')).length).toBe(2)
-    expect(await screen.findByText('$1.200')).toBeDefined()
+    // El mismo monto aparece en el resumen, el ranking y el medio de pago.
+    expect((await screen.findAllByText('$4.200')).length).toBeGreaterThanOrEqual(2)
+    expect((await screen.findAllByText('$1.200')).length).toBeGreaterThanOrEqual(1)
   })
 
   it('sin ventas no rompe: muestra cero', async () => {
@@ -35,6 +35,14 @@ describe('PantallaPlata', () => {
       codigoBarras: null, nombre: 'Fideos', costo: 80000, precio: 120000, stock: 1, stockMinimo: 5,
     })
     render(<PantallaPlata />)
-    expect(await screen.findByText(/Fideos/)).toBeDefined()
+    expect((await screen.findAllByText(/Fideos/)).length).toBeGreaterThan(0)
+  })
+
+  it('cambia el rango y comparte un resumen', async () => {
+    render(<PantallaPlata />)
+    fireEvent.click(await screen.findByRole('button', { name: '7dias' }))
+    expect(await screen.findByText('Últimos 7 días')).toBeDefined()
+    const enlace = screen.getByRole('link', { name: /compartir resumen/i }) as HTMLAnchorElement
+    expect(decodeURIComponent(enlace.href)).toContain('Resumen de últimos 7 días')
   })
 })

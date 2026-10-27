@@ -20,7 +20,7 @@ export function ventaDiariaPromedio(
   const desde = ahora - dias * DIA_EN_MS
   let unidades = 0
   for (const venta of ventas) {
-    if (venta.fecha < desde) continue
+    if (venta.estado === 'anulada' || venta.fecha < desde) continue
     for (const item of venta.items) {
       if (item.productoId === productoId) unidades += item.cantidad
     }

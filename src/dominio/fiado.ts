@@ -10,6 +10,7 @@ export interface DeudaCliente {
 }
 
 export function saldoFiado(fiado: Fiado, pagos: FiadoPago[]): Centavos {
+  if (fiado.anuladoEn) return 0
   const pagado = sumar(
     ...pagos.filter((pago) => pago.fiadoId === fiado.id).map((pago) => pago.monto),
   )

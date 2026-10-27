@@ -33,6 +33,21 @@ describe('PantallaConfig', () => {
     })
   })
 
+  it('al guardar los ajustes conserva el vínculo con la nube', async () => {
+    await db.negocio.put({
+      id: 'unico', nombre: 'Viejo', logo: null, color: null,
+      negocioId: 'negocio-1', telefono: '542615551234', ultimaBajada: 1234,
+    })
+    render(<PantallaConfig />)
+    fireEvent.change(await screen.findByLabelText('Nombre del negocio'), { target: { value: 'Nuevo' } })
+    fireEvent.click(screen.getByRole('button', { name: /guardar cambios/i }))
+
+    await waitFor(async () => {
+      const negocio = await db.negocio.get('unico')
+      expect(negocio).toMatchObject({ nombre: 'Nuevo', negocioId: 'negocio-1', telefono: '542615551234', ultimaBajada: 1234 })
+    })
+  })
+
   it('precarga lo que ya estaba guardado', async () => {
     await db.negocio.put({ id: 'unico', nombre: 'Ya estaba', logo: null, color: null })
     render(<PantallaConfig />)
@@ -40,5 +55,17 @@ describe('PantallaConfig', () => {
       const campo = screen.getByLabelText('Nombre del negocio') as HTMLInputElement
       expect(campo.value).toBe('Ya estaba')
     })
+  })
+
+  it('permite desactivar una función opcional desde el panel del negocio', async () => {
+    render(<PantallaConfig />)
+    const pedidos = await screen.findByRole('switch', { name: /Pedidos/ })
+    expect(pedidos.getAttribute('aria-checked')).toBe('true')
+    fireEvent.click(pedidos)
+
+    await waitFor(async () => {
+      expect((await db.preferencias.get('unico'))?.funciones.pedidos).toBe(false)
+    })
+    expect(screen.getByRole('switch', { name: /Pedidos/ }).getAttribute('aria-checked')).toBe('false')
   })
 })

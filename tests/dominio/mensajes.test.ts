@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { mensajeCierre, mensajeCobro, mensajeCompra, enlaceWhatsApp } from '@/dominio/mensajes'
-import type { Cliente, Producto } from '@/dominio/tipos'
+import { mensajeCierre, mensajeCobro, mensajeCompra, enlaceWhatsApp, mensajeTicket } from '@/dominio/mensajes'
+import type { Cliente, Negocio, Producto, Venta } from '@/dominio/tipos'
 
 const cliente: Cliente = { id: 'c1', nombre: 'Marta', telefono: '2615551234' }
 const producto: Producto = {
@@ -88,5 +88,44 @@ describe('enlaceWhatsApp', () => {
 
   it('sin teléfono abre WhatsApp a elegir contacto, no un número roto', () => {
     expect(enlaceWhatsApp('', 'x')).toBe('https://wa.me/?text=x')
+  })
+})
+
+const negocio: Negocio = {
+  id: 'unico', nombre: 'Almacén Don José', logo: null, color: null,
+}
+
+const venta: Venta = {
+  id: 'v1',
+  fecha: new Date(2026, 7, 31, 21, 45).getTime(),
+  total: 620000,
+  medioPago: 'efectivo',
+  items: [
+    { productoId: 'p1', nombre: 'Coca 2L', cantidad: 2, precio: 250000, costo: 180000 },
+    { productoId: 'p2', nombre: 'Pan', cantidad: 1, precio: 120000, costo: 60000 },
+  ],
+  clienteId: null,
+}
+
+describe('mensajeTicket', () => {
+  it('arma el ticket con negocio, items, total y fecha', () => {
+    const texto = mensajeTicket(negocio, venta)
+    expect(texto).toContain('*Almacén Don José*')
+    expect(texto).toContain('2 x Coca 2L — $5.000')
+    expect(texto).toContain('1 x Pan — $1.200')
+    expect(texto).toContain('*Total: $6.200*')
+    expect(texto).toContain('21:45 — 31/08/2026')
+    expect(texto).toContain('¡Gracias por tu compra!')
+  })
+
+  it('es texto corrido: no hay caracteres de tabla', () => {
+    const texto = mensajeTicket(negocio, venta)
+    expect(texto).not.toMatch(/[|]/)
+    expect(texto).not.toMatch(/\t/)
+  })
+
+  it('una venta fiada avisa que quedó en la libreta', () => {
+    const fiado = { ...venta, medioPago: 'fiado' as const }
+    expect(mensajeTicket(negocio, fiado)).toContain('Quedó en la libreta: $6.200')
   })
 })

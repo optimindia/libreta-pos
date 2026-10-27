@@ -34,6 +34,16 @@ describe('movimientosEfectivo', () => {
     const pagos = [pago(30000, 2000), pago(20000, 6000), pago(10000, 500)]
     expect(movimientosEfectivo([], pagos, desde, hasta).pagosFiadoEfectivo).toBe(30000)
   })
+
+  it('incluye entradas y salidas manuales de efectivo', () => {
+    const movimientos = [
+      { id: 'm1', fecha: 2000, tipo: 'entrada' as const, concepto: 'Cambio', monto: 50000, medioPago: 'efectivo' as const },
+      { id: 'm2', fecha: 2000, tipo: 'salida' as const, concepto: 'Proveedor', monto: 20000, medioPago: 'efectivo' as const },
+      { id: 'm3', fecha: 2000, tipo: 'entrada' as const, concepto: 'Transferencia', monto: 90000, medioPago: 'transferencia' as const },
+    ]
+    expect(movimientosEfectivo([], [], 1000, 5000, movimientos)).toMatchObject({ entradasCaja: 50000, salidasCaja: 20000 })
+    expect(esperadoEnCaja(100000, movimientosEfectivo([], [], 1000, 5000, movimientos))).toBe(130000)
+  })
 })
 
 describe('esperadoEnCaja', () => {

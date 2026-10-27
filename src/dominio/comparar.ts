@@ -17,6 +17,7 @@ export function fechaLarga(fecha: Date): string {
 function totalDelDia(ventas: Venta[], dia: Date): number {
   return ventas
     .filter((venta) => {
+      if (venta.estado === 'anulada') return false
       const f = new Date(venta.fecha)
       return (
         f.getFullYear() === dia.getFullYear() &&

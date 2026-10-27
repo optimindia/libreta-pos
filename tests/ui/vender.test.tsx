@@ -45,6 +45,35 @@ describe('PantallaVender', () => {
     await waitFor(async () => expect(await repos.ventas.todas()).toHaveLength(1))
   })
 
+  it('exige confirmar una transferencia y permite guardar su referencia', async () => {
+    render(<PantallaVender />)
+    fireEvent.click(await screen.findByText('Yerba Playadito'))
+    fireEvent.click(await screen.findByRole('button', { name: /^cobrar$/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /transferencia/i }))
+    const registrar = await screen.findByRole('button', { name: /registrar venta confirmada/i })
+    expect(registrar).toHaveProperty('disabled', true)
+    fireEvent.change(screen.getByLabelText(/referencia del pago/i), { target: { value: '8472' } })
+    fireEvent.click(screen.getByLabelText(/ya vi el pago aprobado/i))
+    expect(registrar).toHaveProperty('disabled', false)
+    fireEvent.click(registrar)
+    await waitFor(async () => expect((await repos.ventas.todas())[0].referenciaPago).toBe('8472'))
+  })
+
+  it('al elegir fiado crea el cliente y registra la deuda', async () => {
+    render(<PantallaVender />)
+    fireEvent.click(await screen.findByText('Yerba Playadito'))
+    fireEvent.click(await screen.findByRole('button', { name: /^cobrar$/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /^fiado$/i }))
+    fireEvent.change(await screen.findByLabelText('Nombre del cliente'), { target: { value: 'Marta' } })
+    fireEvent.click(screen.getByRole('button', { name: /anotar fiado/i }))
+
+    await waitFor(async () => {
+      expect(await repos.ventas.todas()).toHaveLength(1)
+      expect(await repos.fiados.abiertos()).toHaveLength(1)
+    })
+    expect((await repos.clientes.todos())[0].nombre).toBe('Marta')
+  })
+
   it('al pagar en efectivo calcula el vuelto antes de confirmar', async () => {
     render(<PantallaVender />)
     fireEvent.click(await screen.findByText('Yerba Playadito'))
@@ -76,10 +105,17 @@ describe('PantallaVender', () => {
     expect(screen.getByText('$4.200')).toBeDefined()
   })
 
-  it('con pocos productos no muestra el buscador', async () => {
+  it('muestra el buscador desde el primer producto', async () => {
     render(<PantallaVender />)
     await screen.findByText('Yerba Playadito')
-    expect(screen.queryByLabelText('Buscar producto')).toBeNull()
+    expect(screen.getByLabelText('Buscar producto')).toBeDefined()
+  })
+
+  it('no permite agregar un producto agotado al ticket', async () => {
+    await repos.productos.guardar({ codigoBarras: '000', nombre: 'Agotado', costo: 100, precio: 200, stock: 0, stockMinimo: 1 })
+    render(<PantallaVender />)
+    const agotado = await screen.findByRole('button', { name: /sin stock · no vendible/i })
+    expect(agotado).toHaveProperty('disabled', true)
   })
 
   it('con muchos productos aparece el buscador y filtra', async () => {

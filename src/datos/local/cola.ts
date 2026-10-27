@@ -2,6 +2,10 @@ import { db, type EnCola } from './db'
 import { nuevoId } from '@/dominio/id'
 
 export const MAX_INTENTOS = 5
+/** Aviso local para que la cola se suba apenas cambia un dato. Mantiene el
+ *  modo offline: encolar sigue siendo la operación principal y el aviso sólo
+ *  despierta al sincronizador cuando hay una sesión y conexión. */
+export const EVENTO_DATOS_PENDIENTES = 'libreta:datos-pendientes'
 
 /** El id de la cola se deriva de la entidad y del id del dato: dos encolados
  *  del mismo hecho colapsan en uno, y un reintento nunca duplica la venta. */
@@ -15,14 +19,29 @@ export async function encolar(
   operacion: EnCola['operacion'],
   datos: unknown,
 ): Promise<void> {
+  const id = idDeCola(entidad, datos)
+  const anterior = await db.cola.get(id)
+  // Un producto nuevo todavía no existe en la nube. Si se edita antes de
+  // subirlo, conserva "crear" y su stock inicial; los cambios de stock
+  // posteriores se transmiten como movimientos independientes.
+  if (entidad === 'producto' && anterior?.operacion === 'crear' && operacion === 'eliminar') {
+    await db.cola.delete(id)
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event(EVENTO_DATOS_PENDIENTES))
+    return
+  }
+  const esCreacionPendiente = entidad === 'producto' && anterior?.operacion === 'crear'
+  const datosFinales = esCreacionPendiente
+    ? { ...(datos as Record<string, unknown>), stock: (anterior.datos as Record<string, unknown>).stock }
+    : datos
   await db.cola.put({
-    id: idDeCola(entidad, datos),
+    id,
     entidad,
-    operacion,
-    datos,
+    operacion: esCreacionPendiente ? 'crear' : operacion,
+    datos: datosFinales,
     intentos: 0,
     creadoEn: Date.now(),
   })
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(EVENTO_DATOS_PENDIENTES))
 }
 
 export async function pendientes(): Promise<EnCola[]> {
@@ -30,16 +49,37 @@ export async function pendientes(): Promise<EnCola[]> {
   return todas.filter((item) => item.intentos < MAX_INTENTOS)
 }
 
-export async function marcarSubido(id: string): Promise<void> {
+export async function marcarSubido(id: string, creadoEn?: number, datos?: unknown): Promise<void> {
+  const actual = await db.cola.get(id)
+  // Si el usuario volvió a editar el mismo registro mientras se subía la
+  // versión anterior, no borres la nueva operación que reemplazó a ésta.
+  if (!actual || (creadoEn !== undefined && actual.creadoEn !== creadoEn)) return
+  if (datos !== undefined && JSON.stringify(actual.datos) !== JSON.stringify(datos)) return
   await db.cola.delete(id)
 }
 
-export async function marcarFallido(id: string): Promise<void> {
+export async function marcarFallido(id: string, error?: unknown): Promise<void> {
   const item = await db.cola.get(id)
   if (!item) return
-  await db.cola.update(id, { intentos: item.intentos + 1 })
+  const detalle = error instanceof Error ? error.message : 'No se pudo conectar con la nube.'
+  await db.cola.update(id, {
+    intentos: item.intentos + 1,
+    ultimoError: detalle.slice(0, 220),
+    ultimoIntentoEn: Date.now(),
+  })
 }
 
 export async function hayPendientes(): Promise<boolean> {
   return (await pendientes()).length > 0
+}
+
+/** Permite reactivar manualmente operaciones que agotaron sus reintentos. */
+export async function reintentarTodos(): Promise<number> {
+  const agotados = (await db.cola.toArray()).filter((item) => item.intentos > 0)
+  if (agotados.length === 0) return 0
+  await db.transaction('rw', db.cola, async () => {
+    for (const item of agotados) await db.cola.update(item.id, { intentos: 0, ultimoError: undefined, ultimoIntentoEn: undefined })
+  })
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(EVENTO_DATOS_PENDIENTES))
+  return agotados.length
 }

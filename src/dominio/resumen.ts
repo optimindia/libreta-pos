@@ -21,6 +21,7 @@ export function resumirVentas(ventas: Venta[]): FilaResumen[] {
   const filas = new Map<string, FilaResumen>()
 
   for (const venta of ventas) {
+    if (venta.estado === 'anulada') continue
     const dia = claveDelDia(venta.fecha)
     for (const item of venta.items) {
       const clave = `${dia}|${item.productoId}`
