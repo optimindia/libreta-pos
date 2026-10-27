@@ -26,7 +26,8 @@ async function cargarProductos(cantidad: number) {
 describe('PantallaVender', () => {
   it('empieza con el ticket vacío y el total en cero', async () => {
     render(<PantallaVender />)
-    expect(await screen.findByText('$0')).toBeDefined()
+    // el total vive en la barra de abajo y en el ticket
+    expect((await screen.findAllByText('$0')).length).toBeGreaterThanOrEqual(1)
   })
 
   it('agregar un producto lo muestra en el ticket y suma al total', async () => {
@@ -125,5 +126,61 @@ describe('PantallaVender', () => {
     fireEvent.change(buscador, { target: { value: 'Yerba' } })
     expect(await screen.findByText('Yerba Playadito')).toBeDefined()
     expect(screen.queryByText('Producto 0')).toBeNull()
+  })
+
+  it('el cobro en efectivo se completa con los billetes y el teclado', async () => {
+    render(<PantallaVender />)
+    fireEvent.click(await screen.findByText('Yerba Playadito'))
+    fireEvent.click(await screen.findByRole('button', { name: /^cobrar$/i }))
+
+    // arranca en efectivo y sin pago: no se puede cobrar todavía
+    expect(screen.getByRole('button', { name: /cobrar \$4\.200/i })).toHaveProperty('disabled', true)
+
+    // $5.000 es uno de los billetes sugeridos para $4.200
+    fireEvent.click(screen.getByRole('button', { name: '$5.000' }))
+    expect((screen.getByLabelText(/con cuánto pagó/i) as HTMLInputElement).value).toBe('5.000')
+    expect(screen.getByText('$800')).toBeDefined()
+    expect(screen.getByRole('button', { name: /cobrar \$4\.200/i })).toHaveProperty('disabled', false)
+
+    // borrar y volver a tipear con el teclado
+    fireEvent.click(screen.getByRole('button', { name: 'Borrar' }))
+    fireEvent.click(screen.getByRole('button', { name: '000' }))
+    expect((screen.getByLabelText(/con cuánto pagó/i) as HTMLInputElement).value).toBe('500.000')
+  })
+
+  it('"Justo" cobra sin vuelto', async () => {
+    render(<PantallaVender />)
+    fireEvent.click(await screen.findByText('Yerba Playadito'))
+    fireEvent.click(await screen.findByRole('button', { name: /^cobrar$/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Justo' }))
+
+    expect((screen.getByLabelText(/con cuánto pagó/i) as HTMLInputElement).value).toBe('4.200')
+    // el vuelto es $0: el tablero lo muestra y el botón queda habilitado
+    expect(screen.getAllByText('$0').length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: /cobrar \$4\.200/i })).toHaveProperty('disabled', false)
+  })
+
+  it('al cobrar muestra la hoja de "Cobrado" con la ganancia y deja empezar otra venta', async () => {
+    render(<PantallaVender />)
+    fireEvent.click(await screen.findByText('Yerba Playadito'))
+    fireEvent.click(await screen.findByRole('button', { name: /^cobrar$/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Justo' }))
+    fireEvent.click(screen.getByRole('button', { name: /cobrar \$4\.200/i }))
+
+    expect(await screen.findByText(/cobrado en efectivo/i)).toBeDefined()
+    expect(screen.getByText('$1.200')).toBeDefined()
+    expect(screen.getByRole('link', { name: /mandar el ticket por whatsapp/i })).toBeDefined()
+
+    fireEvent.click(screen.getByRole('button', { name: /nueva venta/i }))
+    await waitFor(() => expect(screen.queryByText(/cobrado en efectivo/i)).toBeNull())
+  })
+
+  it('una baldosa muestra cuántas unidades lleva el ticket', async () => {
+    render(<PantallaVender />)
+    const baldosa = await screen.findByText('Yerba Playadito')
+    fireEvent.click(baldosa)
+    fireEvent.click(baldosa)
+
+    expect(await screen.findByLabelText('2 en el ticket')).toBeDefined()
   })
 })

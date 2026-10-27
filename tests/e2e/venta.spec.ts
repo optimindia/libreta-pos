@@ -11,7 +11,7 @@ test('cargar un producto, venderlo y ver la ganancia', async ({ page }) => {
   await expect(page.getByText('Yerba Playadito', { exact: true })).toBeVisible()
 
   await page.goto('/vender')
-  await page.getByRole('button', { name: 'Yerba Playadito' }).click()
+  await page.getByRole('button', { name: /^Yerba Playadito/ }).click()
   await page.getByRole('button', { name: /^cobrar$/i }).click()
   await page.getByRole('button', { name: /efectivo/i }).click()
   await page.getByLabel(/con cuánto pagó/i).fill('5000')
@@ -38,7 +38,7 @@ test('la venta funciona con el celular sin señal', async ({ page, context }) =>
   await page.goto('/vender')
   await context.setOffline(true)
 
-  await page.getByRole('button', { name: 'Fideos' }).click()
+  await page.getByRole('button', { name: /^Fideos/ }).click()
   await page.getByRole('button', { name: /^cobrar$/i }).click()
   await page.getByRole('button', { name: /efectivo/i }).click()
   await page.getByLabel(/con cuánto pagó/i).fill('2000')
@@ -62,7 +62,7 @@ test('un lector físico agrega el producto al enviar código y Enter', async ({ 
   await expect(page.getByText('Lector USB', { exact: true })).toBeVisible()
 
   await page.goto('/vender')
-  await expect(page.getByRole('button', { name: 'Lector USB' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Lector USB/ })).toBeVisible()
   await page.keyboard.type('779001', { delay: 8 })
   await page.keyboard.press('Enter')
   await expect(page.getByRole('button', { name: /^cobrar$/i })).toBeEnabled()
@@ -79,7 +79,7 @@ test('cerrar la caja cuadrada y que quede el registro', async ({ page }) => {
   await expect(page.getByText('Azúcar', { exact: true })).toBeVisible()
 
   await page.goto('/vender')
-  await page.getByRole('button', { name: 'Azúcar' }).click()
+  await page.getByRole('button', { name: /^Azúcar/ }).click()
   await page.getByRole('button', { name: /^cobrar$/i }).click()
   await page.getByRole('button', { name: /efectivo/i }).click()
   await page.getByLabel(/con cuánto pagó/i).fill('2000')
@@ -106,7 +106,7 @@ test('tras cobrar se puede mandar el ticket por WhatsApp', async ({ page }) => {
   await expect(page.getByText('Gaseosa', { exact: true })).toBeVisible()
 
   await page.goto('/vender')
-  await page.getByRole('button', { name: 'Gaseosa' }).click()
+  await page.getByRole('button', { name: /^Gaseosa/ }).click()
   await page.getByRole('button', { name: /^cobrar$/i }).click()
   await page.getByRole('button', { name: /efectivo/i }).click()
   await page.getByLabel(/con cuánto pagó/i).fill('2000')

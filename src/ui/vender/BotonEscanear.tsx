@@ -43,11 +43,8 @@ export function BotonEscanear({ onProducto, onNoEncontrado }: { onProducto: (pro
 
   return (
     <>
-      <button type="button" className="sale-scan-card" onClick={() => void abrir()}>
-        <span className="sale-scan-card-icon"><IconoEscanear /></span>
-        <span className="sale-scan-card-copy"><strong>Escanear para vender</strong><small>Usá el lector o abrí la cámara para sumar al ticket.</small></span>
-        <span className="sale-scan-card-reader"><i aria-hidden="true" />Lector USB/Bluetooth · código + Enter</span>
-        <span className="sale-scan-card-action">Abrir cámara</span>
+      <button type="button" className="mz-escanear mz-toque" aria-label="Escanear código con la cámara" title="Escanear código con la cámara" onClick={() => void abrir()}>
+        <IconoEscanear />
       </button>
       {abierto && (
         <div className="scanner-overlay" role="dialog" aria-modal="true" aria-label="Escanear producto para vender">

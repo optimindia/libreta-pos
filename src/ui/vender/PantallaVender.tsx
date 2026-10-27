@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { ItemVenta, MedioPago, Negocio, UUID, Venta } from '@/dominio/tipos'
@@ -7,16 +8,14 @@ import { agregarProducto, cambiarCantidad, totalTicket } from '@/dominio/ticket'
 import { ErrorStockInsuficiente, repos } from '@/datos/local/repos'
 import { db } from '@/datos/local/db'
 import { nubeActiva } from '@/datos/nube/cliente'
-import { Importe } from '@/ui/sistema/Importe'
-import { Boton } from '@/ui/sistema/Boton'
-import { Cabecera } from './Cabecera'
 import { Ticket } from './Ticket'
 import { Cobro } from './Cobro'
 import { BotonEscanear } from './BotonEscanear'
 import { CatalogoVender } from './CatalogoVender'
 import { Entrar } from './Entrar'
 import { Cobrado } from './Cobrado'
-import { IconoFlechaDerecha } from '@/ui/sistema/iconos'
+import { IconoCerrar, IconoFlechaDerecha, IconoFlechaIzquierda } from '@/ui/sistema/iconos'
+import { formatearPesos } from '@/dominio/dinero'
 import { funcionActiva } from '@/dominio/funciones'
 import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
 
@@ -27,6 +26,7 @@ const NEGOCIO_POR_DEFECTO: Negocio = { id: 'unico', nombre: 'Tu almacén', logo:
 export function PantallaVender() {
   const [items, setItems] = useState<ItemVenta[]>([])
   const [cobrando, setCobrando] = useState(false)
+  const [verTicket, setVerTicket] = useState(false)
   const [cobrada, setCobrada] = useState<Venta | null>(null)
   const [busqueda, setBusqueda] = useState('')
   const [deCero, setDeCero] = useState(false)
@@ -136,23 +136,56 @@ export function PantallaVender() {
     return () => window.removeEventListener('keydown', capturarLector)
   })
 
+  const unidades = items.reduce((suma, item) => suma + item.cantidad, 0)
+  const cantidades = Object.fromEntries(items.map((item) => [item.productoId, item.cantidad]))
+  const hayItems = items.length > 0
+
+  const cobrarBoton = (
+    <button
+      type="button"
+      className="mz-cobrar mz-toque"
+      disabled={!hayItems}
+      onClick={() => { setVerTicket(false); setCobrando(true) }}
+    >
+      Cobrar venta
+    </button>
+  )
+
   return (
-    <div className="page-vender">
-      <Cabecera />
+    <div className="mz-mostrador">
+      <header className="mz-mostrador-cabecera">
+        <Link href="/" className="mz-redondo mz-toque" aria-label="Volver al inicio"><IconoFlechaIzquierda /></Link>
+        <h1>Vender</h1>
+      </header>
 
-      <div className="vender-layout">
-        <aside className="vender-checkout">
-          <div className="vender-panel-heading">
-            <div>
-              <span className="vender-eyebrow">Venta en curso</span>
-              <h1 className="vender-panel-title">Tu ticket</h1>
+      {aparatoNuevo ? (
+        <Entrar onListo={() => setDeCero(true)} />
+      ) : (
+        <div className="mz-mostrador-cuerpo">
+          <CatalogoVender
+            productos={productos}
+            cantidades={cantidades}
+            busqueda={busqueda}
+            onBuscar={setBusqueda}
+            onElegir={elegirProducto}
+            escaner={escanerVenta ? (
+              <BotonEscanear
+                onProducto={elegirProducto}
+                onNoEncontrado={(codigo) => setAvisoStock(`No encontramos el código ${codigo}. Cargalo en Stock para venderlo.`)}
+              />
+            ) : undefined}
+          />
+
+          <aside className={`mz-ticket-panel${verTicket ? ' is-abierto' : ''}`} aria-label="Ticket de la venta">
+            <div className="mz-ticket-cabecera">
+              <div>
+                <span className="mz-subtitulo">Venta en curso</span>
+                <h2>Tu ticket</h2>
+              </div>
+              <span className="mz-ticket-cuenta">{unidades} {unidades === 1 ? 'producto' : 'productos'}</span>
+              <button type="button" className="mz-redondo mz-cerrar-ticket mz-toque" aria-label="Cerrar el ticket" onClick={() => setVerTicket(false)}><IconoCerrar /></button>
             </div>
-            <span className="vender-item-count">{items.length} {items.length === 1 ? 'producto' : 'productos'}</span>
-          </div>
 
-          {aparatoNuevo ? (
-            <Entrar onListo={() => setDeCero(true)} />
-          ) : (
             <Ticket
               items={items}
               stockPorProducto={Object.fromEntries(productos.map((producto) => [producto.id, producto.stock]))}
@@ -165,66 +198,45 @@ export function PantallaVender() {
                 if (producto) setAvisoStock(`Solo quedan ${producto.stock} unidades de ${producto.nombre}.`)
               }}
             />
-          )}
 
-          {avisoStock && <p className="vender-stock-warning" role="status">{avisoStock}</p>}
-
-          {!aparatoNuevo && (
-            <>
-              <div className="vender-total">
-                <span className="vender-eyebrow">Total a cobrar</span>
-                <Importe centavos={total} tamaño="grande" className="!text-3xl" />
-              </div>
-
-              {!cobrando && (
-                <Boton
-                  variante="principal"
-                  className="button-with-icon vender-charge-button"
-                  aria-label="Cobrar"
-                  disabled={items.length === 0}
-                  onClick={() => setCobrando(true)}
-                >
-                  <span className="charge-button-copy"><strong>Cobrar venta</strong><small>Confirmar el ticket</small></span>
-                  <span className="charge-button-icon"><IconoFlechaDerecha /></span>
-                </Boton>
-              )}
-
-              {cobrando && <Cobro total={total} onCobrar={cobrar} onCancelar={() => setCobrando(false)} />}
-
-              {cobrada && (
-                <Cobrado
-                  venta={cobrada}
-                  negocio={estado?.negocio ?? NEGOCIO_POR_DEFECTO}
-                  onNueva={() => setCobrada(null)}
-                />
-              )}
-            </>
-          )}
-        </aside>
-
-        <section className="vender-catalog">
-          <div className="vender-catalog-heading">
-            <div>
-              <span className="vender-eyebrow">Biblioteca de productos</span>
-              <h2 className="vender-section-title">Elegí para vender</h2>
+            <div className="mz-ticket-total">
+              <span>Total a cobrar</span>
+              <strong className="tabular">{formatearPesos(total)}</strong>
             </div>
-            <div className="vender-catalog-count"><strong>{productos.length}</strong><span>cargados</span></div>
-          </div>
-          {escanerVenta && <div className="vender-scanner-row">
-              <BotonEscanear
-                onProducto={elegirProducto}
-                onNoEncontrado={(codigo) => setAvisoStock(`No encontramos el código ${codigo}. Cargalo en Stock para venderlo.`)}
-              />
-              <span className="vender-scanner-hint">En PC, conectá el lector USB/Bluetooth y escaneá directo. En celular, abrí la cámara.</span>
-            </div>}
-          <CatalogoVender
-            productos={productos}
-            busqueda={busqueda}
-            onBuscar={setBusqueda}
-            onElegir={elegirProducto}
-          />
-        </section>
-      </div>
+            {cobrarBoton}
+          </aside>
+        </div>
+      )}
+
+      {avisoStock && <p className="mz-aviso-stock" role="status">{avisoStock}</p>}
+
+      {!aparatoNuevo && (
+        <div className="mz-barra-cobro">
+          <button type="button" className="mz-barra-resumen" onClick={() => setVerTicket(true)} aria-label={`Ver el ticket: ${unidades} ${unidades === 1 ? 'producto' : 'productos'}, ${formatearPesos(total)}`}>
+            <span>{unidades} {unidades === 1 ? 'producto' : 'productos'} · ver ticket</span>
+            <strong className="tabular">{formatearPesos(total)}</strong>
+          </button>
+          <button
+            type="button"
+            className="mz-barra-cobrar mz-toque"
+            aria-label="Cobrar"
+            disabled={!hayItems}
+            onClick={() => setCobrando(true)}
+          >
+            Cobrar <IconoFlechaDerecha />
+          </button>
+        </div>
+      )}
+
+      {cobrando && <Cobro total={total} onCobrar={cobrar} onCancelar={() => setCobrando(false)} />}
+
+      {cobrada && (
+        <Cobrado
+          venta={cobrada}
+          negocio={estado?.negocio ?? NEGOCIO_POR_DEFECTO}
+          onNueva={() => setCobrada(null)}
+        />
+      )}
     </div>
   )
 }

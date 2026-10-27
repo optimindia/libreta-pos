@@ -1,14 +1,12 @@
 'use client'
 
-import type { ItemVenta } from '@/dominio/tipos'
-import { Importe } from '@/ui/sistema/Importe'
-import { IconoHistorial, IconoMasCantidad, IconoMenos } from '@/ui/sistema/iconos'
 import { useState } from 'react'
+import type { ItemVenta } from '@/dominio/tipos'
+import { formatearPesos } from '@/dominio/dinero'
+import { IconoMasCantidad, IconoMenos } from '@/ui/sistema/iconos'
 
-function iniciales(nombre: string): string {
-  return nombre.split(' ').slice(0, 2).map((palabra) => palabra.charAt(0).toUpperCase()).join('')
-}
-
+/** El ticket en curso: cada renglón con su cantidad y botones grandes para
+ *  sumar o quitar, y el subtotal a la derecha. */
 export function Ticket({
   items,
   onCambiarCantidad,
@@ -26,84 +24,57 @@ export function Ticket({
 
   if (items.length === 0) {
     return (
-      <div className="ticket-empty px-5 py-8 text-center">
-        <span className="ticket-empty-icon" aria-hidden="true">
-          <IconoHistorial />
-        </span>
-        <strong className="mt-3 block text-[13px]">Listo para anotar</strong>
-        <p className="mt-1 text-[12px]" style={{ color: 'var(--tenue)' }}>
-          Escaneá o tocá un producto para empezar la venta.
-        </p>
+      <div className="mz-ticket-vacio">
+        <strong>Listo para anotar</strong>
+        <p>Escaneá o tocá un producto para empezar la venta.</p>
       </div>
     )
   }
 
   return (
-    <div className="px-5">
-      <div className="mb-1 flex justify-end">
+    <div className="mz-ticket">
+      <div className="mz-ticket-acciones">
         {!confirmandoVaciar ? (
-          <button
-            type="button"
-            className="text-[12px] font-medium"
-            style={{ color: 'var(--tenue)' }}
-            onClick={() => setConfirmandoVaciar(true)}
-          >
+          <button type="button" className="mz-texto-boton" onClick={() => setConfirmandoVaciar(true)}>
             Vaciar venta
           </button>
         ) : (
-          <div className="flex items-center gap-2 text-[12px]">
-            <span style={{ color: 'var(--tenue)' }}>¿Borrar todo?</span>
-            <button
-              type="button"
-              className="font-semibold"
-              style={{ color: 'var(--ambar)' }}
-              onClick={() => { onVaciar?.(); setConfirmandoVaciar(false) }}
-            >
+          <div className="mz-confirmar-vaciar">
+            <span>¿Borrar todo?</span>
+            <button type="button" className="mz-texto-boton mz-texto-rojo" onClick={() => { onVaciar?.(); setConfirmandoVaciar(false) }}>
               Sí, vaciar
             </button>
-            <button type="button" style={{ color: 'var(--tenue)' }} onClick={() => setConfirmandoVaciar(false)}>
+            <button type="button" className="mz-texto-boton" onClick={() => setConfirmandoVaciar(false)}>
               No
             </button>
           </div>
         )}
       </div>
-      <ul>
-        {items.map((item) => (
-          <li
-            key={item.productoId}
-            className="flex items-center gap-3 py-2.5"
-            style={{ borderBottom: '1px solid var(--linea)' }}
-          >
-            <div
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-[12px] font-semibold"
-              style={{ background: 'var(--chip-fondo)', color: 'var(--tenue)' }}
-            >
-              {iniciales(item.nombre)}
-            </div>
-            <div className="min-w-0 flex-1 leading-tight">
-              <div className="truncate text-[13px] font-medium">{item.nombre}</div>
-              <div className="mt-1 flex items-center gap-1.5">
+      <ul className="mz-renglones">
+        {items.map((item) => {
+          const sinMas = item.cantidad >= (stockPorProducto[item.productoId] ?? 0)
+          return (
+            <li key={item.productoId} className="mz-renglon">
+              <div className="mz-renglon-datos">
+                <strong>{item.nombre}</strong>
+                <span className="tabular">{formatearPesos(item.precio)} c/u</span>
+              </div>
+              <div className="mz-paso">
                 <button
                   type="button"
-                  className="ticket-quantity-button flex h-6 w-6 items-center justify-center rounded-md text-[15px]"
-                  style={{ background: 'var(--chip-fondo)', color: 'var(--tinta)' }}
                   title="Quitar una unidad"
                   onClick={() => onCambiarCantidad(item.productoId, item.cantidad - 1)}
                   aria-label={`Quitar uno de ${item.nombre}`}
                 >
                   <IconoMenos />
                 </button>
-                <span className="tabular text-[12px]" style={{ color: 'var(--tenue)' }}>
-                  {item.cantidad} × {(item.precio / 100).toLocaleString('es-AR')}
-                </span>
+                <span className="mz-paso-n tabular" aria-label={`${item.cantidad} unidades`}>{item.cantidad}</span>
                 <button
                   type="button"
-                  className="ticket-quantity-button flex h-6 w-6 items-center justify-center rounded-md text-[15px] disabled:cursor-not-allowed disabled:opacity-35"
-                  style={{ background: 'var(--chip-fondo)', color: 'var(--tinta)' }}
-                  disabled={item.cantidad >= (stockPorProducto[item.productoId] ?? 0)}
-                  title={item.cantidad >= (stockPorProducto[item.productoId] ?? 0) ? 'Stock máximo alcanzado' : 'Agregar una unidad'}
+                  disabled={sinMas}
+                  title={sinMas ? 'Stock máximo alcanzado' : 'Agregar una unidad'}
                   onClick={() => {
-                    if (item.cantidad >= (stockPorProducto[item.productoId] ?? 0)) onSinStock?.(item.productoId)
+                    if (sinMas) onSinStock?.(item.productoId)
                     else onCambiarCantidad(item.productoId, item.cantidad + 1)
                   }}
                   aria-label={`Agregar uno de ${item.nombre}`}
@@ -111,10 +82,10 @@ export function Ticket({
                   <IconoMasCantidad />
                 </button>
               </div>
-            </div>
-            <Importe centavos={item.precio * item.cantidad} tamaño="chico" />
-          </li>
-        ))}
+              <span className="mz-renglon-subtotal tabular">{formatearPesos(item.precio * item.cantidad)}</span>
+            </li>
+          )
+        })}
       </ul>
     </div>
   )
