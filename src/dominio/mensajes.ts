@@ -82,6 +82,13 @@ export function mensajeResumen(
   ].join('\n')
 }
 
+/** El acceso que el admin le manda a un dueño o vendedor nuevo. La dirección
+ *  es donde está publicada la app (se pasa desde afuera): así no queda un link
+ *  viejo escrito a mano cuando cambia el dominio. */
+export function mensajeAcceso(telefono: string, pin: string, direccion: string): string {
+  return `Hola, ya está listo tu acceso a Libreta.\n\nTeléfono: ${telefono}\nPIN: ${pin}\n\nIngresá en ${direccion}`
+}
+
 export function enlaceWhatsApp(telefono: string, texto: string): string {
   const soloDigitos = telefono.replace(/\D/g, '')
   const textoCodificado = encodeURIComponent(texto)

@@ -41,6 +41,24 @@ export function accesoPermitido(
   return suscripcion.venceEn > ahora && (estado === 'prueba' || estado === 'activa')
 }
 
+/** Cuánto puede vender la caja sin poder hablar con el servidor. Un almacén
+ *  no puede cerrar porque se cayó el wifi; tampoco puede quedar abierto para
+ *  siempre con una copia local. */
+export const MAXIMO_SIN_VERIFICAR_MS = 72 * 60 * 60 * 1000
+
+/** Sin señal se usa la última confirmación del servidor: vale si la
+ *  suscripción sigue vigente y esa confirmación es reciente. La nube igual
+ *  rechaza (RLS) lo que suba una cuenta vencida. */
+export function puedeOperarSinVerificar(
+  suscripcion: Suscripcion | null | undefined,
+  verificadoEn: number | undefined,
+  ahora = Date.now(),
+): boolean {
+  if (!accesoPermitido(suscripcion, ahora) || verificadoEn === undefined) return false
+  const transcurrido = ahora - verificadoEn
+  return transcurrido >= 0 && transcurrido <= MAXIMO_SIN_VERIFICAR_MS
+}
+
 export function diasRestantes(
   suscripcion: Suscripcion | null | undefined,
   ahora = Date.now(),

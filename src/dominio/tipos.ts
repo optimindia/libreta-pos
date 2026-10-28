@@ -169,6 +169,8 @@ export interface Negocio {
   usuarioId?: UUID
   /** Rol de quien usa este aparato: 'vendedor' ve una app recortada. */
   rol?: 'dueno' | 'vendedor'
+  /** Última vez que el servidor confirmó el acceso (reloj del aparato). */
+  verificadoEn?: number
   /** Nombre del vendedor (el dueño no lo necesita). */
   nombreUsuario?: string | null
   /** Marca de la última bajada incremental; el reloj es el del servidor. */
