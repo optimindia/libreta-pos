@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     // artefactos de builds, no código del proyecto
     ".vercel/**",
     "node_modules/**",
+    // copias de trabajo de subagentes (git worktrees), no son código de este árbol
+    ".claude/**",
   ]),
 ]);
 
