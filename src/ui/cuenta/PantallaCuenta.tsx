@@ -12,6 +12,14 @@ export function PantallaCuenta() {
       </div>
       <EstadoCuenta />
       <div className="account-page-note"><IconoCuentaMini /><div><strong>¿Necesitás renovar?</strong><p>Escribinos por WhatsApp y el administrador actualizará tu cuenta manualmente.</p></div></div>
+      <section className="account-legal" aria-labelledby="account-legal-title">
+        <h2 id="account-legal-title">Legales</h2>
+        <p>Las reglas del servicio y cómo cuidamos tus datos y los de tus clientes.</p>
+        <ul>
+          <li><Link href="/terminos">Términos y condiciones</Link></li>
+          <li><Link href="/privacidad">Política de privacidad</Link></li>
+        </ul>
+      </section>
     </div>
   )
 }
