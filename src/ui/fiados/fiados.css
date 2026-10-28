@@ -1,0 +1,269 @@
+/* Fiados con el sistema F (src/ui/fiados). Celu: total en coral, lista de
+   clientes y la cuenta en una hoja. PC (≥ 900 px): lista a la izquierda y la
+   cuenta del cliente elegido al lado. Sólo tokens --f-*. */
+
+.f-fiados {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.f-fiados-lista-col {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.f-fiados-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-3);
+}
+
+.f-fiados-cabeza .f-boton {
+  min-height: 44px;
+  padding: 0 var(--f-4);
+  font-size: 15px;
+}
+
+/* ───────────── Te deben ───────────── */
+
+.f-fiados-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--f-3);
+  padding: var(--f-4) 18px;
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-coral-suave);
+  color: var(--f-coral);
+}
+
+.f-fiados-total-texto { display: flex; flex-direction: column; }
+.f-fiados-total-texto .f-dato { color: var(--f-coral); }
+.f-fiados-total-rotulo { font-size: 15px; font-weight: 700; }
+.f-fiados-total-monto { font-size: 30px; line-height: 1.1; }
+
+.f-fiados .f-chip { min-height: 44px; }
+
+/* ───────────── Lista de clientes ───────────── */
+
+.f-fiados-lista {
+  display: flex;
+  margin: 0;
+  padding: 6px;
+  flex-direction: column;
+  gap: 2px;
+  list-style: none;
+}
+
+.f-fiados-fila {
+  display: flex;
+  width: 100%;
+  min-height: 68px;
+  align-items: center;
+  gap: var(--f-3);
+  padding: var(--f-3) 10px;
+  border: 0;
+  border-radius: var(--f-radio-control);
+  background: transparent;
+  color: var(--f-tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.f-fiados-fila:focus-visible { outline: 3px solid var(--f-foco); outline-offset: -3px; }
+.f-fiados-fila[aria-current='true'] { background: var(--f-superficie-2); }
+.f-fiados-fila .f-renglon-fin { font-size: 16px; }
+.f-fiados-fila .f-renglon-titulo { white-space: nowrap; }
+.f-fiados .f-renglon-detalle[data-tono='coral'] { color: var(--f-coral); font-weight: 700; }
+
+.f-fiados-avatar {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--f-verde-suave);
+  color: var(--f-verde);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.f-fiados-avatar[data-vencido='true'] { background: var(--f-coral-suave); color: var(--f-coral); }
+.f-fiados-avatar[data-grande='true'] { width: 64px; height: 64px; flex-basis: 64px; font-size: 24px; }
+
+.f-fiados-pista { margin: 0 var(--f-2); color: var(--f-tinta-2); }
+.f-fiados-vacio { margin: 0; color: var(--f-tinta-2); }
+
+.f-fiados-vacia {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--f-3);
+}
+
+.f-fiados-vacia p { margin: 0; color: var(--f-tinta-2); }
+
+/* ───────────── Pago guardado ───────────── */
+
+.f-fiados-pago {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-2);
+  padding: var(--f-3) var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-verde-suave);
+  color: var(--f-verde);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.f-fiados-enlace {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--f-verde);
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+/* ───────────── Cuenta de un cliente ───────────── */
+
+.f-fiados-cuenta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-5);
+}
+
+.f-fiados-cuenta-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--f-4);
+}
+
+.f-fiados-cuenta-nombre {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 180px;
+  flex-direction: column;
+}
+
+.f-fiados-cuenta-titulo {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.f-fiados-etiquetas { display: flex; flex-wrap: wrap; gap: var(--f-2); }
+.f-fiados-etiquetas .f-etiqueta { min-height: 30px; }
+
+.f-fiados-datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--f-3);
+}
+
+.f-fiados-dato {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-1);
+  padding: var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-fondo);
+}
+
+.f-fiados-dato-grande { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.f-fiados-dato-grande[data-tono='coral'] { color: var(--f-coral); }
+.f-fiados-dato-medio { font-size: 20px; font-weight: 800; }
+
+.f-fiados-barra {
+  display: flex;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--f-linea);
+}
+
+.f-fiados-barra > span { background: var(--f-verde); }
+.f-fiados-barra > span[data-lleno='true'] { background: var(--f-coral); }
+
+.f-fiados-acciones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.f-fiados-acciones .f-boton { min-height: 56px; font-size: 16px; }
+.f-fiados-acciones .f-boton[data-variante='principal'] { grid-column: 1 / -1; min-height: 60px; font-size: 18px; }
+.f-fiados-monto { font-variant-numeric: tabular-nums; }
+
+.f-fiados-movimientos { display: flex; flex-direction: column; }
+.f-fiados-movimientos h3 { margin-bottom: 6px; }
+.f-fiados-movimientos-lista { margin: 0; padding: 0; list-style: none; }
+.f-fiados-movimientos .f-renglon-fin[data-signo='debe'] { color: var(--f-coral); }
+.f-fiados-movimientos .f-renglon-fin[data-signo='pago'] { color: var(--f-verde); }
+
+/* ───────────── Formularios en hoja ───────────── */
+
+.f-fiados-form { display: flex; flex-direction: column; gap: var(--f-4); }
+
+.f-fiados-pesos {
+  display: flex;
+  align-items: center;
+  gap: var(--f-2);
+  color: var(--f-tinta);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.f-campo > .f-fiados-pesos { color: var(--f-tinta); font-size: 17px; }
+
+.f-fiados-deuda-actual {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--f-3) var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-coral-suave);
+  color: var(--f-coral);
+  font-weight: 700;
+}
+
+/* ───────────── PC ───────────── */
+
+@media (min-width: 900px) {
+  .f-fiados {
+    display: grid;
+    grid-template-columns: minmax(360px, 488px) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--f-6);
+  }
+
+  .f-fiados-detalle {
+    position: sticky;
+    top: var(--f-6);
+    min-height: 480px;
+  }
+
+  .f-fiados-pista { display: none; }
+  .f-fiados-total-monto { font-size: 36px; }
+  .f-fiados-acciones { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ───────────── Ajustes de tamaño ───────────── */
+
+.f-fiados .f-buscar { flex: 0 0 auto; }
+
+@media (max-width: 899px) {
+  .f-fiados-dato:first-child { grid-column: 1 / -1; }
+  .f-fiados-acciones .f-boton { gap: 8px; padding: 0 10px; font-size: 15px; }
+}

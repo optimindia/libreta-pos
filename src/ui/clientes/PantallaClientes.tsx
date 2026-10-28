@@ -10,10 +10,15 @@ import { formatearPesos, pesosACentavos } from '@/dominio/dinero'
 import { enlaceWhatsApp, mensajeCobro } from '@/dominio/mensajes'
 import { db } from '@/datos/local/db'
 import { ErrorClienteConHistorial, repos } from '@/datos/local/repos'
-import { Boton } from '@/ui/sistema/Boton'
-import { Importe } from '@/ui/sistema/Importe'
+import { Boton, clasesBoton } from '@/ui/sistema/Boton'
+import { CampoBusqueda } from '@/ui/sistema/CampoBusqueda'
+import { Chip, Chips } from '@/ui/sistema/Chip'
+import { Etiqueta } from '@/ui/sistema/Etiqueta'
+import { Hoja } from '@/ui/sistema/Hoja'
+import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { usePuede } from '@/ui/sistema/usoRol'
-import { IconoAlerta, IconoClientes, IconoEditar, IconoEliminar, IconoFlechaDerecha, IconoFiados, IconoPedidos, IconoWhatsApp } from '@/ui/sistema/iconos'
+import { IconoCerrar, IconoEditar, IconoEliminar, IconoFlechaDerecha, IconoFiados, IconoPedidos, IconoWhatsApp } from '@/ui/sistema/iconos'
+import './clientes.css'
 
 type FiltroCliente = 'todos' | 'con_deuda' | 'activos' | 'favoritos'
 
@@ -91,6 +96,7 @@ export function PantallaClientes() {
     return !aguja || normalizarTexto(`${cliente.nombre} ${cliente.telefono ?? ''} ${cliente.favoritos.map((favorito) => favorito.nombre).join(' ')}`).includes(aguja)
   }), [aguja, datos.perfiles, filtro])
   const totalDeuda = datos.perfiles.reduce((total, cliente) => total + cliente.deuda, 0)
+  const conDeuda = datos.perfiles.filter((cliente) => cliente.deuda > 0).length
   const compradoresMes = datos.perfiles.filter((cliente) => cliente.ultimaCompra !== null && ahora - cliente.ultimaCompra < 30 * 24 * 60 * 60 * 1000).length
   const seleccionadoPerfil = datos.perfiles.find((cliente) => cliente.id === seleccionado)
 
@@ -107,6 +113,7 @@ export function PantallaClientes() {
 
   function solicitarEliminacion(cliente: Cliente) {
     setAviso(null)
+    setSeleccionado(null)
     setClienteAEliminar(cliente)
   }
 
@@ -134,32 +141,154 @@ export function PantallaClientes() {
     }
   }
 
+  const mejor = datos.perfiles[0]
+  const ticketPromedio = datos.perfiles.length ? Math.round(datos.perfiles.reduce((total, cliente) => total + cliente.ticketPromedio, 0) / datos.perfiles.length) : 0
+
   return (
-    <div className="page-clientes px-5 pt-6">
-      <div className="page-module-head clientes-head"><div><span className="page-kicker">Relación comercial</span><h1 className="page-title">Clientes</h1><p className="page-description">Conocé quién vuelve, quién debe y qué suele llevar.</p></div><Boton variante="principal" className="button-with-icon clientes-new-button" onClick={() => { setFormulario('nuevo'); setAviso(null) }}><IconoClientes /> Nuevo cliente</Boton></div>
+    <div className="page-clientes f-cartera">
+      <header className="f-clientes-cabeza">
+        <div>
+          <h1 className="f-titulo">Clientes</h1>
+          <p className="f-clientes-sub">Quién vuelve, quién debe y qué suele llevar.</p>
+        </div>
+        <Boton variante="principal" onClick={() => { setFormulario('nuevo'); setAviso(null) }}>
+          + Nuevo cliente
+        </Boton>
+      </header>
 
-      <section className="clientes-highlight"><div className="clientes-highlight-copy"><span className="clientes-highlight-icon"><IconoClientes /></span><div><strong>{datos.perfiles.length === 0 ? 'Construí tu cartera' : `${datos.perfiles.length} ${datos.perfiles.length === 1 ? 'cliente registrado' : 'clientes registrados'}`}</strong><p>{compradoresMes > 0 ? `${compradoresMes} compraron en los últimos 30 días.` : 'Cada compra vinculada te ayuda a vender mejor la próxima vez.'}</p></div></div><div className="clientes-highlight-debt"><span>Fiado abierto</span><strong>{formatearPesos(totalDeuda)}</strong></div></section>
+      <div className="f-clientes-resumen">
+        <div className="f-clientes-debe">
+          <span className="f-clientes-debe-texto">
+            <span className="f-clientes-debe-rotulo">Fiado abierto</span>
+            <span className="f-dato">{conDeuda === 0 ? 'Nadie te debe' : `${conDeuda} ${conDeuda === 1 ? 'cliente debe' : 'clientes deben'}`}</span>
+          </span>
+          <b className="f-plata f-clientes-debe-monto">{formatearPesos(totalDeuda)}</b>
+        </div>
+        <Tarjeta relleno="normal" className="f-clientes-datos">
+          <div><span className="f-dato">Clientes</span><b>{datos.perfiles.length}</b><span className="f-dato">en tu cartera</span></div>
+          <div><span className="f-dato">Activos</span><b>{compradoresMes}</b><span className="f-dato">últimos 30 días</span></div>
+          <div><span className="f-dato">Ticket promedio</span><b>{formatearPesos(ticketPromedio)}</b><span className="f-dato">por cliente</span></div>
+          <div><span className="f-dato">Mayor cliente</span><b className="f-clientes-top">{mejor?.nombre || '—'}</b><span className="f-dato">{mejor ? formatearPesos(mejor.gastado) : 'sin ventas aún'}</span></div>
+        </Tarjeta>
+      </div>
 
-      <div className="clientes-metrics"><div><span>Clientes</span><strong>{datos.perfiles.length}</strong><small>en tu cartera</small></div><div><span>Activos</span><strong>{compradoresMes}</strong><small>últimos 30 días</small></div><div><span>Ticket promedio</span><strong>{formatearPesos(datos.perfiles.length ? Math.round(datos.perfiles.reduce((total, cliente) => total + cliente.ticketPromedio, 0) / datos.perfiles.length) : 0)}</strong><small>por cliente</small></div><div><span>Mayor cliente</span><strong className="clientes-top-name">{datos.perfiles[0]?.nombre || '—'}</strong><small>{datos.perfiles[0] ? formatearPesos(datos.perfiles[0].gastado) : 'sin ventas aún'}</small></div></div>
+      {aviso && (
+        <div className="f-aviso f-clientes-aviso" role="status" data-tono="ambar">
+          <span>{aviso}</span>
+          <button type="button" className="f-icono-boton" onClick={() => setAviso(null)} aria-label="Cerrar aviso"><IconoCerrar /></button>
+        </div>
+      )}
 
+      <div className="f-clientes-filtros">
+        <CampoBusqueda etiqueta="Buscar clientes" placeholder="Buscar nombre, teléfono o producto favorito" valor={busqueda} onCambiar={setBusqueda} />
+        <Chips etiqueta="Filtrar clientes">
+          {([['todos', 'Todos'], ['activos', 'Activos'], ['con_deuda', 'Con fiado'], ['favoritos', 'Con compras']] as Array<[FiltroCliente, string]>).map(([opcion, texto]) => (
+            <Chip key={opcion} activo={filtro === opcion} onClick={() => setFiltro(opcion)}>{texto}</Chip>
+          ))}
+        </Chips>
+      </div>
+
+      {visibles.length === 0 ? (
+        <Tarjeta como="section" relleno="grande" className="f-clientes-vacia">
+          <h2 className="f-seccion">{datos.perfiles.length === 0 ? 'Tus clientes van a vivir acá' : 'No encontramos clientes'}</h2>
+          <p className="f-texto">{datos.perfiles.length === 0 ? 'Guardá un nombre y teléfono para reconocer a quien vuelve y resolver sus pedidos más rápido.' : 'Probá con otra búsqueda o filtro.'}</p>
+          {datos.perfiles.length === 0 && <Boton variante="secundario" onClick={() => setFormulario('nuevo')}>Agregar primer cliente</Boton>}
+        </Tarjeta>
+      ) : (
+        <ul className="f-clientes-grilla">
+          {visibles.map((cliente) => (
+            <li key={cliente.id}>
+              <Tarjeta como="article" relleno="ninguno" className="f-clientes-tarjeta">
+                <button type="button" className="f-clientes-principal" aria-expanded={seleccionado === cliente.id} onClick={() => setSeleccionado(cliente.id)}>
+                  <span className="f-clientes-avatar" data-debe={cliente.deuda > 0} aria-hidden="true">{iniciales(cliente.nombre)}</span>
+                  <span className="f-renglon-cuerpo">
+                    <span className="f-renglon-titulo">{cliente.nombre}</span>
+                    <span className="f-renglon-detalle">{cliente.telefono || 'Sin teléfono'} · {fechaRelativa(cliente.ultimaCompra)}</span>
+                    <span className="f-renglon-detalle f-clientes-favoritos">{cliente.favoritos.length ? `Suele llevar ${cliente.favoritos.map((favorito) => favorito.nombre).join(', ')}` : 'Sin historial de compras'}</span>
+                  </span>
+                  <span className="f-clientes-total">
+                    <b>{formatearPesos(cliente.gastado)}</b>
+                    <span className="f-dato">{cliente.cantidadVentas} {cliente.cantidadVentas === 1 ? 'compra' : 'compras'}</span>
+                  </span>
+                </button>
+                <div className="f-clientes-pie">
+                  {cliente.deuda > 0 ? <Etiqueta tono="coral" punto>Debe {formatearPesos(cliente.deuda)}</Etiqueta> : <Etiqueta tono="gris">Cuenta al día</Etiqueta>}
+                  <div className="f-clientes-acciones">
+                    {cliente.telefono && (
+                      <a data-tamano="normal" href={enlaceWhatsApp(cliente.telefono, cliente.deuda > 0 ? mensajeCobro(cliente, cliente.deuda, cliente.diasDeuda) : `Hola ${cliente.nombre}, ¿cómo estás?`)} target="_blank" rel="noreferrer" className={clasesBoton('secundario')}><IconoWhatsApp /> WhatsApp</a>
+                    )}
+                    <Boton variante="secundario" onClick={() => setFormulario(cliente)}><IconoEditar /> Editar</Boton>
+                    {borra && <Boton variante="secundario" aria-label={`Eliminar cliente ${cliente.nombre}`} onClick={() => solicitarEliminacion(cliente)}><IconoEliminar /> Eliminar</Boton>}
+                  </div>
+                </div>
+              </Tarjeta>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="f-clientes-atajos">
+        <Link href="/pedidos" className="f-clientes-atajo"><IconoPedidos /><span><b>Pedidos</b><span className="f-dato">Usá esta cartera al tomar encargos.</span></span><IconoFlechaDerecha /></Link>
+        <Link href="/fiados" className="f-clientes-atajo"><IconoFiados /><span><b>Fiados</b><span className="f-dato">Revisá vencimientos y registrá pagos.</span></span><IconoFlechaDerecha /></Link>
+      </div>
+
+      {seleccionadoPerfil && <ClienteDetalle perfil={seleccionadoPerfil} ventas={datos.ventas} onCerrar={() => setSeleccionado(null)} onEditar={() => { setSeleccionado(null); setFormulario(seleccionadoPerfil) }} onEliminar={borra ? () => solicitarEliminacion(seleccionadoPerfil) : undefined} />}
       {formulario && <ClienteForm cliente={formulario === 'nuevo' ? undefined : formulario} onCancel={() => setFormulario(null)} onSave={(cliente, id) => void guardarCliente(cliente, id)} />}
-      {aviso && <div className="clientes-notice" role="status"><span>{aviso}</span><button type="button" onClick={() => setAviso(null)} aria-label="Cerrar aviso">×</button></div>}
-      {borra && clienteAEliminar && <section className="cliente-delete-confirmation" role="dialog" aria-modal="true" aria-labelledby="cliente-delete-title"><span className="cliente-delete-confirmation-icon"><IconoEliminar /></span><div><strong id="cliente-delete-title">¿Eliminar a {clienteAEliminar.nombre}?</strong><p>Se quitará de tu cartera. Las ventas, fiados y pedidos históricos siempre se conservan.</p></div><div className="cliente-delete-confirmation-actions"><button type="button" className="cliente-delete-cancel" onClick={() => setClienteAEliminar(null)} disabled={eliminando}>Cancelar</button><button type="button" className="cliente-delete-confirm" onClick={() => void confirmarEliminacion()} disabled={eliminando}>{eliminando ? 'Eliminando…' : 'Sí, eliminar'}</button></div></section>}
-
-      <label className="clientes-search"><IconoClientes /><input aria-label="Buscar clientes" placeholder="Buscar nombre, teléfono o producto favorito…" value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} /></label>
-      <div className="clientes-filter-scroll" data-scroll-x>{([['todos', 'Todos'], ['activos', 'Activos'], ['con_deuda', 'Con fiado'], ['favoritos', 'Con compras']] as Array<[FiltroCliente, string]>).map(([opcion, texto]) => <button type="button" key={opcion} className={filtro === opcion ? 'is-selected' : ''} onClick={() => setFiltro(opcion)}>{texto}</button>)}</div>
-
-      {seleccionadoPerfil && <ClienteDetalle perfil={seleccionadoPerfil} ventas={datos.ventas} onCerrar={() => setSeleccionado(null)} onEditar={() => setFormulario(seleccionadoPerfil)} onEliminar={borra ? () => solicitarEliminacion(seleccionadoPerfil) : undefined} />}
-      {visibles.length === 0 ? <section className="clientes-empty"><IconoClientes /><span className="page-kicker">Cartera lista</span><h2>{datos.perfiles.length === 0 ? 'Tus clientes van a vivir acá' : 'No encontramos clientes'}</h2><p>{datos.perfiles.length === 0 ? 'Guardá un nombre y teléfono para reconocer a quien vuelve y resolver sus pedidos más rápido.' : 'Probá con otra búsqueda o filtro.'}</p>{datos.perfiles.length === 0 && <Boton variante="principal" className="button-with-icon" onClick={() => setFormulario('nuevo')}><IconoClientes /> Agregar primer cliente</Boton>}</section> : <div className="clientes-grid">{visibles.map((cliente) => <article key={cliente.id} className={`cliente-card${seleccionado === cliente.id ? ' is-selected' : ''}`}><button type="button" className="cliente-card-main" onClick={() => setSeleccionado(seleccionado === cliente.id ? null : cliente.id)}><span className="cliente-avatar">{iniciales(cliente.nombre)}</span><span className="cliente-card-copy"><strong>{cliente.nombre}</strong><small>{cliente.telefono || 'Sin teléfono'} · {fechaRelativa(cliente.ultimaCompra)}</small><span className="cliente-favorite-products">{cliente.favoritos.length ? `Suele llevar ${cliente.favoritos.map((favorito) => favorito.nombre).join(', ')}` : 'Sin historial de compras'}</span></span><span className="cliente-card-total"><strong>{formatearPesos(cliente.gastado)}</strong><small>{cliente.cantidadVentas} {cliente.cantidadVentas === 1 ? 'compra' : 'compras'}</small></span></button><div className="cliente-card-bottom">{cliente.deuda > 0 ? <span className="cliente-debt"><IconoAlerta /> Debe {formatearPesos(cliente.deuda)}</span> : <span className="cliente-ok">Cuenta al día</span>}<div>{cliente.telefono && <a href={enlaceWhatsApp(cliente.telefono, cliente.deuda > 0 ? mensajeCobro(cliente, cliente.deuda, cliente.diasDeuda) : `Hola ${cliente.nombre}, ¿cómo estás?`)} target="_blank" rel="noreferrer" className="cliente-quick-link"><IconoWhatsApp /> WhatsApp</a>}<button type="button" className="cliente-quick-link" onClick={() => setFormulario(cliente)}><IconoEditar /> Editar</button>{borra && <button type="button" className="cliente-quick-link cliente-delete-link" aria-label={`Eliminar cliente ${cliente.nombre}`} onClick={() => solicitarEliminacion(cliente)}><IconoEliminar /> Eliminar</button>}</div></div></article>)}</div>}
-
-      <div className="clientes-footer-actions"><Link href="/pedidos" className="clientes-footer-link"><IconoPedidos /><span><strong>Pedidos</strong><small>Usá esta cartera al tomar encargos.</small></span><IconoFlechaDerecha /></Link><Link href="/fiados" className="clientes-footer-link"><IconoFiados /><span><strong>Fiados</strong><small>Revisá vencimientos y registrá pagos.</small></span><IconoFlechaDerecha /></Link></div>
+      {borra && clienteAEliminar && (
+        <Hoja abierta onCerrar={() => { if (!eliminando) setClienteAEliminar(null) }} titulo={`¿Eliminar a ${clienteAEliminar.nombre}?`} ancho="angosto">
+          <p className="f-hoja-ayuda">Se quitará de tu cartera. Las ventas, fiados y pedidos históricos siempre se conservan.</p>
+          <div className="f-clientes-confirmar">
+            <Boton variante="secundario" onClick={() => setClienteAEliminar(null)} disabled={eliminando}>Cancelar</Boton>
+            <Boton variante="cuidado" onClick={() => void confirmarEliminacion()} disabled={eliminando}>{eliminando ? 'Eliminando…' : 'Sí, eliminar'}</Boton>
+          </div>
+        </Hoja>
+      )}
     </div>
   )
 }
 
 function ClienteDetalle({ perfil, ventas, onCerrar, onEditar, onEliminar }: { perfil: PerfilCliente; ventas: Venta[]; onCerrar: () => void; onEditar: () => void; onEliminar?: () => void }) {
   const compras = ventas.filter((venta) => venta.clienteId === perfil.id && venta.estado !== 'anulada').sort((a, b) => b.fecha - a.fecha).slice(0, 5)
-  return <section className="cliente-detail"><div className="cliente-detail-head"><div><span className="page-kicker">Ficha del cliente</span><h2>{perfil.nombre}</h2><p>{perfil.telefono || 'Sin teléfono registrado'}</p></div><div className="cliente-detail-actions">{perfil.telefono && <a className="cliente-detail-whatsapp" href={enlaceWhatsApp(perfil.telefono, perfil.deuda > 0 ? mensajeCobro(perfil, perfil.deuda, perfil.diasDeuda) : `Hola ${perfil.nombre}, ¿cómo estás?`)} target="_blank" rel="noreferrer"><IconoWhatsApp /> Escribir</a>}<button type="button" onClick={onEditar}><IconoEditar /> Editar</button>{onEliminar && <button type="button" className="cliente-detail-delete" onClick={onEliminar}><IconoEliminar /> Eliminar</button>}<button type="button" onClick={onCerrar} aria-label="Cerrar ficha">×</button></div></div><div className="cliente-detail-stats"><div><span>Total comprado</span><strong>{formatearPesos(perfil.gastado)}</strong></div><div><span>Compras</span><strong>{perfil.cantidadVentas}</strong></div><div><span>Ticket medio</span><strong>{formatearPesos(perfil.ticketPromedio)}</strong></div><div><span>Fiado</span><strong style={{ color: perfil.deuda > 0 ? 'var(--ambar)' : 'var(--verde)' }}>{formatearPesos(perfil.deuda)}</strong></div></div>{perfil.favoritos.length > 0 && <div className="cliente-detail-favorites"><span>Lo que más lleva</span><div>{perfil.favoritos.map((favorito) => <span key={favorito.nombre}>{favorito.nombre} <strong>×{favorito.unidades}</strong></span>)}</div></div>}<div className="cliente-detail-history"><h3>Últimas compras</h3>{compras.length === 0 ? <p>Todavía no hay ventas vinculadas.</p> : <ul>{compras.map((venta) => <li key={venta.id}><span>{new Date(venta.fecha).toLocaleDateString('es-AR')} · {venta.items.map((item) => item.nombre).join(', ')}</span><strong><Importe centavos={venta.total} tamaño="chico" /></strong></li>)}</ul>}</div></section>
+  return (
+    <Hoja abierta onCerrar={onCerrar} titulo={perfil.nombre} etiquetaCerrar="Cerrar ficha">
+      <p className="f-hoja-ayuda">{perfil.telefono || 'Sin teléfono registrado'}</p>
+      <div className="f-clientes-ficha-datos">
+        <div><span className="f-dato">Total comprado</span><b>{formatearPesos(perfil.gastado)}</b></div>
+        <div><span className="f-dato">Compras</span><b>{perfil.cantidadVentas}</b></div>
+        <div><span className="f-dato">Ticket medio</span><b>{formatearPesos(perfil.ticketPromedio)}</b></div>
+        <div><span className="f-dato">Fiado</span><b data-tono={perfil.deuda > 0 ? 'coral' : undefined}>{formatearPesos(perfil.deuda)}</b></div>
+      </div>
+      {perfil.favoritos.length > 0 && (
+        <div className="f-clientes-ficha-bloque">
+          <h3 className="f-hoja-subtitulo">Lo que más lleva</h3>
+          <div className="f-clientes-favs">{perfil.favoritos.map((favorito) => <Etiqueta key={favorito.nombre} tono="gris">{favorito.nombre} ×{favorito.unidades}</Etiqueta>)}</div>
+        </div>
+      )}
+      <div className="f-clientes-ficha-bloque">
+        <h3 className="f-hoja-subtitulo">Últimas compras</h3>
+        {compras.length === 0 ? <p className="f-texto f-clientes-vacio">Todavía no hay ventas vinculadas.</p> : (
+          <ul className="f-clientes-compras">
+            {compras.map((venta) => (
+              <li key={venta.id} className="f-renglon">
+                <span className="f-renglon-cuerpo">
+                  <span className="f-renglon-titulo">{venta.items.map((item) => item.nombre).join(', ')}</span>
+                  <span className="f-renglon-detalle">{new Date(venta.fecha).toLocaleDateString('es-AR')}</span>
+                </span>
+                <span className="f-renglon-fin">{formatearPesos(venta.total)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <div className="f-clientes-ficha-acciones">
+        {perfil.telefono && (
+          <a data-tamano="normal" className={clasesBoton('secundario')} href={enlaceWhatsApp(perfil.telefono, perfil.deuda > 0 ? mensajeCobro(perfil, perfil.deuda, perfil.diasDeuda) : `Hola ${perfil.nombre}, ¿cómo estás?`)} target="_blank" rel="noreferrer"><IconoWhatsApp /> Escribir</a>
+        )}
+        <Boton variante="secundario" onClick={onEditar}><IconoEditar /> Editar</Boton>
+        {onEliminar && <Boton variante="cuidado" onClick={onEliminar}><IconoEliminar /> Eliminar</Boton>}
+      </div>
+    </Hoja>
+  )
 }
 
 function ClienteForm({ cliente, onCancel, onSave }: { cliente?: Cliente; onCancel: () => void; onSave: (cliente: Omit<Cliente, 'id'>, id?: string) => void }) {
@@ -174,5 +303,29 @@ function ClienteForm({ cliente, onCancel, onSave }: { cliente?: Cliente; onCance
     if (limiteCentavos !== undefined && limiteCentavos < 0) { setAviso('El límite no puede ser negativo.'); return }
     onSave({ nombre: nombre.trim(), telefono: telefono.trim() || null, limiteFiado: limiteCentavos }, cliente?.id)
   }
-  return <form className="form-shell form-card cliente-form" onSubmit={guardar}><div className="form-intro"><span className="form-intro-icon"><IconoClientes /></span><div><strong>{cliente ? 'Editar cliente' : 'Nuevo cliente'}</strong><p>Guardá la información que te ayuda a vender y cobrar mejor.</p></div></div><label className="form-field"><span className="form-field-label">Nombre <em>obligatorio</em></span><input autoFocus aria-label="Nombre del cliente" className="form-input" placeholder="Ej. Marta González" value={nombre} onChange={(evento) => setNombre(evento.target.value)} /></label><label className="form-field"><span className="form-field-label">Teléfono <em>WhatsApp opcional</em></span><input aria-label="Teléfono del cliente" inputMode="tel" className="form-input" placeholder="261 555 1234" value={telefono} onChange={(evento) => setTelefono(evento.target.value)} /></label><label className="form-field"><span className="form-field-label">Límite de fiado <em>opcional</em></span><div className="form-input-with-prefix"><span>$</span><input aria-label="Límite de fiado" inputMode="decimal" className="form-input tabular" placeholder="Ej. 20.000" value={limite} onChange={(evento) => setLimite(evento.target.value)} /></div><span className="form-field-help">Te avisamos antes de seguir fiando por encima de este monto.</span></label>{aviso && <p className="form-error form-error-banner" role="alert">{aviso}</p>}<div className="form-actions"><Boton type="submit" variante="principal">{cliente ? 'Guardar cambios' : 'Guardar cliente'}</Boton><Boton type="button" variante="secundario" onClick={onCancel}>Cancelar</Boton></div></form>
+  return (
+    <Hoja abierta onCerrar={onCancel} titulo={cliente ? 'Editar cliente' : 'Nuevo cliente'} ancho="angosto">
+      <form className="f-clientes-form" onSubmit={guardar}>
+        <p className="f-hoja-ayuda">Guardá la información que te ayuda a vender y cobrar mejor.</p>
+        <label className="f-campo">
+          <span>Nombre <em>obligatorio</em></span>
+          <input autoFocus aria-label="Nombre del cliente" className="f-entrada" placeholder="Ej. Marta González" value={nombre} onChange={(evento) => setNombre(evento.target.value)} />
+        </label>
+        <label className="f-campo">
+          <span>Teléfono <em>WhatsApp opcional</em></span>
+          <input aria-label="Teléfono del cliente" inputMode="tel" className="f-entrada" placeholder="261 555 1234" value={telefono} onChange={(evento) => setTelefono(evento.target.value)} />
+        </label>
+        <label className="f-campo">
+          <span>Límite de fiado <em>opcional</em></span>
+          <span className="f-clientes-pesos">
+            <span aria-hidden="true">$</span>
+            <input aria-label="Límite de fiado" inputMode="decimal" className="f-entrada tabular" placeholder="Ej. 20.000" value={limite} onChange={(evento) => setLimite(evento.target.value)} />
+          </span>
+          <small className="f-dato">Te avisamos antes de seguir fiando por encima de este monto.</small>
+        </label>
+        {aviso && <p className="f-aviso" role="alert">{aviso}</p>}
+        <Boton type="submit" variante="principal" ancho>{cliente ? 'Guardar cambios' : 'Guardar cliente'}</Boton>
+      </form>
+    </Hoja>
+  )
 }

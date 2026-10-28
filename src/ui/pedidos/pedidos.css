@@ -1,0 +1,384 @@
+/* Pedidos con el sistema F (src/ui/pedidos). Celu: una columna de
+   tarjetas; PC (≥ 900 px): dos o tres columnas. El único botón lima de la
+   pantalla es "Nuevo pedido"; las acciones de cada pedido son secundarias.
+   Sólo tokens --f-*. */
+
+.f-pedidos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.f-pedidos-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-3);
+}
+
+.f-pedidos-sub {
+  margin: var(--f-1) 0 0;
+  color: var(--f-tinta-2);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.f-pedidos-cabeza .f-boton { min-height: 48px; padding: 0 var(--f-5); }
+
+/* ───────────── Resumen ───────────── */
+
+.f-pedidos-resumen { display: grid; gap: var(--f-3); }
+
+.f-pedidos-agenda {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--f-3);
+  padding: var(--f-4) 18px;
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-verde-suave);
+  color: var(--f-verde);
+}
+
+.f-pedidos-agenda-texto { display: flex; flex-direction: column; }
+.f-pedidos-agenda-texto .f-dato { color: var(--f-verde); }
+.f-pedidos-agenda-rotulo { font-size: 15px; font-weight: 700; }
+.f-pedidos-agenda-monto { font-size: 30px; line-height: 1.1; }
+
+.f-pedidos-reserva {
+  display: flex;
+  align-items: baseline;
+  gap: var(--f-2);
+  padding: 0 var(--f-2);
+}
+
+.f-pedidos-reserva b { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.f-pedidos-aviso {
+  display: flex;
+  align-items: center;
+  gap: var(--f-3);
+}
+
+.f-pedidos-aviso > span { flex: 1; }
+.f-pedidos-aviso > svg { width: 22px; height: 22px; flex: 0 0 22px; }
+
+/* ───────────── Filtros ───────────── */
+
+.f-pedidos-filtros { display: flex; flex-direction: column; gap: var(--f-3); }
+.f-pedidos .f-chip { min-height: 44px; }
+
+.f-pedidos-cuenta {
+  display: inline-grid;
+  min-width: 22px;
+  height: 22px;
+  place-items: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--f-superficie-2);
+  color: var(--f-tinta);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.f-chip[aria-pressed='true'] .f-pedidos-cuenta { background: var(--f-sobre-elegido); color: var(--f-elegido); }
+
+/* ───────────── Tarjetas ───────────── */
+
+.f-pedidos-lista {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--f-3);
+  list-style: none;
+}
+
+.f-pedidos-lista > li { display: flex; min-width: 0; }
+
+.f-pedidos-tarjeta {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: var(--f-3);
+}
+
+.f-pedidos-tarjeta[data-estado='entregado'],
+.f-pedidos-tarjeta[data-estado='cancelado'] { background: var(--f-superficie-2); }
+
+.f-pedidos-top { display: flex; align-items: center; gap: var(--f-3); }
+.f-pedidos-top .f-etiqueta { align-self: center; }
+
+.f-pedidos-avatar {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--f-superficie-2);
+  color: var(--f-tinta);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.f-pedidos-tarjeta[data-estado='entregado'] .f-pedidos-avatar,
+.f-pedidos-tarjeta[data-estado='cancelado'] .f-pedidos-avatar { background: var(--f-superficie); }
+
+.f-pedidos-top .f-renglon-titulo { white-space: nowrap; }
+
+.f-pedidos-info { display: flex; flex-wrap: wrap; gap: var(--f-2); }
+.f-pedidos-info .f-etiqueta { min-height: 30px; }
+.f-pedidos-info svg { width: 16px; height: 16px; flex: 0 0 16px; }
+.f-pedidos-direccion { max-width: 100%; white-space: normal; line-height: 1.25; }
+
+.f-pedidos-items { display: flex; margin: 0; padding: 0; flex-direction: column; gap: 6px; list-style: none; }
+
+.f-pedidos-items li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--f-3);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.f-pedidos-items li > span { min-width: 0; overflow-wrap: anywhere; }
+.f-pedidos-items b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.f-pedidos-items .f-pedidos-mas { color: var(--f-tinta-2); font-size: 13px; font-weight: 600; }
+
+.f-pedidos-nota {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--f-2);
+  margin: 0;
+  padding: var(--f-3);
+  border-radius: var(--f-radio-control);
+  background: var(--f-fondo);
+  color: var(--f-tinta);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.f-pedidos-nota svg { width: 18px; height: 18px; flex: 0 0 18px; }
+.f-pedidos-nota span { min-width: 0; overflow-wrap: anywhere; }
+
+.f-pedidos-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--f-3);
+  padding-top: var(--f-3);
+  border-top: 1px solid var(--f-superficie-2);
+}
+
+.f-pedidos-tarjeta[data-estado='entregado'] .f-pedidos-total,
+.f-pedidos-tarjeta[data-estado='cancelado'] .f-pedidos-total { border-top-color: var(--f-linea); }
+
+.f-pedidos-total-monto { font-size: 20px; }
+
+.f-pedidos-acciones { display: flex; flex-wrap: wrap; gap: var(--f-2); margin-top: auto; }
+
+.f-pedidos-acciones .f-boton[data-tamano] {
+  min-height: 44px;
+  padding: 0 var(--f-4);
+  font-size: 14px;
+}
+
+/* La acción que sigue es la de más peso de la tarjeta: tinta llena. */
+.f-pedidos-acciones .f-pedidos-siguiente {
+  flex: 1 1 100%;
+  min-height: 48px;
+  border-color: var(--f-elegido);
+  background: var(--f-elegido);
+  color: var(--f-sobre-elegido);
+}
+
+.f-pedidos-acciones .f-boton:not(.f-pedidos-siguiente) { flex: 1 1 auto; }
+.f-pedidos-acciones .f-boton svg { width: 18px; height: 18px; flex-basis: 18px; }
+
+.f-pedidos-medios {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--f-3);
+}
+
+.f-pedidos-medios .f-boton { flex-direction: column; gap: 6px; }
+
+.f-pedidos-vacia { display: flex; flex-direction: column; align-items: flex-start; gap: var(--f-3); }
+.f-pedidos-vacia p { margin: 0; color: var(--f-tinta-2); }
+
+.f-pedidos-tip { display: flex; flex-direction: column; gap: 2px; }
+
+/* ───────────── Formulario en hoja ───────────── */
+
+.f-pedidos-form { display: flex; flex-direction: column; gap: var(--f-5); }
+
+.f-pedidos-paso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-3);
+  padding-top: var(--f-4);
+  border-top: 1px solid var(--f-superficie-2);
+}
+
+.f-pedidos-paso-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--f-3);
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.f-pedidos-paso-titulo > span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--f-elegido);
+  color: var(--f-sobre-elegido);
+  font-size: 14px;
+}
+
+.f-pedidos-opciones { display: flex; flex-direction: column; gap: var(--f-2); }
+
+.f-pedidos-opcion {
+  display: flex;
+  width: 100%;
+  min-height: 56px;
+  align-items: center;
+  gap: var(--f-3);
+  padding: var(--f-2) var(--f-3);
+  border: 1.5px solid var(--f-linea);
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.f-pedidos-opcion[aria-pressed='true'] { border-color: var(--f-tinta); background: var(--f-fondo); }
+.f-pedidos-opcion:disabled { opacity: 0.5; cursor: default; }
+.f-pedidos-opcion:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+.f-pedidos-opcion > svg { width: 22px; height: 22px; flex: 0 0 22px; color: var(--f-verde); }
+.f-pedidos-opcion .f-pedidos-avatar { width: 40px; height: 40px; flex-basis: 40px; background: var(--f-superficie-2); }
+
+.f-pedidos-precio {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.f-pedidos-precio del { color: var(--f-tinta-2); font-size: 13px; font-weight: 600; }
+
+.f-pedidos-vacio { margin: 0; color: var(--f-tinta-2); }
+
+.f-pedidos-nuevo-cliente {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-3);
+  padding: var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-fondo);
+}
+
+.f-pedidos-nuevo-cabeza { display: flex; align-items: center; justify-content: space-between; gap: var(--f-3); }
+
+.f-pedidos-enlace {
+  min-height: 44px;
+  padding: 0 var(--f-2);
+  border: 0;
+  background: transparent;
+  color: var(--f-verde);
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.f-pedidos-sin-items {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--f-5) var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-fondo);
+  text-align: center;
+}
+
+.f-pedidos-renglones { margin: 0; padding: 0; list-style: none; }
+
+.f-pedidos-renglon {
+  display: flex;
+  align-items: center;
+  gap: var(--f-3);
+  padding: var(--f-3) 0;
+  border-bottom: 1px solid var(--f-superficie-2);
+}
+
+.f-pedidos-renglon .f-renglon-titulo { overflow-wrap: anywhere; white-space: normal; }
+.f-pedidos-cantidad { display: inline-flex; flex: 0 0 auto; align-items: center; gap: var(--f-1); }
+.f-pedidos-cantidad .f-icono-boton { font-size: 22px; font-weight: 800; }
+.f-pedidos-cantidad b { min-width: 28px; text-align: center; font-variant-numeric: tabular-nums; }
+.f-pedidos-subtotal { min-width: 72px; text-align: right; font-variant-numeric: tabular-nums; }
+
+.f-pedidos-form-total { display: flex; align-items: baseline; justify-content: space-between; }
+.f-pedidos-form-total b { font-size: 22px; }
+
+.f-pedidos-textarea { min-height: 84px; padding: var(--f-3) 14px; resize: vertical; }
+
+.f-pedidos-reserva-opcion {
+  display: flex;
+  min-height: 56px;
+  align-items: flex-start;
+  gap: var(--f-3);
+  padding: var(--f-3);
+  border-radius: var(--f-radio-control);
+  background: var(--f-fondo);
+  cursor: pointer;
+}
+
+.f-pedidos-reserva-opcion input {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  margin: 0;
+  accent-color: var(--f-verde);
+}
+
+.f-pedidos-reserva-opcion span { display: flex; flex-direction: column; gap: 2px; }
+
+.f-pedidos-form-acciones {
+  position: sticky;
+  bottom: calc(-24px - env(safe-area-inset-bottom, 0px));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: var(--f-3);
+  margin-bottom: calc(-24px - env(safe-area-inset-bottom, 0px));
+  padding: var(--f-3) 0 calc(var(--f-5) + env(safe-area-inset-bottom, 0px));
+  background: var(--f-superficie);
+}
+
+/* ───────────── PC ───────────── */
+
+@media (min-width: 900px) {
+  .f-pedidos-resumen { grid-template-columns: minmax(320px, 2fr) 1fr; align-items: center; }
+  .f-pedidos-filtros .f-buscar { flex: 0 0 auto; max-width: 520px; }
+  .f-pedidos-lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .f-pedidos-form-acciones { bottom: -24px; margin-bottom: -24px; padding-bottom: var(--f-5); }
+}
+
+@media (min-width: 1280px) {
+  .f-pedidos-lista { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.f-pedidos .f-buscar { flex: 0 0 auto; }
+.f-pedidos-lista { align-items: start; }

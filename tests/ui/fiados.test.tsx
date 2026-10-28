@@ -15,7 +15,7 @@ beforeEach(async () => {
 describe('PantallaFiados', () => {
   it('lista a quién le debe y cuánto', async () => {
     render(<PantallaFiados />)
-    expect(await screen.findByText('Marta')).toBeDefined()
+    expect((await screen.findAllByText('Marta')).length).toBeGreaterThanOrEqual(1)
     expect((await screen.findAllByText('$5.000')).length).toBeGreaterThanOrEqual(1)
   })
 
@@ -43,14 +43,14 @@ describe('PantallaFiados', () => {
     expect(decodeURIComponent(enlace.href)).toContain('Marta')
   })
 
-  it('permite editar el teléfono y abrir el historial del cliente', async () => {
+  it('permite editar el teléfono y ver los movimientos del cliente', async () => {
     render(<PantallaFiados />)
     fireEvent.click(await screen.findByRole('button', { name: /editar cliente/i }))
     fireEvent.change(await screen.findByLabelText('Teléfono del cliente'), { target: { value: '2614440000' } })
     fireEvent.click(screen.getByRole('button', { name: /guardar cliente/i }))
     await waitFor(async () => expect((await repos.clientes.todos())[0].telefono).toBe('2614440000'))
 
-    fireEvent.click(screen.getByRole('button', { name: /ver historial/i }))
-    expect(await screen.findByText(/historial de marta/i)).toBeDefined()
+    expect(await screen.findByRole('heading', { name: /movimientos/i })).toBeDefined()
+    expect(await screen.findByText(/todavía no hay movimientos/i)).toBeDefined()
   })
 })

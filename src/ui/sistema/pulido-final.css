@@ -167,9 +167,7 @@ textarea:disabled {
   line-height: 1.45;
 }
 
-.page-module-head > .libreta-button,
-.page-module-head > .pedidos-new-button,
-.page-module-head > .clientes-new-button {
+.page-module-head > .libreta-button {
   z-index: 2;
   border: 1px solid color-mix(in srgb, var(--verde-texto) 30%, transparent) !important;
   background: color-mix(in srgb, var(--verde-texto) 12%, transparent) !important;
@@ -177,9 +175,7 @@ textarea:disabled {
   box-shadow: none !important;
 }
 
-.page-module-head > .libreta-button:hover,
-.page-module-head > .pedidos-new-button:hover,
-.page-module-head > .clientes-new-button:hover {
+.page-module-head > .libreta-button:hover {
   border-color: color-mix(in srgb, var(--verde-texto) 48%, transparent) !important;
   background: color-mix(in srgb, var(--verde-texto) 20%, transparent) !important;
 }
@@ -250,9 +246,6 @@ textarea:disabled {
   font-weight: 800;
 }
 
-.pedido-card,
-.cliente-card,
-.fiado-card,
 .account-status-card,
 .admin-create-card,
 .admin-accounts-section,
@@ -263,29 +256,13 @@ textarea:disabled {
   box-shadow: var(--sombra-panel);
 }
 
-.fiados-empty-state,
-.pedidos-empty,
-.clientes-empty {
-  border-radius: 1.2rem;
-  background: color-mix(in srgb, var(--hueso-2) 78%, var(--superficie-sutil));
-}
-
-.fiados-empty-icon {
-  border-radius: 0.95rem;
-  background: var(--verde-suave);
-}
-
-.catalogo-search,
-.pedidos-search,
-.clientes-search {
+.catalogo-search {
   min-height: 3.05rem;
   border-radius: 0.85rem !important;
   font-size: 0.86rem !important;
 }
 
-.catalogo-categories button,
-.pedidos-filter-scroll button,
-.clientes-filter-scroll button {
+.catalogo-categories button {
   min-height: 2.45rem;
   padding-inline: 0.85rem;
   border-radius: 999px;
@@ -320,14 +297,6 @@ textarea:disabled {
   height: 0.85rem;
 }
 
-.pedidos-list,
-.clientes-grid,
-.fiados-list {
-  margin-top: 1.25rem;
-}
-
-.pedidos-notice,
-.clientes-notice,
 .form-error-banner,
 .form-message {
   border-radius: 0.85rem;
@@ -419,131 +388,6 @@ textarea:disabled {
 .form-actions .libreta-button,
 .form-shell > .libreta-button {
   min-height: 3.15rem;
-}
-
-.pedido-card,
-.cliente-card,
-.fiado-card {
-  padding: 1rem;
-}
-
-.pedido-card-person strong,
-.cliente-card-copy strong {
-  font-size: 0.84rem;
-}
-
-.pedido-card-person small,
-.cliente-card-copy small,
-.pedido-card-info,
-.cliente-favorite-products {
-  font-size: 0.75rem;
-}
-
-.pedido-card-items li,
-.cliente-card-bottom,
-.cliente-detail-history li {
-  font-size: 0.75rem;
-}
-
-.pedido-action-main,
-.pedido-action-secondary,
-.pedido-action-danger,
-.cliente-quick-link {
-  min-height: 2.65rem;
-  border-radius: 0.75rem;
-  font-size: 0.75rem;
-}
-
-.pedido-payment-box {
-  border-radius: 0.95rem;
-}
-
-.pedido-payment-actions button {
-  min-height: 2.85rem;
-  border-radius: 0.75rem;
-  font-size: 0.75rem;
-}
-
-.clientes-metrics,
-.pedidos-metrics {
-  gap: 0.7rem;
-}
-
-.clientes-metrics > div,
-.pedidos-metric,
-.fiados-summary-card {
-  min-height: 5.25rem;
-  padding: 0.9rem;
-  border-radius: 0.95rem;
-}
-
-.clientes-metrics span,
-.pedidos-metric span,
-.fiados-summary-card span {
-  font-size: 0.75rem;
-}
-
-.clientes-metrics strong,
-.pedidos-metric strong,
-.fiados-summary-card strong {
-  font-size: 1.45rem;
-}
-
-.clientes-metrics small,
-.pedidos-metric small {
-  font-size: 0.75rem;
-}
-
-.pedidos-command-card,
-.clientes-highlight {
-  border-radius: 1.15rem;
-  box-shadow: var(--sombra-panel);
-}
-
-.pedidos-command-copy strong,
-.clientes-highlight-copy strong {
-  font-size: 0.9rem;
-}
-
-.pedidos-command-copy p,
-.clientes-highlight-copy p {
-  font-size: 0.75rem;
-}
-
-.pedidos-empty,
-.clientes-empty,
-.fiados-empty-state {
-  min-height: 18rem;
-  padding: 2.25rem 1.5rem;
-}
-
-.pedidos-empty h2,
-.clientes-empty h2,
-.fiados-empty-state h2 {
-  font-size: 1.1rem;
-  font-weight: 780;
-}
-
-.pedidos-empty p,
-.clientes-empty p,
-.fiados-empty-state p {
-  font-size: 0.76rem;
-  line-height: 1.55;
-}
-
-.fiados-summary-grid,
-.fiados-toolbar,
-.fiados-list {
-  width: 100%;
-  max-width: none;
-}
-
-.fiados-list > li {
-  padding-block: 0.85rem;
-}
-
-.fiado-card {
-  box-shadow: none;
 }
 
 .account-status-card,
@@ -710,26 +554,6 @@ textarea:disabled {
     max-width: none;
   }
 
-  .pedidos-command-card,
-  .clientes-highlight {
-    padding: 1.2rem 1.25rem;
-  }
-
-  .pedidos-list,
-  .clientes-grid {
-    gap: 0.9rem;
-  }
-
-  .pedido-card,
-  .cliente-card,
-  .fiado-card {
-    padding: 1.05rem;
-  }
-
-  .page-fiados > .fiados-empty-state {
-    width: 100%;
-  }
-
   .page-config > .mt-6,
   .page-config > section {
     border-radius: var(--radio-panel);
@@ -778,9 +602,7 @@ textarea:disabled {
     font-size: 0.78rem;
   }
 
-  .page-module-head > .libreta-button,
-  .page-module-head > .pedidos-new-button,
-  .page-module-head > .clientes-new-button {
+  .page-module-head > .libreta-button {
     min-height: 2.45rem;
     padding-inline: 0.7rem;
     font-size: 0.75rem;
@@ -837,37 +659,10 @@ textarea:disabled {
     font-size: 0.8rem;
   }
 
-  .pedido-card,
-  .cliente-card,
-  .fiado-card,
   .form-card,
   .account-status-card {
     border-radius: 1.05rem;
     padding: 0.95rem;
-  }
-
-  .pedidos-command-card,
-  .clientes-highlight {
-    padding: 0.95rem;
-  }
-
-  .pedidos-metrics,
-  .clientes-metrics {
-    gap: 0.6rem;
-  }
-
-  .pedidos-metric,
-  .clientes-metrics > div,
-  .fiados-summary-card {
-    min-height: 4.85rem;
-    padding: 0.8rem;
-  }
-
-  .pedidos-empty,
-  .clientes-empty,
-  .fiados-empty-state {
-    min-height: 15rem;
-    padding: 1.6rem 1rem;
   }
 
   .form-card {
@@ -980,9 +775,7 @@ textarea:disabled {
     font-size: 0.78rem;
   }
 
-  .page-module-head > .libreta-button,
-  .page-module-head > .pedidos-new-button,
-  .page-module-head > .clientes-new-button {
+  .page-module-head > .libreta-button {
     min-width: 0;
     max-width: 12rem;
     padding-inline: 0.8rem;
@@ -1001,17 +794,6 @@ textarea:disabled {
     font-size: 1.25rem;
   }
 
-  .pedidos-metrics,
-  .clientes-metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.6rem;
-  }
-
-  .pedidos-command-card,
-  .clientes-highlight {
-    padding: 1rem;
-  }
-
   .form-actions .libreta-button,
   .form-shell > .libreta-button {
     min-height: 2.95rem;
@@ -1022,14 +804,6 @@ textarea:disabled {
 @media (min-width: 768px) and (max-width: 959px) {
   /* En este rango la prioridad es que cada control conserve un ancho cómodo;
    * una columna larga es más clara que dos columnas comprimidas. */
-}
-
-@media (min-width: 960px) and (max-width: 1179px) {
-
-  .pedidos-list,
-  .clientes-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 /* Contraste específico para el modo oscuro: etiquetas, ayudas y campos no

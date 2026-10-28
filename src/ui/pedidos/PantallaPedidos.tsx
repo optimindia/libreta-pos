@@ -9,10 +9,15 @@ import { formatearPesos } from '@/dominio/dinero'
 import { mensajePedido, enlaceWhatsApp } from '@/dominio/mensajes'
 import { repos } from '@/datos/local/repos'
 import { db } from '@/datos/local/db'
-import { Boton } from '@/ui/sistema/Boton'
-import { Importe } from '@/ui/sistema/Importe'
-import { IconoAlerta, IconoCalendario, IconoCobrar, IconoConfirmar, IconoEntrega, IconoFiltro, IconoNota, IconoPedidos, IconoQR, IconoTransferencia, IconoUbicacion } from '@/ui/sistema/iconos'
+import { Boton, clasesBoton } from '@/ui/sistema/Boton'
+import { CampoBusqueda } from '@/ui/sistema/CampoBusqueda'
+import { Chip, Chips } from '@/ui/sistema/Chip'
+import { Etiqueta, type TonoEtiqueta } from '@/ui/sistema/Etiqueta'
+import { Hoja } from '@/ui/sistema/Hoja'
+import { Tarjeta } from '@/ui/sistema/Tarjeta'
+import { IconoCalendario, IconoCerrar, IconoCobrar, IconoConfirmar, IconoEntrega, IconoNota, IconoQR, IconoTransferencia, IconoUbicacion } from '@/ui/sistema/iconos'
 import { FormularioPedido } from './FormularioPedido'
+import './pedidos.css'
 
 type FiltroPedido = 'todos' | EstadoPedido
 
@@ -66,9 +71,9 @@ export function PantallaPedidos() {
 
   const activos = datos.pedidos.filter((pedido) => pedido.estado !== 'entregado' && pedido.estado !== 'cancelado')
   const paraHoy = activos.filter((pedido) => esHoy(pedido.fechaEntrega)).length
-  const listos = datos.pedidos.filter((pedido) => pedido.estado === 'listo').length
   const reservadas = [...datos.reservadas.values()].reduce((suma, cantidad) => suma + cantidad, 0)
   const valorActivo = activos.reduce((suma, pedido) => suma + pedido.total, 0)
+  const cuenta = (estado: EstadoPedido) => datos.pedidos.filter((pedido) => pedido.estado === estado).length
 
   async function cambiarEstado(pedido: Pedido, estado: EstadoPedido) {
     try {
@@ -100,37 +105,84 @@ export function PantallaPedidos() {
   }
 
   return (
-    <div className="page-pedidos px-5 pt-6">
-      <div className="page-module-head pedidos-head">
-        <div><span className="page-kicker">Operación inteligente</span><h1 className="page-title">Pedidos</h1><p className="page-description">Guardá encargos, reservá mercadería y cobrá cuando estén listos.</p></div>
-        <Boton variante="principal" className="button-with-icon pedidos-new-button" onClick={() => { setEditando(null); setFormulario(true); setAviso(null) }}><IconoPedidos /> Nuevo pedido</Boton>
-      </div>
+    <div className="page-pedidos f-pedidos">
+      <header className="f-pedidos-cabeza">
+        <div>
+          <h1 className="f-titulo">Pedidos</h1>
+          <p className="f-pedidos-sub">Guardá encargos, reservá mercadería y cobrá cuando estén listos.</p>
+        </div>
+        <Boton variante="principal" onClick={() => { setEditando(null); setFormulario(true); setAviso(null) }}>
+          + Nuevo pedido
+        </Boton>
+      </header>
 
-      <section className="pedidos-command-card" aria-label="Resumen de pedidos">
-        <div className="pedidos-command-copy"><span className="pedidos-command-icon"><IconoPedidos /></span><div><strong>{activos.length === 0 ? 'Tu agenda está despejada' : `${activos.length} ${activos.length === 1 ? 'pedido activo' : 'pedidos activos'}`}</strong><p>{paraHoy > 0 ? `${paraHoy} requieren atención hoy.` : 'Todo lo que encargaron queda ordenado en un solo lugar.'}</p></div></div>
-        <div className="pedidos-command-total"><span>Valor en agenda</span><strong>{formatearPesos(valorActivo)}</strong></div>
+      <section className="f-pedidos-resumen" aria-label="Resumen de pedidos">
+        <div className="f-pedidos-agenda">
+          <span className="f-pedidos-agenda-texto">
+            <span className="f-pedidos-agenda-rotulo">Valor en agenda</span>
+            <span className="f-dato">
+              {activos.length === 0 ? 'Tu agenda está despejada' : `${activos.length} ${activos.length === 1 ? 'pedido activo' : 'pedidos activos'}`}
+              {paraHoy > 0 ? ` · ${paraHoy} para hoy` : ''}
+            </span>
+          </span>
+          <b className="f-plata f-pedidos-agenda-monto">{formatearPesos(valorActivo)}</b>
+        </div>
+        <div className="f-pedidos-reserva">
+          <b>{reservadas}</b>
+          <span className="f-dato">{reservadas === 1 ? 'unidad reservada' : 'unidades reservadas'}</span>
+        </div>
       </section>
 
-      <div className="pedidos-metrics">
-        <button type="button" className={`pedidos-metric${filtro === 'pendiente' ? ' is-selected' : ''}`} onClick={() => setFiltro('pendiente')}><span>Pendientes</span><strong>{datos.pedidos.filter((pedido) => pedido.estado === 'pendiente').length}</strong><small>por preparar</small></button>
-        <button type="button" className={`pedidos-metric${filtro === 'preparando' ? ' is-selected' : ''}`} onClick={() => setFiltro('preparando')}><span>En marcha</span><strong>{datos.pedidos.filter((pedido) => pedido.estado === 'preparando').length}</strong><small>preparando</small></button>
-        <button type="button" className={`pedidos-metric${filtro === 'listo' ? ' is-selected' : ''}`} onClick={() => setFiltro('listo')}><span>Listos</span><strong>{listos}</strong><small>para entregar</small></button>
-        <div className="pedidos-metric"><span>Stock reservado</span><strong>{reservadas}</strong><small>unidades bloqueadas</small></div>
+      {aviso && (
+        <div className="f-aviso f-pedidos-aviso" role="status" data-tono="ambar">
+          <IconoConfirmar />
+          <span>{aviso}</span>
+          <button type="button" className="f-icono-boton" onClick={() => setAviso(null)} aria-label="Cerrar aviso"><IconoCerrar /></button>
+        </div>
+      )}
+
+      <div className="f-pedidos-filtros">
+        <CampoBusqueda etiqueta="Buscar pedidos" placeholder="Buscar cliente, producto o número" valor={busqueda} onCambiar={setBusqueda} />
+        <Chips etiqueta="Filtrar pedidos por estado">
+          {FILTROS.map((opcion) => (
+            <Chip key={opcion} activo={filtro === opcion} onClick={() => setFiltro(opcion)}>
+              {opcion === 'todos' ? 'Todos' : ETIQUETA_ESTADO_PEDIDO[opcion]}
+              {(opcion === 'pendiente' || opcion === 'preparando' || opcion === 'listo') && <span className="f-pedidos-cuenta">{cuenta(opcion)}</span>}
+            </Chip>
+          ))}
+        </Chips>
+      </div>
+
+      {visibles.length === 0 ? (
+        <Tarjeta como="section" relleno="grande" className="f-pedidos-vacia">
+          <h2 className="f-seccion">{datos.pedidos.length === 0 ? 'Tus pedidos van a vivir acá' : 'No encontramos coincidencias'}</h2>
+          <p className="f-texto">{datos.pedidos.length === 0 ? 'Anotá encargos de WhatsApp, teléfono o mostrador y seguí cada paso sin perder nada.' : 'Probá con otro cliente, producto o estado.'}</p>
+          {datos.pedidos.length === 0 && <Boton variante="secundario" onClick={() => setFormulario(true)}>Crear primer pedido</Boton>}
+        </Tarjeta>
+      ) : (
+        <ul className="f-pedidos-lista">
+          {visibles.map((pedido) => (
+            <li key={pedido.id}>
+              <PedidoCard pedido={pedido} cliente={clientesPorId.get(pedido.clienteId ?? '')} onEditar={() => { setEditando(pedido); setFormulario(true); setAviso(null) }} onCambiarEstado={(estado) => void cambiarEstado(pedido, estado)} onCancelar={() => void cancelar(pedido)} onCobrar={(medio) => cobrar(pedido, medio)} negocio={datos.negocio} />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="f-aviso f-pedidos-tip" data-tono="ambar">
+        <strong>Una reserva no descuenta stock.</strong>
+        <span>Sólo bloquea unidades hasta cobrar o cancelar; así podés seguir viendo tu inventario real.</span>
       </div>
 
       {formulario && <FormularioPedido pedido={editando} productos={datos.productos} clientes={datos.clientes} reservadas={datos.reservadas} onGuardado={(pedido) => { setFormulario(false); setEditando(null); setAviso(pedido.id === editando?.id ? 'Cambios guardados.' : 'Pedido creado. Ya aparece en tu agenda.') }} onCancel={() => { setFormulario(false); setEditando(null) }} />}
-      {aviso && <div className="pedidos-notice" role="status"><IconoConfirmar /><span>{aviso}</span><button type="button" onClick={() => setAviso(null)} aria-label="Cerrar aviso">×</button></div>}
-
-      <div className="pedidos-toolbar">
-        <label className="pedidos-search"><IconoFiltro /><input aria-label="Buscar pedidos" placeholder="Buscar cliente, producto o número…" value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} /></label>
-        <div className="pedidos-filter-scroll" data-scroll-x>{FILTROS.map((opcion) => <button type="button" key={opcion} className={filtro === opcion ? 'is-selected' : ''} onClick={() => setFiltro(opcion)}>{opcion === 'todos' ? 'Todos' : ETIQUETA_ESTADO_PEDIDO[opcion]}</button>)}</div>
-      </div>
-
-      {visibles.length === 0 ? <section className="pedidos-empty"><span className="pedidos-empty-icon"><IconoPedidos /></span><span className="page-kicker">Agenda limpia</span><h2>{datos.pedidos.length === 0 ? 'Tus pedidos van a vivir acá' : 'No encontramos coincidencias'}</h2><p>{datos.pedidos.length === 0 ? 'Anotá encargos de WhatsApp, teléfono o mostrador y seguí cada paso sin perder nada.' : 'Probá con otro cliente, producto o estado.'}</p>{datos.pedidos.length === 0 && <Boton variante="principal" className="button-with-icon" onClick={() => setFormulario(true)}><IconoPedidos /> Crear primer pedido</Boton>}</section> : <div className="pedidos-list">{visibles.map((pedido) => <PedidoCard key={pedido.id} pedido={pedido} cliente={clientesPorId.get(pedido.clienteId ?? '')} onEditar={() => { setEditando(pedido); setFormulario(true); setAviso(null) }} onCambiarEstado={(estado) => void cambiarEstado(pedido, estado)} onCancelar={() => void cancelar(pedido)} onCobrar={(medio) => cobrar(pedido, medio)} negocio={datos.negocio} />)}</div>}
-
-      <div className="pedidos-footer-tip"><IconoAlerta /><span><strong>Una reserva no descuenta stock.</strong> Sólo bloquea unidades hasta cobrar o cancelar; así podés seguir viendo tu inventario real.</span></div>
     </div>
   )
+}
+
+const TONO_ESTADO: Record<'verde' | 'ambar' | 'tenue', TonoEtiqueta> = {
+  verde: 'verde',
+  ambar: 'ambar',
+  tenue: 'gris',
 }
 
 function PedidoCard({
@@ -155,6 +207,7 @@ function PedidoCard({
   const siguiente = siguienteEstadoPedido(pedido.estado)
   const siguienteAccion = siguiente && siguiente !== 'entregado' ? siguiente : null
   const etiquetaSiguiente = siguienteAccion ? (siguienteAccion === 'preparando' ? 'Empezar a preparar' : 'Marcar listo') : null
+  const abierto = pedido.estado !== 'entregado' && pedido.estado !== 'cancelado'
 
   async function cobrarPedido(medio: MedioPago) {
     setProcesando(true)
@@ -169,16 +222,55 @@ function PedidoCard({
   }
 
   return (
-    <article className={`pedido-card pedido-card-${pedido.estado}`}>
-      <div className="pedido-card-top"><div className="pedido-card-person"><span className="pedido-card-avatar">{cliente?.nombre?.split(' ').slice(0, 2).map((parte) => parte[0]).join('').toUpperCase() || '•'}</span><div><strong>{cliente?.nombre || 'Cliente mostrador'}</strong><small>Pedido #{pedido.id.slice(0, 6).toUpperCase()} · {new Date(pedido.fecha).toLocaleDateString('es-AR')}</small></div></div><span className={`pedido-status pedido-status-${COLOR_ESTADO_PEDIDO[pedido.estado]}`}><span />{ETIQUETA_ESTADO_PEDIDO[pedido.estado]}</span></div>
-      <div className="pedido-card-info"><span><IconoEntrega />{etiquetaTipoEntrega(pedido)}</span>{pedido.fechaEntrega && <span className={esHoy(pedido.fechaEntrega) ? 'is-today' : ''}><IconoCalendario />{esHoy(pedido.fechaEntrega) ? 'Hoy' : fechaPedidoCorta(pedido.fechaEntrega)}</span>}{pedido.tipoEntrega === 'envio' && <span><IconoUbicacion />{pedido.direccion}</span>}</div>
-      <ul className="pedido-card-items">{pedido.items.slice(0, 4).map((item) => <li key={item.productoId}><span>{item.cantidad} × {item.nombre}</span><Importe centavos={item.precio * item.cantidad} tamaño="chico" /></li>)}{pedido.items.length > 4 && <li className="pedido-more-items">+ {pedido.items.length - 4} productos más</li>}</ul>
-      {pedido.nota && <div className="pedido-card-note"><IconoNota /><span>{pedido.nota}</span></div>}
-      <div className="pedido-card-total"><span>{unidadesPedido(pedido.items)} unidades{pedido.reservarStock ? ' · stock reservado' : ''}</span><strong><Importe centavos={pedido.total} tamaño="normal" /></strong></div>
+    <Tarjeta como="article" relleno="normal" className="f-pedidos-tarjeta" data-estado={pedido.estado}>
+      <div className="f-pedidos-top">
+        <span className="f-pedidos-avatar" aria-hidden="true">{cliente?.nombre?.split(' ').slice(0, 2).map((parte) => parte[0]).join('').toUpperCase() || '•'}</span>
+        <span className="f-renglon-cuerpo">
+          <span className="f-renglon-titulo">{cliente?.nombre || 'Cliente mostrador'}</span>
+          <span className="f-renglon-detalle">Pedido #{pedido.id.slice(0, 6).toUpperCase()} · {new Date(pedido.fecha).toLocaleDateString('es-AR')}</span>
+        </span>
+        <Etiqueta tono={TONO_ESTADO[COLOR_ESTADO_PEDIDO[pedido.estado]]} punto>{ETIQUETA_ESTADO_PEDIDO[pedido.estado]}</Etiqueta>
+      </div>
 
-      {mostrarCobro && <div className="pedido-payment-box"><div><strong>Cobrar y entregar</strong><small>Elegí cómo ingresó el pago</small></div><div className="pedido-payment-actions">{MEDIOS_COBRO.map(({ medio, texto }) => <button type="button" key={medio} disabled={procesando} onClick={() => void cobrarPedido(medio)}>{medio === 'efectivo' ? <IconoCobrar /> : medio === 'transferencia' ? <IconoTransferencia /> : medio === 'qr' ? <IconoQR /> : <span className="pedido-payment-fiado">$</span>}{texto}</button>)}</div></div>}
+      <div className="f-pedidos-info">
+        <Etiqueta><IconoEntrega />{etiquetaTipoEntrega(pedido)}</Etiqueta>
+        {pedido.fechaEntrega && <Etiqueta tono={esHoy(pedido.fechaEntrega) ? 'ambar' : 'gris'}><IconoCalendario />{esHoy(pedido.fechaEntrega) ? 'Hoy' : fechaPedidoCorta(pedido.fechaEntrega)}</Etiqueta>}
+        {pedido.tipoEntrega === 'envio' && <Etiqueta className="f-pedidos-direccion"><IconoUbicacion />{pedido.direccion}</Etiqueta>}
+      </div>
 
-      <div className="pedido-card-actions">{siguienteAccion && etiquetaSiguiente && <Boton variante="principal" className="button-with-icon pedido-action-main" onClick={() => onCambiarEstado(siguienteAccion)}><IconoConfirmar /> {etiquetaSiguiente}</Boton>}{pedido.estado === 'listo' && <Boton variante="principal" className="button-with-icon pedido-action-main" onClick={() => setMostrarCobro((actual) => !actual)}><IconoCobrar /> {mostrarCobro ? 'Cerrar cobro' : 'Cobrar y entregar'}</Boton>}{pedido.estado !== 'entregado' && pedido.estado !== 'cancelado' && <button type="button" className="pedido-action-secondary" onClick={onEditar}>Editar</button>}{cliente?.telefono && <a className="pedido-action-secondary" target="_blank" rel="noreferrer" href={enlaceWhatsApp(cliente.telefono, mensajePedido(negocio ? { id: 'unico', nombre: negocio.nombre, logo: null, color: null } : { id: 'unico', nombre: 'Tu almacén', logo: null, color: null }, pedido, cliente))}>WhatsApp</a>}{pedido.estado !== 'entregado' && pedido.estado !== 'cancelado' && <button type="button" className="pedido-action-danger" onClick={onCancelar}>Cancelar</button>}</div>
-    </article>
+      <ul className="f-pedidos-items">
+        {pedido.items.slice(0, 4).map((item) => (
+          <li key={item.productoId}><span>{item.cantidad} × {item.nombre}</span><b>{formatearPesos(item.precio * item.cantidad)}</b></li>
+        ))}
+        {pedido.items.length > 4 && <li className="f-pedidos-mas">+ {pedido.items.length - 4} productos más</li>}
+      </ul>
+
+      {pedido.nota && <p className="f-pedidos-nota"><IconoNota /><span>{pedido.nota}</span></p>}
+
+      <div className="f-pedidos-total">
+        <span className="f-dato">{unidadesPedido(pedido.items)} {unidadesPedido(pedido.items) === 1 ? 'unidad' : 'unidades'}{pedido.reservarStock ? ' · stock reservado' : ''}</span>
+        <b className="f-plata-16 f-pedidos-total-monto">{formatearPesos(pedido.total)}</b>
+      </div>
+
+      <div className="f-pedidos-acciones">
+        {siguienteAccion && etiquetaSiguiente && <Boton variante="secundario" className="f-pedidos-siguiente" onClick={() => onCambiarEstado(siguienteAccion)}><IconoConfirmar /> {etiquetaSiguiente}</Boton>}
+        {pedido.estado === 'listo' && <Boton variante="secundario" className="f-pedidos-siguiente" onClick={() => setMostrarCobro(true)}><IconoCobrar /> Cobrar y entregar</Boton>}
+        {abierto && <Boton variante="secundario" onClick={onEditar}>Editar</Boton>}
+        {cliente?.telefono && <a data-tamano="normal" className={clasesBoton('secundario')} target="_blank" rel="noreferrer" href={enlaceWhatsApp(cliente.telefono, mensajePedido(negocio ? { id: 'unico', nombre: negocio.nombre, logo: null, color: null } : { id: 'unico', nombre: 'Tu almacén', logo: null, color: null }, pedido, cliente))}>WhatsApp</a>}
+        {abierto && <Boton variante="cuidado" onClick={onCancelar}>Cancelar</Boton>}
+      </div>
+
+      <Hoja abierta={mostrarCobro} onCerrar={() => { if (!procesando) setMostrarCobro(false) }} titulo="Cobrar y entregar" extra={formatearPesos(pedido.total)} ancho="angosto">
+        <p className="f-hoja-ayuda">Elegí cómo ingresó el pago de <b>{cliente?.nombre || 'Cliente mostrador'}</b>.</p>
+        <div className="f-pedidos-medios">
+          {MEDIOS_COBRO.map(({ medio, texto }) => (
+            <Boton key={medio} variante={medio === 'fiado' ? 'cuidado' : 'secundario'} tamano="grande" disabled={procesando} onClick={() => void cobrarPedido(medio)}>
+              {medio === 'efectivo' ? <IconoCobrar /> : medio === 'transferencia' ? <IconoTransferencia /> : medio === 'qr' ? <IconoQR /> : <span aria-hidden="true">$</span>}
+              {texto}
+            </Boton>
+          ))}
+        </div>
+      </Hoja>
+    </Tarjeta>
   )
 }
