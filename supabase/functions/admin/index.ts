@@ -1,8 +1,12 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.112.4'
+import { emailDeTelefono, passwordParaCuenta, telefonoNormalizado } from '../_shared/credenciales.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
 const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
+// Mismo secreto que la función `ingresar`: con él, las cuentas nuevas y los
+// PIN regenerados usan la contraseña v2, que no se puede calcular afuera.
+const pepper = Deno.env.get('LIBRETA_PIN_PEPPER') || undefined
 const diasEnMilisegundos = 24 * 60 * 60 * 1000
 const ORIGENES_PERMITIDOS = new Set([
   'https://libreta-sepia.vercel.app',
@@ -128,19 +132,14 @@ function medioPagoValido(valor: unknown): valor is MedioPagoAdmin {
     || valor === 'mercado_pago' || valor === 'otro'
 }
 
-function telefonoNormalizado(telefono: string): string {
-  const digitos = telefono.replace(/\D/g, '')
-  return digitos.startsWith('54') ? digitos : `54${digitos}`
-}
-
 function pinValido(pin: string): boolean {
   if (!/^\d{6}$/.test(pin)) return false
   return !new Set(['000000', '111111', '222222', '333333', '444444', '555555', '666666', '777777', '888888', '999999']).has(pin)
 }
 
-function credenciales(telefono: string, pin: string): { email: string; password: string } {
+async function credenciales(telefono: string, pin: string): Promise<{ email: string; password: string }> {
   const numero = telefonoNormalizado(telefono)
-  return { email: `${numero}@libreta.app`, password: `libreta-v1:${numero}:${pin}` }
+  return { email: emailDeTelefono(numero), password: await passwordParaCuenta(numero, pin, pepper) }
 }
 
 function fechaDesdeAhora(dias: number, base = Date.now()): string {
@@ -347,7 +346,7 @@ async function crearCuenta(admin: ReturnType<typeof createClient>, actorId: stri
   if (numero.length < 10 || numero.length > 15) throw new Response(JSON.stringify({ error: 'Revisá el teléfono del cliente.' }), { status: 400 })
   if (!pinValido(pin)) throw new Response(JSON.stringify({ error: 'El PIN debe tener 6 números y no ser obvio.' }), { status: 400 })
 
-  const datos = credenciales(telefono, pin)
+  const datos = await credenciales(telefono, pin)
   const alta = await admin.auth.admin.createUser({
     email: datos.email,
     password: datos.password,
@@ -526,7 +525,7 @@ async function gestionarCuenta(admin: ReturnType<typeof createClient>, actorId: 
       throw new Response(JSON.stringify({ error: 'La cuenta no tiene un teléfono válido.' }), { status: 400 })
     }
     const cambio = await admin.auth.admin.updateUserById(usuarioId, {
-      password: credenciales(telefonoActual, pin).password,
+      password: (await credenciales(telefonoActual, pin)).password,
     })
     if (cambio.error) throw new Error('No se pudo regenerar el PIN.')
 
@@ -551,7 +550,7 @@ async function gestionarCuenta(admin: ReturnType<typeof createClient>, actorId: 
   const cambioTelefono = numero !== numeroAnterior
   if (cambioTelefono) {
     const cambioAuth = await admin.auth.admin.updateUserById(usuarioId, {
-      email: credenciales(numero, '000000').email,
+      email: emailDeTelefono(numero),
       email_confirm: true,
       user_metadata: { nombre_negocio: nombre },
     })
@@ -568,7 +567,7 @@ async function gestionarCuenta(admin: ReturnType<typeof createClient>, actorId: 
   if (guardado.error) {
     if (cambioTelefono) {
       await admin.auth.admin.updateUserById(usuarioId, {
-        email: credenciales(numeroAnterior, '000000').email,
+        email: emailDeTelefono(numeroAnterior),
         email_confirm: true,
       })
     }
@@ -609,7 +608,7 @@ async function gestionarVendedor(admin: ReturnType<typeof createClient>, actorId
     if (numero.length < 10 || numero.length > 15) throw new Response(JSON.stringify({ error: 'Revisá el teléfono del vendedor.' }), { status: 400 })
     if (!pinValido(pin)) throw new Response(JSON.stringify({ error: 'El PIN debe tener 6 números y no ser obvio.' }), { status: 400 })
 
-    const datos = credenciales(telefono, pin)
+    const datos = await credenciales(telefono, pin)
     const alta = await admin.auth.admin.createUser({
       email: datos.email,
       password: datos.password,
@@ -641,7 +640,7 @@ async function gestionarVendedor(admin: ReturnType<typeof createClient>, actorId
     if (!pinValido(pin)) throw new Response(JSON.stringify({ error: 'El PIN debe tener 6 números y no ser obvio.' }), { status: 400 })
     const telefono = texto(vinculo.data.telefono, 40)
     if (!telefono) throw new Response(JSON.stringify({ error: 'El vendedor no tiene teléfono.' }), { status: 400 })
-    const cambio = await admin.auth.admin.updateUserById(usuarioId, { password: credenciales(telefono, pin).password })
+    const cambio = await admin.auth.admin.updateUserById(usuarioId, { password: (await credenciales(telefono, pin)).password })
     if (cambio.error) throw new Error('No se pudo cambiar el PIN del vendedor.')
     await admin.from('suscripcion_eventos').insert({ negocio_id: negocioId, accion: 'vendedor_pin', detalle: { nombre: vinculo.data.nombre }, actor_id: actorId })
     return { ok: true, credenciales: { telefono, pin } }
