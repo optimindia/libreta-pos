@@ -16,3 +16,21 @@ describe('CSV del POS', () => {
     expect(ventasACsv([venta])).toContain('4200.00')
   })
 })
+
+describe('productosDesdeCsv con números escritos en castellano', () => {
+  it('"1.500" son mil quinientos pesos, no un peso con cincuenta', () => {
+    expect(productosDesdeCsv('nombre,precio\nYerba,1.500')[0].precio).toBe(150000)
+    expect(productosDesdeCsv('nombre,precio\nYerba,12.345.678')[0].precio).toBe(1234567800)
+  })
+
+  it('acepta coma decimal, signo $ y espacios', () => {
+    expect(productosDesdeCsv('nombre,precio\nYerba,"1.500,50"')[0].precio).toBe(150050)
+    expect(productosDesdeCsv('nombre,precio\nYerba,"$ 1500"')[0].precio).toBe(150000)
+    expect(productosDesdeCsv('nombre,precio\nYerba,"4,2"')[0].precio).toBe(420)
+  })
+
+  it('sigue leyendo el formato que exporta la app (punto decimal)', () => {
+    expect(productosDesdeCsv('nombre,precio\nYerba,4200.5')[0].precio).toBe(420050)
+    expect(productosDesdeCsv('nombre,precio\nYerba,1.5')[0].precio).toBe(150)
+  })
+})

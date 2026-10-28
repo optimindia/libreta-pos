@@ -48,7 +48,15 @@ export function ventasACsv(ventas: Venta[]): string {
   return filas.map((fila) => fila.map(celda).join(';')).join('\n')
 }
 
-function separarFila(fila: string): string[] {
+/** El separador sale del encabezado: Excel en castellano usa ";", Google
+ *  Sheets y Excel en inglés usan ",", y algunos exportan con tabulador. */
+function detectarSeparador(encabezado: string): string {
+  const fuera = encabezado.replace(/"[^"]*"/g, '')
+  const cuenta = (separador: string) => fuera.split(separador).length - 1
+  return [';', ',', '\t'].reduce((mejor, separador) => (cuenta(separador) > cuenta(mejor) ? separador : mejor), ';')
+}
+
+function separarFila(fila: string, separador = ';'): string[] {
   const celdas: string[] = []
   let actual = ''
   let entreComillas = false
@@ -59,7 +67,7 @@ function separarFila(fila: string): string[] {
       indice += 1
     } else if (caracter === '"') {
       entreComillas = !entreComillas
-    } else if (caracter === ';' && !entreComillas) {
+    } else if (caracter === separador && !entreComillas) {
       celdas.push(actual)
       actual = ''
     } else {
@@ -70,14 +78,31 @@ function separarFila(fila: string): string[] {
   return celdas
 }
 
-function numero(texto: string | undefined): number {
-  const valor = Number((texto ?? '').trim().replace(',', '.'))
+/** Números como los escribe cualquiera en Argentina: "1.500" son mil
+ *  quinientos, "1.500,50" lleva coma decimal y "$ 1500" trae el signo.
+ *  También lee el formato que exporta la app ("4200.5"). */
+export function numero(texto: string | undefined): number {
+  let limpio = (texto ?? '').replace(/[$\s]/g, '')
+  if (limpio === '') return 0
+  const punto = limpio.lastIndexOf('.')
+  const coma = limpio.lastIndexOf(',')
+  if (punto >= 0 && coma >= 0) {
+    // El último separador es el decimal; el otro, de miles.
+    limpio = coma > punto ? limpio.replace(/\./g, '').replace(',', '.') : limpio.replace(/,/g, '')
+  } else if (coma >= 0) {
+    limpio = /^-?\d{1,3}(,\d{3})+$/.test(limpio) && limpio.split(',').length > 2 ? limpio.replace(/,/g, '') : limpio.replace(',', '.')
+  } else if (/^-?\d{1,3}(\.\d{3})+$/.test(limpio)) {
+    limpio = limpio.replace(/\./g, '')
+  }
+  const valor = Number(limpio)
   return Number.isFinite(valor) ? valor : 0
 }
 
 /** Lee el formato que exporta la app y tolera encabezados en español. */
 export function productosDesdeCsv(texto: string): ProductoCsv[] {
-  const filas = texto.replace(/^\uFEFF/, '').split(/\r?\n/).map(separarFila).filter((fila) => fila.some((celda) => celda.trim() !== ''))
+  const lineas = texto.replace(/^\uFEFF/, '').split(/\r?\n/)
+  const separador = detectarSeparador(lineas[0] ?? '')
+  const filas = lineas.map((linea) => separarFila(linea, separador)).filter((fila) => fila.some((celda) => celda.trim() !== ''))
   if (filas.length === 0) return []
   const encabezados = filas[0].map((encabezado) => encabezado.trim().toLowerCase())
   const posicion = (...nombres: string[]) => nombres.map((nombre) => encabezados.indexOf(nombre)).find((indice) => indice >= 0) ?? -1
