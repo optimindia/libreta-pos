@@ -1,0 +1,68 @@
+'use client'
+
+import { useState } from 'react'
+import type { Producto } from '@/dominio/tipos'
+import { pesosACentavos } from '@/dominio/dinero'
+import { conPuntos, soloDigitos } from '@/dominio/cobro'
+import { repos } from '@/datos/local/repos'
+import { Hoja } from '@/ui/sistema/Hoja'
+
+/** Un producto cargado sin precio no se puede vender a $0. En vez de
+ *  mandar al almacenero a Stock, se lo pide acá mismo: escribe el precio,
+ *  queda guardado para la próxima y el producto entra al ticket. */
+export function PonerPrecio({
+  producto,
+  onCancelar,
+  onListo,
+}: {
+  producto: Producto
+  onCancelar: () => void
+  onListo: (conPrecio: Producto) => void
+}) {
+  const [pesos, setPesos] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function guardar(evento: React.FormEvent) {
+    evento.preventDefault()
+    const precio = pesosACentavos(Number(pesos))
+    if (!pesos || precio <= 0) {
+      setError('Escribí un precio mayor a $0.')
+      return
+    }
+    setGuardando(true)
+    try {
+      onListo(await repos.productos.guardar({ ...producto, precio }))
+    } catch {
+      setError('No se pudo guardar el precio. Probá de nuevo.')
+      setGuardando(false)
+    }
+  }
+
+  return (
+    <Hoja abierta onCerrar={onCancelar} titulo="Ponele precio">
+      <form className="nb-formulario" onSubmit={(evento) => void guardar(evento)}>
+        <p className="nb-hoja-ayuda"><b>{producto.nombre}</b> no tiene precio todavía. Lo guardamos para las próximas ventas.</p>
+        <label className="nb-campo-grande">
+          <span>Precio de venta</span>
+          <span className="nb-campo-pesos">
+            <span aria-hidden="true">$</span>
+            <input
+              aria-label={`Precio de ${producto.nombre}`}
+              inputMode="numeric"
+              autoComplete="off"
+              autoFocus
+              placeholder="0"
+              value={conPuntos(pesos)}
+              onChange={(evento) => { setPesos(soloDigitos(evento.target.value)); setError(null) }}
+            />
+          </span>
+        </label>
+        {error && <p className="nb-error" role="alert">{error}</p>}
+        <button type="submit" className="libreta-button nb-boton nb-boton-principal nb-boton-ancho" disabled={guardando}>
+          {guardando ? 'Guardando…' : 'Guardar y agregar al ticket'}
+        </button>
+      </form>
+    </Hoja>
+  )
+}

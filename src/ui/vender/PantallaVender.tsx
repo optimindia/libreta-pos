@@ -3,9 +3,9 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import type { ItemVenta, MedioPago, Negocio, UUID, Venta } from '@/dominio/tipos'
-import { agregarProducto, cambiarCantidad, totalTicket } from '@/dominio/ticket'
-import { ErrorStockInsuficiente, repos } from '@/datos/local/repos'
+import type { ItemVenta, MedioPago, Negocio, Producto, UUID, Venta } from '@/dominio/tipos'
+import { agregarProducto, cambiarCantidad, precioVigente, totalTicket } from '@/dominio/ticket'
+import { ErrorStockInsuficiente, ErrorVentaInvalida, repos } from '@/datos/local/repos'
 import { db } from '@/datos/local/db'
 import { nubeActiva } from '@/datos/nube/cliente'
 import { Ticket } from './Ticket'
@@ -14,6 +14,7 @@ import { BotonEscanear } from './BotonEscanear'
 import { CatalogoVender } from './CatalogoVender'
 import { Entrar } from './Entrar'
 import { Cobrado } from './Cobrado'
+import { PonerPrecio } from './PonerPrecio'
 import { IconoCerrar, IconoFlechaDerecha, IconoFlechaIzquierda } from '@/ui/sistema/iconos'
 import { formatearPesos } from '@/dominio/dinero'
 import { funcionActiva } from '@/dominio/funciones'
@@ -36,6 +37,12 @@ export function PantallaVender() {
   const escanerVenta = funcionActiva(funciones, 'escanerVenta')
   const atajosPc = funcionActiva(funciones, 'atajosPc')
   const productos = useLiveQuery(() => repos.productos.todos(), [], [])
+  // Lo reservado para pedidos no se puede vender en el mostrador: el
+  // catálogo y el ticket muestran lo que de verdad queda.
+  const reservadas = useLiveQuery(() => repos.pedidos.reservadasPorProducto(), [], new Map<UUID, number>())
+  const [sinPrecio, setSinPrecio] = useState<Producto | null>(null)
+  const disponible = (producto: Producto) => Math.max(0, producto.stock - (reservadas.get(producto.id) ?? 0))
+  const disponibles = Object.fromEntries(productos.map((producto) => [producto.id, disponible(producto)]))
   const estado = useLiveQuery(async () => {
     const [productos, ventas, negocio] = await Promise.all([
       db.productos.count(),
@@ -53,6 +60,13 @@ export function PantallaVender() {
     nubeActiva()
 
   const total = totalTicket(items)
+
+  // El aviso es un cartelito pasajero, como en el celu: se va solo.
+  useEffect(() => {
+    if (!avisoStock) return
+    const reloj = window.setTimeout(() => setAvisoStock(null), 4500)
+    return () => window.clearTimeout(reloj)
+  }, [avisoStock])
 
   useEffect(() => {
     if (!atajosPc) return
@@ -88,14 +102,30 @@ export function PantallaVender() {
         setAvisoStock(`${error.producto}: quedan ${error.disponible}. Ajustá el ticket o cargá stock.`)
         return
       }
+      if (error instanceof ErrorVentaInvalida) {
+        setCobrando(false)
+        setAvisoStock(error.message)
+        return
+      }
       throw error
     }
   }
 
-  function elegirProducto(producto: (typeof productos)[number]) {
+  function elegirProducto(producto: Producto) {
     const enTicket = items.find((item) => item.productoId === producto.id)?.cantidad ?? 0
-    if (producto.stock <= enTicket) {
-      setAvisoStock(producto.stock === 0 ? `${producto.nombre} está sin stock.` : `Solo quedan ${producto.stock} unidades de ${producto.nombre}.`)
+    const quedan = disponible(producto)
+    if (quedan <= enTicket) {
+      const reservado = (reservadas.get(producto.id) ?? 0) > 0
+      setAvisoStock(
+        quedan === 0
+          ? `${producto.nombre} está sin stock${reservado ? ' (lo que hay está reservado para pedidos)' : ''}.`
+          : `Solo quedan ${quedan} unidades de ${producto.nombre} y ya están en el ticket.`,
+      )
+      return
+    }
+    if (precioVigente(producto) <= 0) {
+      setAvisoStock(null)
+      setSinPrecio(producto)
       return
     }
     setAvisoStock(null)
@@ -164,6 +194,7 @@ export function PantallaVender() {
         <div className="mz-mostrador-cuerpo">
           <CatalogoVender
             productos={productos}
+            disponibles={disponibles}
             cantidades={cantidades}
             busqueda={busqueda}
             onBuscar={setBusqueda}
@@ -188,14 +219,14 @@ export function PantallaVender() {
 
             <Ticket
               items={items}
-              stockPorProducto={Object.fromEntries(productos.map((producto) => [producto.id, producto.stock]))}
+              stockPorProducto={disponibles}
               onVaciar={() => setItems([])}
               onCambiarCantidad={(productoId, cantidad) =>
                 setItems((actuales) => cambiarCantidad(actuales, productoId, cantidad))
               }
               onSinStock={(productoId) => {
                 const producto = productos.find((item) => item.id === productoId)
-                if (producto) setAvisoStock(`Solo quedan ${producto.stock} unidades de ${producto.nombre}.`)
+                if (producto) setAvisoStock(`Solo quedan ${disponible(producto)} unidades de ${producto.nombre}.`)
               }}
             />
 
@@ -210,7 +241,7 @@ export function PantallaVender() {
 
       {avisoStock && <p className="mz-aviso-stock" role="status">{avisoStock}</p>}
 
-      {!aparatoNuevo && (
+      {!aparatoNuevo && hayItems && (
         <div className="mz-barra-cobro">
           <button type="button" className="mz-barra-resumen" onClick={() => setVerTicket(true)} aria-label={`Ver el ticket: ${unidades} ${unidades === 1 ? 'producto' : 'productos'}, ${formatearPesos(total)}`}>
             <span>{unidades} {unidades === 1 ? 'producto' : 'productos'} · ver ticket</span>
@@ -226,6 +257,17 @@ export function PantallaVender() {
             Cobrar <IconoFlechaDerecha />
           </button>
         </div>
+      )}
+
+      {sinPrecio && (
+        <PonerPrecio
+          producto={sinPrecio}
+          onCancelar={() => setSinPrecio(null)}
+          onListo={(conPrecio) => {
+            setSinPrecio(null)
+            setItems((actuales) => agregarProducto(actuales, conPrecio))
+          }}
+        />
       )}
 
       {cobrando && <Cobro total={total} onCobrar={cobrar} onCancelar={() => setCobrando(false)} />}

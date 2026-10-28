@@ -1532,3 +1532,193 @@ textarea::placeholder {
     justify-content: stretch;
   }
 }
+
+/* ───────────── Formularios dentro de una hoja ───────────── */
+
+.nb-formulario { display: flex; flex-direction: column; gap: 14px; }
+
+.nb-campo-grande { display: flex; flex-direction: column; gap: 6px; }
+.nb-campo-grande > span:first-child { color: var(--tenue); font-size: 14px; font-weight: 700; }
+
+.nb-campo-pesos {
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  border: 2px solid var(--contorno);
+  border-radius: 16px;
+  background: var(--hueso-2);
+  color: var(--tinta);
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.nb-campo-pesos:focus-within { border-color: var(--verde); }
+
+.nb-campo-pesos input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 32px !important;
+  font-variant-numeric: tabular-nums;
+  outline: 0;
+}
+
+.nb-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--rojo-fondo);
+  color: var(--rojo);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.nb-boton-ancho { width: 100%; min-height: 56px; font-size: 17px; }
+
+/* Vender: un producto sin precio se ve distinto y se puede tocar. */
+.mz-producto[data-sin-precio='true'] { border-style: dashed !important; }
+.mz-producto-sin-precio { color: var(--ambar) !important; font-size: 22px !important; }
+
+/* ───────────── Vender: mostrador moderno ───────────── */
+
+.mz-productos {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+  gap: 10px !important;
+  padding-top: 12px !important;
+}
+
+@media (min-width: 900px) {
+  .mz-productos { grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)) !important; gap: 12px !important; }
+}
+
+.mz-producto {
+  min-height: 132px !important;
+  justify-content: flex-start !important;
+  gap: 4px !important;
+  padding: 14px 14px 12px !important;
+  border: 1px solid var(--linea) !important;
+  border-radius: 20px !important;
+  background: var(--hueso-2) !important;
+  box-shadow: var(--sombra-pop) !important;
+  transition: transform 0.08s ease, border-color 0.12s ease;
+}
+
+.mz-producto:active:not(:disabled) { transform: scale(0.97); }
+
+.mz-producto-nombre {
+  display: -webkit-box;
+  overflow: hidden;
+  padding-right: 30px !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.mz-producto-precio {
+  margin-top: auto;
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em;
+}
+
+.mz-producto-nota {
+  align-self: flex-start;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--chip-fondo);
+  color: var(--tenue) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.mz-producto-nota.is-poco { background: var(--rojo-fondo); color: var(--rojo) !important; }
+
+.mz-producto[data-en-ticket='true'] {
+  border: 2px solid var(--verde) !important;
+  background: var(--verde-suave) !important;
+}
+
+.mz-producto:disabled {
+  border-style: solid !important;
+  background: var(--superficie-sutil) !important;
+  box-shadow: none !important;
+  color: var(--tenue) !important;
+}
+
+.mz-producto:disabled .mz-producto-precio { color: var(--tenue); }
+.mz-producto:disabled .mz-producto-nota { background: var(--chip-fondo); color: var(--tenue) !important; }
+
+.mz-contador {
+  top: -8px !important;
+  left: -6px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  border: 2px solid var(--hueso) !important;
+  background: var(--verde) !important;
+  color: var(--verde-texto) !important;
+  font-size: 15px !important;
+}
+
+.mz-estrella { top: 4px !important; right: 4px !important; color: var(--linea) !important; }
+.mz-estrella:hover { color: var(--tenue) !important; }
+.mz-estrella[data-active='true'] { color: var(--ambar) !important; }
+
+/* La barra de cobro aparece cuando hay algo en el ticket. */
+.mz-barra-cobro {
+  height: 68px !important;
+  padding: 0 8px 0 18px !important;
+  border: 0 !important;
+  border-radius: 20px !important;
+  background: var(--tinta) !important;
+  color: var(--hueso-2) !important;
+  box-shadow: var(--sombra-flotante) !important;
+  animation: nb-subir 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.mz-barra-resumen span { color: inherit; opacity: 1; font-size: 13px !important; font-weight: 600 !important; }
+.mz-barra-resumen strong { font-size: 26px !important; font-weight: 800 !important; }
+
+.mz-barra-cobrar {
+  height: 52px !important;
+  padding: 0 22px !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: var(--lima) !important;
+  box-shadow: none !important;
+  color: var(--sobre-lima) !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+}
+
+@media (min-width: 900px) {
+  .mz-barra-cobro { display: none !important; }
+}
+
+/* Avisos: un cartel oscuro y corto, como un "toast" del celu. */
+.mz-aviso-stock {
+  bottom: calc(168px + env(safe-area-inset-bottom, 0px)) !important;
+  padding: 14px 16px !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  background: var(--tinta) !important;
+  box-shadow: var(--sombra-flotante) !important;
+  color: var(--hueso-2) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  animation: nb-subir 0.2s ease;
+}
+
+@media (min-width: 900px) {
+  .mz-aviso-stock { left: auto !important; right: 32px !important; bottom: 32px !important; max-width: 420px; }
+}
+
+.nb-app .mz-mostrador { max-width: 1200px; padding: 0 0 120px; }
+@media (min-width: 900px) { .nb-app .mz-mostrador { padding-bottom: 24px; } }
