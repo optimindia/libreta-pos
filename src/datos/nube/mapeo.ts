@@ -85,9 +85,12 @@ export function aLaNube(
     if (items.length > 0) {
       partes.push({
         tabla: tablaItems,
-        filas: items.map((item) => ({
+        // La posición identifica el renglón: subir dos veces la misma venta
+        // actualiza los mismos renglones en vez de duplicarlos.
+        filas: items.map((item, posicion) => ({
           ...aFilaPlana(item, negocioId),
           [claveDelPadre]: objeto.id,
+          posicion,
         })),
       })
     }

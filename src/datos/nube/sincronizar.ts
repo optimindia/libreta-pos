@@ -123,12 +123,29 @@ export function subirASupabase(negocioId: UUID): SubirFn {
             } as never)
           }
         }
+      } else if (CLAVE_DEL_PADRE[parte.tabla]) {
+        // Renglones: se pisan por (cabecera, posición) y se borran los que
+        // sobran si el pedido quedó con menos productos que antes.
+        const clave = CLAVE_DEL_PADRE[parte.tabla]
+        const { error } = await cliente.from(parte.tabla).upsert(parte.filas, { onConflict: `${clave},posicion` })
+        if (error) throw error
+        const padre = parte.filas[0]?.[clave]
+        if (padre) {
+          const sobrantes = await cliente.from(parte.tabla).delete().eq(clave, padre).gte('posicion', parte.filas.length)
+          if (sobrantes.error) throw sobrantes.error
+        }
       } else {
         const { error } = await cliente.from(parte.tabla).upsert(parte.filas)
         if (error) throw error
       }
     }
   }
+}
+
+const CLAVE_DEL_PADRE: Record<string, string> = {
+  venta_items: 'venta_id',
+  ingreso_items: 'ingreso_id',
+  pedido_items: 'pedido_id',
 }
 
 export const DESTINO: Record<string, () => Table<unknown, unknown>> = {
@@ -205,10 +222,12 @@ export function rearmarItems(
     ...deLaNube(tabla, fila),
     items: items
       .filter((item) => item[claveDelPadre] === fila.id)
+      .sort((a, b) => ((a.posicion as number | null) ?? 0) - ((b.posicion as number | null) ?? 0) || (a.id as number) - (b.id as number))
       .map((item) => {
         const local = deLaNube(`${tabla === 'ventas' ? 'venta' : tabla === 'ingresos' ? 'ingreso' : 'pedido'}_items`, item) as Fila
         delete local[tabla === 'ventas' ? 'ventaId' : tabla === 'ingresos' ? 'ingresoId' : 'pedidoId']
         delete local.id
+        delete local.posicion
         return local
       }),
   }))

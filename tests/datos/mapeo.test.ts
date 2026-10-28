@@ -148,3 +148,28 @@ describe('mapeo de preferencias del negocio', () => {
     expect(typeof local.actualizadoEn).toBe('number')
   })
 })
+
+describe('renglones con posición estable', () => {
+  it('cada renglón sube con su posición: re-subir la misma venta pisa los mismos renglones', async () => {
+    const { aLaNube } = await import('@/datos/nube/mapeo')
+    const partes = aLaNube('venta', {
+      id: 'v1', fecha: 1, total: 300, medioPago: 'efectivo', clienteId: null,
+      items: [
+        { productoId: 'a', nombre: 'A', cantidad: 1, precio: 100, costo: 50 },
+        { productoId: 'b', nombre: 'B', cantidad: 2, precio: 100, costo: 50 },
+      ],
+    }, 'negocio')
+    const renglones = partes.find((parte) => parte.tabla === 'venta_items')!.filas
+    expect(renglones.map((fila) => [fila.venta_id, fila.posicion])).toEqual([['v1', 0], ['v1', 1]])
+  })
+
+  it('al bajar, los renglones vuelven en su orden y sin la posición', async () => {
+    const { rearmarItems } = await import('@/datos/nube/sincronizar')
+    const [venta] = rearmarItems('ventas', [{ id: 'v1', fecha: '2026-01-01T00:00:00Z' }], [
+      { id: 9, venta_id: 'v1', posicion: 1, producto_id: 'b', nombre: 'B', cantidad: 2, precio: 100, costo: 50 },
+      { id: 3, venta_id: 'v1', posicion: 0, producto_id: 'a', nombre: 'A', cantidad: 1, precio: 100, costo: 50 },
+    ]) as Array<{ items: Array<Record<string, unknown>> }>
+    expect(venta.items.map((item) => item.nombre)).toEqual(['A', 'B'])
+    expect(venta.items[0]).not.toHaveProperty('posicion')
+  })
+})
