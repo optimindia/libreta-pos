@@ -4,6 +4,7 @@ import { pendientes, marcarSubido, marcarFallido } from '@/datos/local/cola'
 import { cliente } from './cliente'
 import { aLaNube, deLaNube, preferenciasDeLaNube, type Fila } from './mapeo'
 import type { UUID } from '@/dominio/tipos'
+import { enTandas, todasLasFilas } from './paginar'
 
 export type SubirFn = (item: EnCola) => Promise<void>
 export type TraerFn = (tabla: string) => Promise<unknown[]>
@@ -218,21 +219,38 @@ export function rearmarItems(
  *  sin los items no habría forma de calcular la ganancia. */
 export const traerDeSupabase: TraerFn = async (tabla) => {
   if (!cliente) throw new Error('nube apagada')
+  const nube = cliente
 
   if (tabla === 'ventas' || tabla === 'ingresos' || tabla === 'pedidos') {
     const tablaItems = tabla === 'ventas' ? 'venta_items' : tabla === 'ingresos' ? 'ingreso_items' : 'pedido_items'
+    // Paginado y con orden estable: sin orden, dos páginas pueden repetir
+    // o saltear filas.
     const [cabeceras, items] = await Promise.all([
-      cliente.from(tabla).select('*'),
-      cliente.from(tablaItems).select('*'),
+      todasLasFilas<Fila>((desde, hasta) => nube.from(tabla).select('*').order('id').range(desde, hasta)),
+      todasLasFilas<Fila>((desde, hasta) => nube.from(tablaItems).select('*').order('id').range(desde, hasta)),
     ])
-    if (cabeceras.error) throw cabeceras.error
-    if (items.error) throw items.error
-    return rearmarItems(tabla, cabeceras.data ?? [], items.data ?? [])
+    return rearmarItems(tabla, cabeceras, items)
   }
 
-  const { data, error } = await cliente.from(tabla).select('*')
-  if (error) throw error
+  const filas = await todasLasFilas<Fila>((desde, hasta) =>
+    tabla === 'negocio_configuracion'
+      ? nube.from(tabla).select('*').range(desde, hasta)
+      : nube.from(tabla).select('*').order('id').range(desde, hasta),
+  )
   return tabla === 'negocio_configuracion'
-    ? (data ?? []).map((fila) => preferenciasDeLaNube(fila as Fila))
-    : (data ?? []).map((fila) => deLaNube(tabla, fila as Fila))
+    ? filas.map((fila) => preferenciasDeLaNube(fila))
+    : filas.map((fila) => deLaNube(tabla, fila))
+}
+
+/** Items de muchas cabeceras: el `.in()` va en tandas para no armar una URL
+ *  gigante, y cada tanda también se pagina. */
+export async function itemsDe(tablaItems: string, claveDelPadre: string, ids: string[]): Promise<Fila[]> {
+  if (!cliente) throw new Error('nube apagada')
+  const nube = cliente
+  const filas: Fila[] = []
+  for (const tanda of enTandas(ids)) {
+    filas.push(...await todasLasFilas<Fila>((desde, hasta) =>
+      nube.from(tablaItems).select('*').in(claveDelPadre, tanda).order('id').range(desde, hasta)))
+  }
+  return filas
 }
