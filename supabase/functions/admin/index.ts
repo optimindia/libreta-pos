@@ -6,6 +6,7 @@ const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SU
 const diasEnMilisegundos = 24 * 60 * 60 * 1000
 const ORIGENES_PERMITIDOS = new Set([
   'https://libreta-sepia.vercel.app',
+  'https://libreta-drab.vercel.app',
   'http://localhost:3000',
   'http://localhost:3100',
 ])
@@ -13,11 +14,13 @@ const ORIGENES_PERMITIDOS = new Set([
 type OperacionSuscripcion = 'prueba' | 'activar' | 'extender' | 'suspender' | 'reactivar'
 type OperacionPlan = 'crear' | 'actualizar' | 'archivar' | 'restaurar'
 type OperacionCuenta = 'editar' | 'regenerar_pin'
+type OperacionVendedor = 'agregar' | 'quitar' | 'pin'
 type TipoPlan = 'prueba' | 'pago' | 'cortesia'
 type MedioPagoAdmin = 'alias' | 'efectivo' | 'transferencia' | 'mercado_pago' | 'otro'
 
 interface CuerpoAdmin {
-  accion?: 'listar' | 'crear' | 'suscripcion' | 'cuenta' | 'plan'
+  accion?: 'listar' | 'crear' | 'suscripcion' | 'cuenta' | 'plan' | 'vendedor'
+  usuarioId?: unknown
   nombre?: unknown
   telefono?: unknown
   pin?: unknown
@@ -275,6 +278,9 @@ async function vinculoDeNegocio(admin: ReturnType<typeof createClient>, negocioI
     .from('usuarios_negocio')
     .select('usuario_id')
     .eq('negocio_id', negocioId)
+    // El dueño, nunca un vendedor: el PIN y el teléfono de la cuenta son los suyos.
+    .eq('rol', 'dueno')
+    .order('creado_en', { ascending: true })
     .limit(1)
     .maybeSingle()
   if (respuesta.error || !respuesta.data?.usuario_id) throw new Error('No se encontró el usuario de la cuenta.')
@@ -282,13 +288,21 @@ async function vinculoDeNegocio(admin: ReturnType<typeof createClient>, negocioI
 }
 
 async function listar(admin: ReturnType<typeof createClient>) {
-  const [negocios, suscripciones, eventos, planes] = await Promise.all([
+  const [negocios, suscripciones, eventos, planes, vendedores] = await Promise.all([
     admin.from('negocios').select('id,nombre,telefono_contacto,nota_interna,creado_en').order('creado_en', { ascending: false }),
     admin.from('suscripciones').select('*').order('vence_en', { ascending: true }),
     admin.from('suscripcion_eventos').select('id,negocio_id,suscripcion_id,accion,detalle,actor_id,creado_en').order('creado_en', { ascending: false }).limit(80),
     admin.from('planes_suscripcion').select('*').order('orden', { ascending: true }).order('nombre', { ascending: true }),
+    admin.from('usuarios_negocio').select('usuario_id,negocio_id,nombre,telefono,creado_en').eq('rol', 'vendedor').order('creado_en', { ascending: true }),
   ])
-  if (negocios.error || suscripciones.error || eventos.error || planes.error) throw new Error('No se pudo cargar el estado de las cuentas.')
+  if (negocios.error || suscripciones.error || eventos.error || planes.error || vendedores.error) throw new Error('No se pudo cargar el estado de las cuentas.')
+
+  const vendedoresPorNegocio = new Map<string, Array<{ usuarioId: string; nombre: string | null; telefono: string | null; creadoEn: string }>>()
+  for (const fila of (vendedores.data ?? []) as Array<{ usuario_id: string; negocio_id: string; nombre: string | null; telefono: string | null; creado_en: string }>) {
+    const lista = vendedoresPorNegocio.get(fila.negocio_id) ?? []
+    lista.push({ usuarioId: fila.usuario_id, nombre: fila.nombre, telefono: fila.telefono, creadoEn: fila.creado_en })
+    vendedoresPorNegocio.set(fila.negocio_id, lista)
+  }
 
   const mapa = new Map<string, FilaSuscripcion>()
   for (const fila of (suscripciones.data ?? []) as FilaSuscripcion[]) mapa.set(fila.negocio_id, fila)
@@ -307,6 +321,7 @@ async function listar(admin: ReturnType<typeof createClient>) {
         suscripcion: filaPublica(suscripcion),
         estado: estadoEfectivo(suscripcion),
         diasRestantes: diasRestantes(suscripcion),
+        vendedores: vendedoresPorNegocio.get(negocio.id) ?? [],
       }
     }),
     eventos: eventos.data ?? [],
@@ -573,6 +588,73 @@ async function gestionarCuenta(admin: ReturnType<typeof createClient>, actorId: 
   return { ok: true, cuenta: { id: negocioId, nombre, telefono: numero, notaInterna } }
 }
 
+/** Vendedores: otras personas que atienden el mismo negocio con su propio
+ *  teléfono y PIN. Comparten la base del negocio; se pueden sacar sin tocar
+ *  las ventas que hicieron. */
+async function gestionarVendedor(admin: ReturnType<typeof createClient>, actorId: string, cuerpo: CuerpoAdmin) {
+  const negocioId = texto(cuerpo.negocioId, 80)
+  const operacion = texto(cuerpo.operacion, 20) as OperacionVendedor
+  if (!negocioId || !['agregar', 'quitar', 'pin'].includes(operacion)) {
+    throw new Response(JSON.stringify({ error: 'La operación de vendedor no es válida.' }), { status: 400 })
+  }
+  const negocio = await admin.from('negocios').select('id,nombre').eq('id', negocioId).maybeSingle()
+  if (negocio.error || !negocio.data) throw new Response(JSON.stringify({ error: 'No se encontró esa cuenta.' }), { status: 404 })
+
+  if (operacion === 'agregar') {
+    const nombre = texto(cuerpo.nombre, 80)
+    const telefono = texto(cuerpo.telefono, 40)
+    const pin = texto(cuerpo.pin, 6)
+    const numero = telefonoNormalizado(telefono)
+    if (nombre.length < 2) throw new Response(JSON.stringify({ error: 'Escribí el nombre del vendedor.' }), { status: 400 })
+    if (numero.length < 10 || numero.length > 15) throw new Response(JSON.stringify({ error: 'Revisá el teléfono del vendedor.' }), { status: 400 })
+    if (!pinValido(pin)) throw new Response(JSON.stringify({ error: 'El PIN debe tener 6 números y no ser obvio.' }), { status: 400 })
+
+    const datos = credenciales(telefono, pin)
+    const alta = await admin.auth.admin.createUser({
+      email: datos.email,
+      password: datos.password,
+      email_confirm: true,
+      user_metadata: { nombre_negocio: negocio.data.nombre, vendedor: nombre },
+    })
+    if (alta.error || !alta.data.user) {
+      const yaExiste = /already|exists|registered|duplicate/i.test(alta.error?.message ?? '')
+      throw new Response(JSON.stringify({ error: yaExiste ? 'Ese teléfono ya tiene una cuenta.' : 'No se pudo crear el vendedor.' }), { status: yaExiste ? 409 : 400 })
+    }
+    const usuarioId = alta.data.user.id
+    const vinculo = await admin.from('usuarios_negocio').insert({ usuario_id: usuarioId, negocio_id: negocioId, rol: 'vendedor', nombre, telefono: numero })
+    if (vinculo.error) {
+      await admin.auth.admin.deleteUser(usuarioId)
+      throw new Error('No se pudo vincular el vendedor.')
+    }
+    await admin.from('suscripcion_eventos').insert({ negocio_id: negocioId, accion: 'vendedor_agregado', detalle: { nombre }, actor_id: actorId })
+    return { ok: true, vendedor: { usuarioId, nombre, telefono: numero }, credenciales: { telefono: numero, pin } }
+  }
+
+  const usuarioId = texto(cuerpo.usuarioId, 80)
+  const vinculo = await admin.from('usuarios_negocio').select('usuario_id,nombre,telefono,rol').eq('negocio_id', negocioId).eq('usuario_id', usuarioId).maybeSingle()
+  if (vinculo.error || !vinculo.data || vinculo.data.rol !== 'vendedor') {
+    throw new Response(JSON.stringify({ error: 'No se encontró ese vendedor en la cuenta.' }), { status: 404 })
+  }
+
+  if (operacion === 'pin') {
+    const pin = texto(cuerpo.pin, 6)
+    if (!pinValido(pin)) throw new Response(JSON.stringify({ error: 'El PIN debe tener 6 números y no ser obvio.' }), { status: 400 })
+    const telefono = texto(vinculo.data.telefono, 40)
+    if (!telefono) throw new Response(JSON.stringify({ error: 'El vendedor no tiene teléfono.' }), { status: 400 })
+    const cambio = await admin.auth.admin.updateUserById(usuarioId, { password: credenciales(telefono, pin).password })
+    if (cambio.error) throw new Error('No se pudo cambiar el PIN del vendedor.')
+    await admin.from('suscripcion_eventos').insert({ negocio_id: negocioId, accion: 'vendedor_pin', detalle: { nombre: vinculo.data.nombre }, actor_id: actorId })
+    return { ok: true, credenciales: { telefono, pin } }
+  }
+
+  // quitar: se borra el acceso; lo que vendió queda en el negocio.
+  const baja = await admin.from('usuarios_negocio').delete().eq('negocio_id', negocioId).eq('usuario_id', usuarioId).eq('rol', 'vendedor')
+  if (baja.error) throw new Error('No se pudo quitar el vendedor.')
+  await admin.auth.admin.deleteUser(usuarioId)
+  await admin.from('suscripcion_eventos').insert({ negocio_id: negocioId, accion: 'vendedor_quitado', detalle: { nombre: vinculo.data.nombre }, actor_id: actorId })
+  return { ok: true }
+}
+
 async function regenerarPlanCodigo(admin: ReturnType<typeof createClient>, nombre: string): Promise<string> {
   const base = codigoSeguro(nombre)
   const existente = await admin.from('planes_suscripcion').select('id').eq('codigo', base).maybeSingle()
@@ -661,6 +743,7 @@ Deno.serve(async (req) => {
     if (cuerpo.accion === 'suscripcion') return json(await actualizarSuscripcion(admin, actorId, cuerpo), 200, req)
     if (cuerpo.accion === 'cuenta') return json(await gestionarCuenta(admin, actorId, cuerpo), 200, req)
     if (cuerpo.accion === 'plan') return json(await gestionarPlan(admin, actorId, cuerpo), 200, req)
+    if (cuerpo.accion === 'vendedor') return json(await gestionarVendedor(admin, actorId, cuerpo), 200, req)
     return json({ error: 'Acción no reconocida.' }, 400, req)
   } catch (error) {
     if (error instanceof Response) {
