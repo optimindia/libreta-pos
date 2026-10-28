@@ -4,6 +4,7 @@ import { encolar } from '@/datos/local/cola'
 import type { UUID } from '@/dominio/tipos'
 import { accesoSaasObligatorio, notificarCambioAcceso } from './acceso'
 import { limpiarDatosLocales } from '@/datos/local/limpiar'
+import { rolDe } from '@/dominio/roles'
 import { credencialesDesdeTelefono, telefonoNormalizado, validarPin, type Credenciales } from '@/dominio/credenciales'
 
 export { credencialesDesdeTelefono, telefonoNormalizado, validarPin }
@@ -61,7 +62,12 @@ export async function crearRespaldo(
   return { ok: true, negocioId }
 }
 
-async function guardarNegocioLocal(negocioId: UUID, telefono: string, usuarioId: UUID): Promise<void> {
+async function guardarNegocioLocal(
+  negocioId: UUID,
+  telefono: string,
+  usuarioId: UUID,
+  vinculo: { rol?: unknown; nombre?: unknown } = {},
+): Promise<void> {
   const actual = await db.negocio.get('unico')
   if (actual?.negocioId && actual.usuarioId !== usuarioId) {
     await limpiarDatosLocales()
@@ -75,6 +81,8 @@ async function guardarNegocioLocal(negocioId: UUID, telefono: string, usuarioId:
     negocioId,
     telefono: telefonoNormalizado(telefono),
     usuarioId,
+    rol: rolDe(vinculo.rol),
+    nombreUsuario: typeof vinculo.nombre === 'string' ? vinculo.nombre : null,
     suscripcionEstado: base?.suscripcionEstado,
     suscripcionTipo: base?.suscripcionTipo,
     suscripcionVenceEn: base?.suscripcionVenceEn,
@@ -102,12 +110,12 @@ async function vincularNegocioLocal(
   if (!cliente) return null
   const vinculo = await cliente
     .from('usuarios_negocio')
-    .select('negocio_id')
+    .select('negocio_id,rol,nombre')
     .eq('usuario_id', usuarioId)
     .maybeSingle()
   if (!vinculo.data?.negocio_id) return null
   const negocioId = vinculo.data.negocio_id as UUID
-  await guardarNegocioLocal(negocioId, telefono, usuarioId as UUID)
+  await guardarNegocioLocal(negocioId, telefono, usuarioId as UUID, vinculo.data)
   return negocioId
 }
 
