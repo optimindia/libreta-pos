@@ -138,6 +138,16 @@
 }
 .f-visor .f-entrada::placeholder { color: #ffffff99; }
 
+/* Alta rápida de un producto que no estaba cargado. */
+.f-visor-cargar { background: var(--f-ambar-suave); border-color: transparent; color: var(--f-ambar); }
+.f-visor-nuevo { display: grid; grid-template-columns: 1fr 1fr; gap: var(--f-3); max-height: 58vh; overflow-y: auto; }
+.f-visor-nuevo-titulo { grid-column: 1 / -1; margin: 0; font-size: 15px; font-weight: 800; }
+.f-visor-campo { display: grid; gap: var(--f-1); min-width: 0; font-size: 13px; font-weight: 650; color: #ffffffcc; }
+.f-visor-campo em { font-style: normal; font-weight: 500; color: #ffffff99; }
+.f-visor-campo-ancho { grid-column: 1 / -1; }
+.f-visor-nuevo-acciones { display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--f-2); }
+.f-visor-nuevo-acciones .f-boton[data-variante='secundario'] { background: transparent; border-color: #ffffff59; color: #fff; }
+
 /* PC: una ventana centrada, no una pantalla entera. */
 @media (min-width: 900px) {
   .f-visor { place-items: center; background: var(--f-capa); backdrop-filter: blur(6px); }
