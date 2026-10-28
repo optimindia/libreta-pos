@@ -1,0 +1,157 @@
+/* Términos, privacidad y sus enlaces. Páginas públicas, sin el menú del POS:
+   una sola columna angosta para leer cómodo en el celu y en la PC. */
+
+.legal-shell {
+  min-height: 100dvh;
+  background: var(--hueso);
+  color: var(--tinta);
+  padding: max(1rem, env(safe-area-inset-top)) 1rem max(2rem, env(safe-area-inset-bottom));
+}
+
+.legal-page {
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+.legal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.25rem 0 1rem;
+}
+
+.legal-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--tinta);
+  text-decoration: none;
+}
+
+.legal-back,
+.legal-pie a,
+.legal-doc a {
+  color: var(--verde);
+  font-weight: 700;
+}
+
+.legal-back {
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.legal-doc {
+  padding: 1.5rem 1.25rem;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-panel);
+  background: var(--hueso-2);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.legal-doc h1 {
+  margin-top: 0.35rem;
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.legal-vigencia {
+  margin-top: 0.5rem;
+  color: var(--tenue);
+  font-size: 0.875rem;
+}
+
+.legal-bajada {
+  margin-top: 1rem;
+  font-size: 1.0625rem;
+}
+
+.legal-seccion {
+  margin-top: 1.75rem;
+}
+
+.legal-seccion h2 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.legal-seccion p,
+.legal-seccion ul {
+  margin-top: 0.6rem;
+}
+
+.legal-seccion ul {
+  display: grid;
+  gap: 0.4rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+
+.legal-seccion strong {
+  font-weight: 750;
+}
+
+.legal-pie {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--linea);
+  color: var(--tenue);
+  font-size: 0.9375rem;
+}
+
+@media (min-width: 48rem) {
+  .legal-shell { padding-top: 2rem; }
+  .legal-doc { padding: 2.25rem 2.5rem; }
+}
+
+/* Pantalla de acceso: aviso de aceptación. */
+.access-legal {
+  color: var(--tenue);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.access-legal a {
+  color: var(--verde);
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Cuenta: sección de documentos legales. */
+.account-legal {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem;
+  border: 1px solid var(--linea);
+  border-radius: 1rem;
+  background: var(--hueso-2);
+  color: var(--tenue);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.account-legal h2 {
+  color: var(--tinta);
+  font-size: 0.8125rem;
+  font-weight: 800;
+}
+
+.account-legal ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin-top: 0.15rem;
+}
+
+.account-legal a {
+  color: var(--verde);
+  font-size: 0.8125rem;
+  font-weight: 750;
+}
