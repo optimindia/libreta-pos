@@ -168,7 +168,8 @@ describe('entrar', () => {
 
   it('un vendedor no sube las preferencias del aparato: Ajustes es del dueño y la base se lo rechaza', async () => {
     await db.preferencias.put({ id: 'unico', funciones: {}, actualizadoEn: 1000 } as never)
-    mockSignIn.mockResolvedValue({ error: null, data: { user: { id: 'u2' } } })
+    mockFetch.mockResolvedValue(respuesta(200, { ok: true, sesion: SESION }))
+    mockSetSession.mockResolvedValue({ error: null, data: { user: { id: 'u2' } } })
     mockVinculo.mockResolvedValue({ data: { negocio_id: 'nube-1', rol: 'vendedor' } })
 
     await entrar('2615551234', '123456')
@@ -179,7 +180,8 @@ describe('entrar', () => {
 
   it('el dueño sí sube las preferencias que tenía el aparato', async () => {
     await db.preferencias.put({ id: 'unico', funciones: {}, actualizadoEn: 1000 } as never)
-    mockSignIn.mockResolvedValue({ error: null, data: { user: { id: 'u1' } } })
+    mockFetch.mockResolvedValue(respuesta(200, { ok: true, sesion: SESION }))
+    mockSetSession.mockResolvedValue({ error: null, data: { user: { id: 'u1' } } })
     mockVinculo.mockResolvedValue({ data: { negocio_id: 'nube-1', rol: 'dueno' } })
 
     await entrar('2615551234', '123456')
