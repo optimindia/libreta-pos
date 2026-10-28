@@ -35,6 +35,7 @@ export function CatalogoVender({
   onBuscar,
   onElegir,
   escaner,
+  lectorListo = false,
   atajos = false,
 }: {
   productos: Producto[]
@@ -47,6 +48,8 @@ export function CatalogoVender({
   onElegir: (producto: Producto) => void
   /** El botón de la cámara, que va al lado del buscador. */
   escaner?: ReactNode
+  /** En la PC avisa que el lector de código de barras está andando. */
+  lectorListo?: boolean
   /** Muestra la tecla "/" en el buscador (atajos de PC prendidos). */
   atajos?: boolean
 }) {
@@ -77,6 +80,13 @@ export function CatalogoVender({
         />
         {escaner}
       </div>
+
+      {lectorListo && (
+        <p className="f-lector f-solo-pc">
+          <span className="f-lector-punto" aria-hidden="true" />
+          <span><b>Lector listo.</b> Pasá el producto por el lector: suena un pi y se suma solo al ticket.</span>
+        </p>
+      )}
 
       {(categorias.length > 0 || hayFavoritos) && (
         <Chips etiqueta="Categorías">

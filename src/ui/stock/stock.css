@@ -478,56 +478,12 @@
 
 /* ───────────── Escáner de la carga ───────────── */
 
-.f-stock-camara {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  background: var(--f-nav);
-  color: var(--f-nav-texto-activo);
-}
 
-.f-stock-camara-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
-.f-stock-camara-marco {
-  position: absolute;
-  top: 40%;
-  left: 50%;
-  width: min(80vw, 420px);
-  aspect-ratio: 1.7;
-  border: 4px solid var(--f-nav-texto-activo);
-  border-radius: var(--f-radio-tarjeta);
-  transform: translate(-50%, -50%);
-}
 
-.f-stock-camara-cabeza {
-  position: absolute;
-  inset: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--f-3);
-  padding: calc(var(--f-4) + env(safe-area-inset-top, 0px)) var(--f-4) var(--f-4);
-  background: var(--f-capa);
-}
 
-.f-stock-camara-titulo { font-size: 20px; font-weight: 800; }
 
-.f-stock-camara-pie {
-  position: absolute;
-  inset: auto 0 0;
-  display: flex;
-  max-width: 560px;
-  flex-direction: column;
-  gap: var(--f-3);
-  margin-inline: auto;
-  padding: var(--f-5) var(--f-5) calc(var(--f-5) + env(safe-area-inset-bottom, 0px));
-  border-radius: var(--f-radio-hoja) var(--f-radio-hoja) 0 0;
-  background: var(--f-superficie);
-  color: var(--f-tinta);
-}
 
-.f-stock-camara-pie .f-hoja-ayuda,
-.f-stock-camara-pie .f-aviso { margin: 0; }
 
 /* ───────────── Celu ancho y PC ───────────── */
 
@@ -550,9 +506,7 @@
   .f-stock-orden { flex: 0 0 auto; }
   .f-stock-orden .f-segmento { padding: 0 var(--f-4); }
   .f-stock-cargar-cuerpo { grid-template-columns: minmax(0, 1fr) 360px; }
-  .f-stock-camara-marco { top: 45%; }
-  .f-stock-camara-pie { right: auto; bottom: var(--f-6); left: 50%; width: 560px; margin: 0; border-radius: var(--f-radio-hoja); transform: translateX(-50%); }
-}
+    }
 
 @media (min-width: 1100px) {
   .f-stock-tabla {
@@ -605,8 +559,7 @@
 }
 
 @media (max-width: 899px) {
-  .f-stock-camara-pie { max-width: none; }
-}
+  }
 
 @media (max-width: 560px) {
   .f-stock-fila-ancha { grid-template-columns: minmax(0, 1fr); }

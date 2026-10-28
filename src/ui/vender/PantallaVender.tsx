@@ -15,6 +15,7 @@ import { Entrar } from './Entrar'
 import { Cobrado } from './Cobrado'
 import { PonerPrecio } from './PonerPrecio'
 import { IconoCerrar } from '@/ui/sistema/iconos'
+import { avisarLectura } from '@/ui/escaner/sonido'
 import { Boton } from '@/ui/sistema/Boton'
 import { Segmentado } from '@/ui/sistema/Segmentado'
 import { formatearPesos } from '@/dominio/dinero'
@@ -34,6 +35,7 @@ export function PantallaVender() {
   const [busqueda, setBusqueda] = useState('')
   const [deCero, setDeCero] = useState(false)
   const [avisoStock, setAvisoStock] = useState<string | null>(null)
+  const [lecturaOk, setLecturaOk] = useState<string | null>(null)
   const lector = useRef({ codigo: '', ultimoTecla: 0 })
   const { funciones } = useFuncionesNegocio()
   const escanerVenta = funcionActiva(funciones, 'escanerVenta')
@@ -64,6 +66,12 @@ export function PantallaVender() {
   const total = totalTicket(items)
 
   // El aviso es un cartelito pasajero, como en el celu: se va solo.
+  useEffect(() => {
+    if (!lecturaOk) return
+    const reloj = window.setTimeout(() => setLecturaOk(null), 2200)
+    return () => window.clearTimeout(reloj)
+  }, [lecturaOk])
+
   useEffect(() => {
     if (!avisoStock) return
     const reloj = window.setTimeout(() => setAvisoStock(null), 4500)
@@ -114,41 +122,58 @@ export function PantallaVender() {
     }
   }
 
-  function elegirProducto(producto: Producto) {
+  /** Suma el producto al ticket. Devuelve `null` si entró, o el motivo si no. */
+  function elegirProducto(producto: Producto): string | null {
     const enTicket = items.find((item) => item.productoId === producto.id)?.cantidad ?? 0
     const quedan = disponible(producto)
     if (quedan <= enTicket) {
       const reservado = (reservadas.get(producto.id) ?? 0) > 0
-      setAvisoStock(
-        quedan === 0
-          ? `${producto.nombre} está sin stock${reservado ? ' (lo que hay está reservado para pedidos)' : ''}.`
-          : `Solo quedan ${quedan} unidades de ${producto.nombre} y ya están en el ticket.`,
-      )
-      return
+      const motivo = quedan === 0
+        ? `${producto.nombre} está sin stock${reservado ? ' (lo que hay está reservado para pedidos)' : ''}.`
+        : `Solo quedan ${quedan} unidades de ${producto.nombre} y ya están en el ticket.`
+      setAvisoStock(motivo)
+      return motivo
     }
     if (precioVigente(producto) <= 0) {
       setAvisoStock(null)
       setSinPrecio(producto)
-      return
+      return `${producto.nombre} no tiene precio todavía.`
     }
     setAvisoStock(null)
     setItems((actuales) => agregarProducto(actuales, producto))
+    return null
   }
 
-  async function leerCodigo(codigo: string) {
+  /** Un código que llegó del lector físico (el "pi pi"): suena, y el
+   *  cartelito dice qué entró o por qué no. `soloSiExiste` es para cuando el
+   *  código cae en el buscador: si no es de ningún producto, se deja como
+   *  búsqueda normal en vez de avisar que no existe. */
+  async function leerCodigo(codigo: string, soloSiExiste = false): Promise<boolean> {
     const producto = await repos.productos.porCodigoBarras(codigo)
     if (!producto) {
+      if (soloSiExiste) return false
+      avisarLectura('falta')
       setAvisoStock(`No encontramos el código ${codigo}. Cargalo en Stock para venderlo.`)
-      return
+      return true
     }
-    elegirProducto(producto)
+    const problema = elegirProducto(producto)
+    if (problema) {
+      avisarLectura('falta')
+    } else {
+      avisarLectura('ok')
+      setLecturaOk(`✓ ${producto.nombre} · ${formatearPesos(precioVigente(producto))}`)
+    }
+    return true
   }
 
   useEffect(() => {
     if (!escanerVenta) return
     function capturarLector(evento: KeyboardEvent) {
       const elemento = evento.target as HTMLElement | null
-      const escribiendo = elemento?.tagName === 'INPUT' || elemento?.tagName === 'TEXTAREA' || elemento?.tagName === 'SELECT'
+      // El buscador de Vender sí cuenta: en la PC suele tener el foco y el
+      // lector escribe ahí. Cualquier otro campo se respeta.
+      const enElBuscador = elemento?.getAttribute('aria-label') === 'Buscar producto'
+      const escribiendo = !enElBuscador && (elemento?.tagName === 'INPUT' || elemento?.tagName === 'TEXTAREA' || elemento?.tagName === 'SELECT')
       if (escribiendo || evento.metaKey || evento.ctrlKey || evento.altKey) return
       const ahora = Date.now()
       if (evento.key === 'Enter') {
@@ -157,7 +182,11 @@ export function PantallaVender() {
         lector.current = { codigo: '', ultimoTecla: 0 }
         if (fueRapido) {
           evento.preventDefault()
-          void leerCodigo(codigo)
+          if (enElBuscador) {
+            void leerCodigo(codigo, true).then((leido) => { if (leido) setBusqueda('') })
+          } else {
+            void leerCodigo(codigo)
+          }
         }
         return
       }
@@ -210,6 +239,7 @@ export function PantallaVender() {
               onBuscar={setBusqueda}
               onElegir={elegirProducto}
               atajos={atajosPc}
+              lectorListo={escanerVenta}
               escaner={escanerVenta ? (
                 <BotonEscanear
                   onProducto={elegirProducto}
@@ -285,6 +315,7 @@ export function PantallaVender() {
       </div>
 
       {avisoStock && <p className="f-aviso-flotante" role="status">{avisoStock}</p>}
+      {!avisoStock && lecturaOk && <p className="f-aviso-flotante" data-tono="ok" role="status">{lecturaOk}</p>}
 
       {sinPrecio && (
         <PonerPrecio

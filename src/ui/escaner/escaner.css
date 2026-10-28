@@ -1,0 +1,151 @@
+/* Visor de la cámara (sistema F). Es siempre oscuro: lo que importa es el
+   video. El marco es una ventana transparente y el resto se apaga. */
+
+.f-visor {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  background: #0b100e;
+  color: #fff;
+  font-family: var(--f-letra);
+}
+
+.f-visor-tarjeta {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 0;
+  overflow: hidden;
+  background: #0b100e;
+}
+
+.f-visor-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+.f-visor-cabeza {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-3);
+  padding: max(var(--f-4), env(safe-area-inset-top)) var(--f-4) var(--f-3);
+  background: linear-gradient(#0b100ecc, #0b100e00);
+}
+.f-visor-titulo { display: flex; align-items: center; gap: var(--f-3); min-width: 0; font-size: 18px; }
+.f-visor-icono { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--f-radio-control); background: var(--f-lima); color: var(--f-sobre-lima); }
+.f-visor-icono svg { width: 22px; height: 22px; }
+.f-visor-herramientas { display: flex; gap: var(--f-2); }
+
+.f-visor-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--f-4);
+  border: 1.5px solid #ffffff59;
+  border-radius: var(--f-radio-chip);
+  background: #0b100e99;
+  color: #fff;
+  font: 700 15px/1 var(--f-letra);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+.f-visor-boton[aria-pressed='true'] { background: var(--f-lima); border-color: var(--f-lima); color: var(--f-sobre-lima); }
+.f-visor-boton:disabled { opacity: 0.45; cursor: default; }
+.f-visor-boton:focus-visible, .f-visor .f-entrada:focus-visible { outline: 3px solid var(--f-lima); outline-offset: 2px; }
+.f-visor-cerrar { padding: 0; }
+.f-visor-cerrar svg { width: 22px; height: 22px; }
+
+/* Ventana de lectura: el box-shadow gigante apaga todo lo de afuera. */
+.f-visor-marco {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  justify-self: center;
+  width: min(78vw, 360px);
+  aspect-ratio: 3 / 2;
+  border-radius: 22px;
+  box-shadow: 0 0 0 100vmax #0b100e8c;
+  overflow: hidden;
+}
+.f-visor-marco i {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border: 0 solid var(--f-lima);
+  transition: border-color 0.2s;
+}
+.f-visor-marco i:nth-of-type(1) { top: 0; left: 0; border-top-width: 5px; border-left-width: 5px; border-top-left-radius: 22px; }
+.f-visor-marco i:nth-of-type(2) { top: 0; right: 0; border-top-width: 5px; border-right-width: 5px; border-top-right-radius: 22px; }
+.f-visor-marco i:nth-of-type(3) { bottom: 0; left: 0; border-bottom-width: 5px; border-left-width: 5px; border-bottom-left-radius: 22px; }
+.f-visor-marco i:nth-of-type(4) { bottom: 0; right: 0; border-bottom-width: 5px; border-right-width: 5px; border-bottom-right-radius: 22px; }
+
+.f-visor-linea {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 10%;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--f-lima);
+  box-shadow: 0 0 14px 2px var(--f-lima);
+  animation: f-visor-barrido 2.2s ease-in-out infinite alternate;
+}
+@keyframes f-visor-barrido { to { top: 88%; } }
+
+/* Al leer: el marco se pinta (verde = entró, ámbar = no lo conocemos). */
+.f-visor-marco[data-estado='ok'] { animation: f-visor-pulso 0.5s ease-out; }
+.f-visor-marco[data-estado='ok'] i { border-color: #5ee6a8; }
+.f-visor-marco[data-estado='falta'] i { border-color: #f5d774; }
+.f-visor-marco[data-estado='ok'] .f-visor-linea, .f-visor-marco[data-estado='falta'] .f-visor-linea { opacity: 0; }
+@keyframes f-visor-pulso { 0% { box-shadow: 0 0 0 100vmax #0b100e8c, inset 0 0 0 6px #5ee6a8; } 100% { box-shadow: 0 0 0 100vmax #0b100e8c, inset 0 0 0 0 #5ee6a800; } }
+
+.f-visor-pie {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: var(--f-3);
+  padding: var(--f-4) var(--f-4) max(var(--f-4), env(safe-area-inset-bottom));
+  border-radius: var(--f-radio-hoja) var(--f-radio-hoja) 0 0;
+  background: #121a17f2;
+  backdrop-filter: blur(10px);
+}
+
+.f-visor-estado {
+  margin: 0;
+  padding: var(--f-3) var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: #ffffff14;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-align: center;
+}
+.f-visor-estado[data-tipo='ok'] { background: #5ee6a82e; color: #b9f5da; }
+.f-visor-estado[data-tipo='falta'] { background: #f5d77433; color: #ffe9a3; }
+
+.f-visor-manual { display: grid; grid-template-columns: 1fr auto; gap: var(--f-2); }
+.f-visor .f-entrada {
+  min-height: 48px;
+  padding: 0 var(--f-4);
+  border: 1.5px solid #ffffff40;
+  border-radius: var(--f-radio-control);
+  background: #ffffff0f;
+  color: #fff;
+  font: 500 16px var(--f-letra);
+}
+.f-visor .f-entrada::placeholder { color: #ffffff99; }
+
+/* PC: una ventana centrada, no una pantalla entera. */
+@media (min-width: 900px) {
+  .f-visor { place-items: center; background: var(--f-capa); backdrop-filter: blur(6px); }
+  .f-visor-tarjeta { width: min(760px, 94vw); height: min(720px, 92vh); border-radius: var(--f-radio-hoja); box-shadow: 0 24px 60px #0008; }
+  .f-visor-marco { width: min(400px, 60%); }
+  .f-visor-pie { border-radius: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f-visor-linea, .f-visor-marco[data-estado='ok'] { animation: none; }
+}

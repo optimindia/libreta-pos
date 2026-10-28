@@ -8,10 +8,18 @@ export function soportaEscanerNativo(): boolean {
   return typeof globalThis !== 'undefined' && 'BarcodeDetector' in globalThis
 }
 
+/** Lo que devuelve `escanear`: se llama para apagar la cámara y, si el
+ *  teléfono tiene linterna, trae un interruptor para prenderla. */
+export type ControlEscaner = (() => void) & {
+  /** Prende o apaga la linterna; devuelve cómo quedó. Sólo si `hayLinterna`. */
+  alternarLinterna?: () => Promise<boolean>
+  hayLinterna: boolean
+}
+
 export async function escanear(
   video: HTMLVideoElement,
   alLeer: (codigo: string) => void,
-): Promise<() => void> {
+): Promise<ControlEscaner> {
   const stream = await navigator.mediaDevices.getUserMedia({
     video: { facingMode: 'environment' },
   })
@@ -19,9 +27,24 @@ export async function escanear(
   await video.play()
 
   let activo = true
-  const detener = () => {
+  const detenerCamara = () => {
     activo = false
     for (const pista of stream.getTracks()) pista.stop()
+  }
+  const pista = stream.getVideoTracks()[0]
+  const capacidades = (pista?.getCapabilities?.() ?? {}) as { torch?: boolean }
+  let linternaPrendida = false
+  const armar = (parar: () => void): ControlEscaner => {
+    const control = parar as ControlEscaner
+    control.hayLinterna = Boolean(capacidades.torch)
+    if (capacidades.torch) {
+      control.alternarLinterna = async () => {
+        linternaPrendida = !linternaPrendida
+        await pista.applyConstraints({ advanced: [{ torch: linternaPrendida } as MediaTrackConstraintSet] })
+        return linternaPrendida
+      }
+    }
+    return control
   }
 
   if (soportaEscanerNativo()) {
@@ -43,7 +66,7 @@ export async function escanear(
       if (activo) requestAnimationFrame(buscar)
     }
     requestAnimationFrame(buscar)
-    return detener
+    return armar(detenerCamara)
   }
 
   const { BrowserMultiFormatReader } = await import('@zxing/browser')
@@ -51,8 +74,8 @@ export async function escanear(
   const control = await lector.decodeFromVideoElement(video, (resultado) => {
     if (resultado && activo) alLeer(resultado.getText())
   })
-  return () => {
+  return armar(() => {
     control.stop()
-    detener()
-  }
+    detenerCamara()
+  })
 }
