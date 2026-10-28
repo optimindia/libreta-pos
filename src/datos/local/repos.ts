@@ -69,6 +69,28 @@ export class ErrorStockInsuficiente extends Error {
   }
 }
 
+/** Un ticket que no se puede cobrar: vacío, con un producto sin precio,
+ *  con cantidades raras o un fiado sin a quién anotárselo. */
+export class ErrorVentaInvalida extends Error {
+  constructor(motivo: string) {
+    super(motivo)
+    this.name = 'ErrorVentaInvalida'
+  }
+}
+
+function validarVenta(items: ItemVenta[], medioPago: MedioPago, clienteId: UUID | null): void {
+  if (items.length === 0) throw new ErrorVentaInvalida('El ticket está vacío.')
+  for (const item of items) {
+    if (!Number.isInteger(item.cantidad) || item.cantidad <= 0) {
+      throw new ErrorVentaInvalida(`La cantidad de ${item.nombre} no es válida.`)
+    }
+    if (!Number.isFinite(item.precio) || item.precio <= 0) {
+      throw new ErrorVentaInvalida(`${item.nombre} no tiene precio. Ponele precio para venderlo.`)
+    }
+  }
+  if (medioPago === 'fiado' && !clienteId) throw new ErrorVentaInvalida('Elegí a quién se le anota el fiado.')
+}
+
 export class ErrorVentaYaAnulada extends Error {
   constructor() {
     super('Esta venta ya fue anulada.')
@@ -208,6 +230,7 @@ export const repos = {
       referenciaPago?: string
       pedidoId?: UUID
     }): Promise<Venta> {
+      validarVenta(datos.items, datos.medioPago, datos.clienteId)
       const venta: Venta = {
         id: nuevoId(),
         fecha: Date.now(),
@@ -426,10 +449,8 @@ export const repos = {
       let restante = Math.round(monto)
       const ordenados = fiados.sort((a, b) => a.fecha - b.fecha)
       for (const fiado of ordenados) {
-        const yaPagado = pagos
-          .filter((pago) => pago.fiadoId === fiado.id)
-          .reduce((total, pago) => total + pago.monto, 0)
-        const saldo = Math.max(0, fiado.monto - yaPagado)
+        // saldoFiado ya da 0 para los anulados: el pago va a la deuda viva.
+        const saldo = saldoFiado(fiado, pagos)
         const abono = Math.min(restante, saldo)
         if (abono > 0) await this.pagar(fiado.id, abono)
         restante -= abono

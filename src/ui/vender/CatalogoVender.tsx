@@ -20,6 +20,7 @@ const POCO_STOCK = 3
  *  grande, un contador de cuántos hay en el ticket y un aviso si se acaba. */
 export function CatalogoVender({
   productos,
+  disponibles,
   cantidades,
   busqueda,
   onBuscar,
@@ -27,6 +28,8 @@ export function CatalogoVender({
   escaner,
 }: {
   productos: Producto[]
+  /** Lo que se puede vender de cada producto (stock menos reservas). */
+  disponibles?: Record<string, number>
   /** Cuántas unidades de cada producto lleva el ticket (por id). */
   cantidades: Record<string, number>
   busqueda: string
@@ -43,7 +46,8 @@ export function CatalogoVender({
     deLaCategoria(producto) &&
     (aguja === '' || normalizar(`${producto.nombre} ${producto.codigoBarras ?? ''} ${producto.categoria ?? ''}`).includes(aguja)),
   )
-  const favoritos = productos.filter((producto) => producto.favorito && deLaCategoria(producto) && producto.stock > 0)
+  const quedan = (producto: Producto) => disponibles?.[producto.id] ?? producto.stock
+  const favoritos = productos.filter((producto) => producto.favorito && deLaCategoria(producto) && quedan(producto) > 0)
 
   return (
     <section className="mz-catalogo" aria-label="Productos">
@@ -93,30 +97,38 @@ export function CatalogoVender({
       ) : (
         <div className="mz-productos">
           {visibles.map((producto) => {
-            const sinStock = producto.stock <= 0
+            const stock = quedan(producto)
+            const sinStock = stock <= 0
             const enTicket = cantidades[producto.id] ?? 0
-            const poco = !sinStock && producto.stock <= POCO_STOCK
+            const poco = !sinStock && stock <= POCO_STOCK
             const oferta = tieneOfertaVigente(producto)
+            const sinPrecio = precioVigente(producto) <= 0
             return (
               <div key={producto.id} className="mz-producto-caja">
                 <button
                   type="button"
                   className="mz-producto mz-toque"
                   data-en-ticket={enTicket > 0 ? 'true' : 'false'}
+                  data-sin-precio={sinPrecio ? 'true' : 'false'}
                   disabled={sinStock}
                   onClick={() => onElegir(producto)}
                 >
                   <span className="mz-producto-nombre">{producto.nombre}</span>
-                  <span className="mz-producto-precio tabular">
-                    {oferta && <s className="mz-producto-viejo">{formatearPesos(producto.precio)}</s>}
-                    {formatearPesos(precioVigente(producto))}
-                  </span>
-                  <span className={`mz-producto-nota${sinStock || poco ? ' is-poco' : ''}`}>
+                  {sinPrecio ? (
+                    <span className="mz-producto-precio mz-producto-sin-precio">Sin precio</span>
+                  ) : (
+                    <span className="mz-producto-precio tabular">
+                      {oferta && <s className="mz-producto-viejo">{formatearPesos(producto.precio)}</s>}
+                      {formatearPesos(precioVigente(producto))}
+                    </span>
+                  )}
+                  <span className={`mz-producto-nota${sinStock || poco || sinPrecio ? ' is-poco' : ''}`}>
                     {sinStock
-                      ? 'Sin stock · no vendible'
-                      : poco ? `Quedan ${producto.stock}`
-                      : oferta ? `Oferta · ${producto.stock} disponibles`
-                      : `${producto.stock} disponibles`}
+                      ? 'Sin stock'
+                      : sinPrecio ? 'Tocá para ponerle precio'
+                      : poco ? `Quedan ${stock}`
+                      : oferta ? `Oferta · quedan ${stock}`
+                      : `Quedan ${stock}`}
                   </span>
                 </button>
                 {enTicket > 0 && <span className="mz-contador" aria-label={`${enTicket} en el ticket`}>{enTicket}</span>}

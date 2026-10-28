@@ -96,8 +96,10 @@ describe('PantallaVender', () => {
 
   it('no deja cobrar un ticket vacío', async () => {
     render(<PantallaVender />)
-    const boton = await screen.findByRole('button', { name: /^cobrar$/i })
-    expect(boton).toHaveProperty('disabled', true)
+    await screen.findByText('Yerba Playadito')
+    // la barra de cobro sólo aparece cuando hay algo en el ticket
+    expect(screen.queryByRole('button', { name: /^cobrar$/i })).toBeNull()
+    expect(screen.getByRole('button', { name: /cobrar venta/i })).toHaveProperty('disabled', true)
   })
 
   it('el catálogo muestra el precio de cada producto', async () => {
@@ -115,8 +117,36 @@ describe('PantallaVender', () => {
   it('no permite agregar un producto agotado al ticket', async () => {
     await repos.productos.guardar({ codigoBarras: '000', nombre: 'Agotado', costo: 100, precio: 200, stock: 0, stockMinimo: 1 })
     render(<PantallaVender />)
-    const agotado = await screen.findByRole('button', { name: /sin stock · no vendible/i })
+    const agotado = await screen.findByRole('button', { name: /^Agotado.*sin stock/i })
     expect(agotado).toHaveProperty('disabled', true)
+  })
+
+  it('lo reservado para un pedido cuenta como vendido: no se puede agregar', async () => {
+    const leche = await repos.productos.guardar({ codigoBarras: null, nombre: 'Leche', costo: 100, precio: 200, stock: 2, stockMinimo: 1 })
+    await repos.pedidos.guardar({
+      clienteId: null, items: [{ productoId: leche.id, nombre: 'Leche', cantidad: 2, precio: 200, costo: 100 }],
+      estado: 'pendiente', reservarStock: true, tipoEntrega: 'retiro', fechaEntrega: null, direccion: null, nota: null,
+    })
+    render(<PantallaVender />)
+    const boton = await screen.findByRole('button', { name: /^Leche.*sin stock/i })
+    expect(boton).toHaveProperty('disabled', true)
+  })
+
+  it('un producto sin precio pide el precio antes de entrar al ticket', async () => {
+    await repos.productos.guardar({ codigoBarras: null, nombre: 'Chinchulín', costo: 0, precio: 0, stock: 12, stockMinimo: 1 })
+    render(<PantallaVender />)
+    fireEvent.click(await screen.findByRole('button', { name: /^Chinchulín.*sin precio/i }))
+
+    const campo = await screen.findByLabelText('Precio de Chinchulín')
+    fireEvent.click(screen.getByRole('button', { name: /guardar y agregar/i }))
+    expect(await screen.findByRole('alert')).toBeTruthy()
+
+    fireEvent.change(campo, { target: { value: '3500' } })
+    fireEvent.click(screen.getByRole('button', { name: /guardar y agregar/i }))
+
+    await waitFor(() => expect(screen.getAllByText('$3.500').length).toBeGreaterThan(0))
+    const guardado = (await repos.productos.todos()).find((producto) => producto.nombre === 'Chinchulín')
+    expect(guardado?.precio).toBe(350000)
   })
 
   it('con muchos productos aparece el buscador y filtra', async () => {

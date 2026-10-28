@@ -18,7 +18,8 @@ test('cargar un producto, venderlo y ver la ganancia', async ({ page }) => {
   await expect(page.getByText('$800')).toBeVisible()
   await page.getByRole('button', { name: /cobrar \$4\.200/i }).click()
   // el ticket vacío es la señal de que la venta ya se guardó
-  await expect(page.getByRole('button', { name: /^cobrar$/i })).toBeDisabled()
+  // con el ticket vacío la barra de cobro desaparece
+  await expect(page.getByRole('button', { name: /^cobrar$/i })).toHaveCount(0)
 
   await page.goto('/plata')
   await expect(page.getByText('$4.200').first()).toBeVisible()
@@ -45,7 +46,8 @@ test('la venta funciona con el celular sin señal', async ({ page, context }) =>
   await page.getByRole('button', { name: /cobrar \$1\.200/i }).click()
 
   // la venta quedó anotada aunque no haya red
-  await expect(page.getByRole('button', { name: /^cobrar$/i })).toBeDisabled()
+  // con el ticket vacío la barra de cobro desaparece
+  await expect(page.getByRole('button', { name: /^cobrar$/i })).toHaveCount(0)
   await expect(page.getByText('$1.200').first()).toBeVisible()
   await context.setOffline(false)
 })
@@ -84,7 +86,8 @@ test('cerrar la caja cuadrada y que quede el registro', async ({ page }) => {
   await page.getByRole('button', { name: /efectivo/i }).click()
   await page.getByLabel(/con cuánto pagó/i).fill('2000')
   await page.getByRole('button', { name: /cobrar \$1\.400/i }).click()
-  await expect(page.getByRole('button', { name: /^cobrar$/i })).toBeDisabled()
+  // con el ticket vacío la barra de cobro desaparece
+  await expect(page.getByRole('button', { name: /^cobrar$/i })).toHaveCount(0)
 
   await page.goto('/plata')
   await page.getByRole('button', { name: /^cerrar caja$/i }).click()
@@ -122,5 +125,6 @@ test('tras cobrar se puede mandar el ticket por WhatsApp', async ({ page }) => {
   expect(decodeURIComponent(href!)).toContain('*Total: $1.500*')
 
   await page.getByRole('button', { name: /nueva venta/i }).click()
-  await expect(page.getByRole('button', { name: /^cobrar$/i })).toBeDisabled()
+  // con el ticket vacío la barra de cobro desaparece
+  await expect(page.getByRole('button', { name: /^cobrar$/i })).toHaveCount(0)
 })
