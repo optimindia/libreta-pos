@@ -1,6 +1,6 @@
 import { db, type EnCola } from '@/datos/local/db'
 import type { Table } from 'dexie'
-import { pendientes, marcarSubido, marcarFallido } from '@/datos/local/cola'
+import { pendientes, marcarSubido, marcarFallido, marcarRechazado } from '@/datos/local/cola'
 import { cliente } from './cliente'
 import { aLaNube, deLaNube, preferenciasDeLaNube, type Fila } from './mapeo'
 import type { UUID } from '@/dominio/tipos'
@@ -9,12 +9,19 @@ import { enTandas, todasLasFilas } from './paginar'
 export type SubirFn = (item: EnCola) => Promise<void>
 export type TraerFn = (tabla: string) => Promise<unknown[]>
 
+/** 42501 es "insufficient_privilege": lo devuelven RLS, los permisos por
+ *  columna y los triggers de permisos del vendedor. */
+export function esRechazoDePermiso(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && (error as { code?: unknown }).code === '42501'
+}
+
 export async function sincronizar(
   subir: SubirFn,
-): Promise<{ subidos: number; fallidos: number }> {
+): Promise<{ subidos: number; fallidos: number; rechazados: number }> {
   const cola = await pendientes()
   let subidos = 0
   let fallidos = 0
+  let rechazados = 0
 
   for (const item of cola) {
     try {
@@ -22,6 +29,12 @@ export async function sincronizar(
       await marcarSubido(item.id, item.creadoEn, item.datos)
       subidos++
     } catch (error) {
+      if (esRechazoDePermiso(error)) {
+        // Sin permiso no es un corte de red: se aparta y se sigue.
+        await marcarRechazado(item.id, error)
+        rechazados++
+        continue
+      }
       // El dato ya está guardado en el teléfono: un fallo de red
       // no pierde nada, sólo posterga la subida.
       await marcarFallido(item.id, error)
@@ -29,7 +42,7 @@ export async function sincronizar(
     }
   }
 
-  return { subidos, fallidos }
+  return { subidos, fallidos, rechazados }
 }
 
 /** La subida real contra Supabase. `upsert` hace la operación idempotente:
@@ -180,9 +193,12 @@ export async function bajarTodo(traer: TraerFn): Promise<number> {
         }
       } else if (tabla === 'productos') {
         for (const fila of filas as Fila[]) {
-          const pendiente = await db.cola.get(`producto:${fila.id as string}`)
+          // Lo que la base rechazó por permisos no va a subir: la ficha de
+          // la nube es la verdadera y tiene que poder pisar la local.
+          const enCola = await db.cola.get(`producto:${fila.id as string}`)
+          const pendiente = enCola && !enCola.rechazado
           const movimientosPendientes = (await db.cola.toArray()).some(
-            (item) => item.entidad === 'movimientoStock' && (item.datos as { productoId?: string }).productoId === fila.id,
+            (item) => !item.rechazado && item.entidad === 'movimientoStock' && (item.datos as { productoId?: string }).productoId === fila.id,
           )
           if (pendiente || movimientosPendientes) continue
           if (typeof fila.eliminadoEn === 'number') {

@@ -64,7 +64,7 @@ export function PantallaInicio() {
   const hayPlata = esDueno && funcionActiva(funciones, 'plata')
   const hayFiados = funcionActiva(funciones, 'fiados')
   const hayStock = funcionActiva(funciones, 'stock')
-  const hayFactura = hayStock && funcionActiva(funciones, 'importarFactura')
+  const hayFactura = esDueno && hayStock && funcionActiva(funciones, 'importarFactura')
 
   const comparacion =
     contraSemanaPasada === null

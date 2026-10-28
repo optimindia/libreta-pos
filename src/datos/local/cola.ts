@@ -69,6 +69,22 @@ export async function marcarFallido(id: string, error?: unknown): Promise<void> 
   })
 }
 
+/** La base dijo que no por permisos (42501): reintentar no lo va a cambiar.
+ *  Se aparta con el motivo, como una operación agotada, para no golpear la
+ *  nube en cada vuelta ni trabar al resto de la cola. Queda guardada por si
+ *  el dueño cambia el rol y alguien la reintenta a mano. */
+export async function marcarRechazado(id: string, error?: unknown): Promise<void> {
+  const item = await db.cola.get(id)
+  if (!item) return
+  const motivo = (error as { message?: unknown } | undefined)?.message
+  await db.cola.update(id, {
+    intentos: MAX_INTENTOS,
+    rechazado: true,
+    ultimoError: `Sin permiso: ${typeof motivo === 'string' && motivo ? motivo : 'la nube rechazó la operación'}`.slice(0, 220),
+    ultimoIntentoEn: Date.now(),
+  })
+}
+
 export async function hayPendientes(): Promise<boolean> {
   return (await pendientes()).length > 0
 }
@@ -78,7 +94,7 @@ export async function reintentarTodos(): Promise<number> {
   const agotados = (await db.cola.toArray()).filter((item) => item.intentos > 0)
   if (agotados.length === 0) return 0
   await db.transaction('rw', db.cola, async () => {
-    for (const item of agotados) await db.cola.update(item.id, { intentos: 0, ultimoError: undefined, ultimoIntentoEn: undefined })
+    for (const item of agotados) await db.cola.update(item.id, { intentos: 0, ultimoError: undefined, ultimoIntentoEn: undefined, rechazado: undefined })
   })
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(EVENTO_DATOS_PENDIENTES))
   return agotados.length

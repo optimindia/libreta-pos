@@ -11,6 +11,7 @@ import { alertasProducto, margenProducto, rotacionStock } from '@/dominio/inteli
 import { ErrorProductoConHistorial, ErrorStockInsuficiente, repos } from '@/datos/local/repos'
 import { IconoAlerta, IconoConfirmar, IconoCerrar, IconoEditar, IconoEliminar, IconoFavorito, IconoMovimiento, IconoStock } from '@/ui/sistema/iconos'
 import { FormularioProducto } from './FormularioProducto'
+import { usePuede } from '@/ui/sistema/usoRol'
 
 type Orden = 'nombre' | 'stock' | 'precio' | 'margen'
 
@@ -115,6 +116,10 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
   const [borrandoProducto, setBorrandoProducto] = useState(false)
   const [aviso, setAviso] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null)
   const inventario = valorStock(productos)
+  // Editar la ficha, ajustar o borrar es del dueño (la base se lo rechaza al
+  // vendedor). Costos y márgenes tampoco se le muestran: son números del dueño.
+  const editaCatalogo = usePuede('editarProductos')
+  const ajustaStock = usePuede('ajustarStock')
   const categorias = useMemo(() => [...new Set(productos.map((producto) => producto.categoria).filter((valor): valor is string => Boolean(valor)))].sort((a, b) => a.localeCompare(b, 'es')), [productos])
 
   const visibles = useMemo(() => {
@@ -201,7 +206,7 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
   return (
     <div className="mt-3">
       {avisoVisual}
-      <div className="rounded-2xl px-3.5 py-3" style={{ background: 'var(--chip-fondo)', border: '1px solid var(--linea)' }}>
+      {editaCatalogo && <div className="rounded-2xl px-3.5 py-3" style={{ background: 'var(--chip-fondo)', border: '1px solid var(--linea)' }}>
         <div className="flex items-baseline justify-between">
           <span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Valor del inventario</span>
           <span className="tabular text-[12px]" style={{ color: 'var(--tenue)' }}>{inventario.unidades} unidades</span>
@@ -210,7 +215,7 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
           <Importe centavos={inventario.costo} tamaño="normal" />
           <span className="text-[12px]" style={{ color: 'var(--tenue)' }}>a costo · <Importe centavos={inventario.venta} tamaño="chico" /></span>
         </div>
-      </div>
+      </div>}
 
       <input
         aria-label="Buscar en stock"
@@ -247,7 +252,7 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
           <option value="nombre">Orden: nombre</option>
           <option value="stock">Orden: menos stock</option>
           <option value="precio">Orden: mayor precio</option>
-          <option value="margen">Orden: mayor margen</option>
+          {editaCatalogo && <option value="margen">Orden: mayor margen</option>}
         </select>
       </div>
       {(categorias.length > 0) && <select aria-label="Filtrar por categoría" className="mt-2 w-full rounded-2xl px-3 py-2.5 text-[12px] font-semibold" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)', color: 'var(--tinta)' }} value={categoria} onChange={(evento) => setCategoria(evento.target.value)}><option value="">Todas las categorías</option>{categorias.map((opcion) => <option key={opcion} value={opcion}>{opcion}</option>)}</select>}
@@ -271,31 +276,31 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
               </div>
               <div className="nb-producto-datos">
                 <span className="tabular" style={{ color: colorNivel(producto) }}>{producto.stock <= 0 ? 'Sin stock' : `Quedan ${producto.stock}`}</span>
-                <span style={{ color: producto.precio < producto.costo ? 'var(--ambar)' : 'var(--tenue)' }}>{margenProducto(producto)}% margen</span>
+                {editaCatalogo && <span style={{ color: producto.precio < producto.costo ? 'var(--ambar)' : 'var(--tenue)' }}>{margenProducto(producto)}% margen</span>}
               </div>
-              <div className="stock-product-actions nb-producto-acciones">
-                <button
+              {(editaCatalogo || ajustaStock) && <div className="stock-product-actions nb-producto-acciones">
+                {editaCatalogo && <button
                   type="button"
                   className="stock-product-action"
                   aria-label={`Editar ${producto.nombre}`}
                   onClick={() => setEditando(producto)}
                 >
                   <IconoEditar /> <span>Editar</span>
-                </button>
-                <button
+                </button>}
+                {ajustaStock && <button
                   type="button"
                   className="stock-product-action is-stock"
                   aria-label={`Ajustar stock de ${producto.nombre}`}
                   onClick={() => setAjustando(ajustando === producto.id ? null : producto.id)}
                 >
                   <IconoMovimiento /> <span>Ajustar</span>
-                </button>
-              </div>
-              <div className="nb-producto-pie">
+                </button>}
+              </div>}
+              {editaCatalogo && <div className="nb-producto-pie">
                 <button type="button" className="nb-accion-sec" aria-label={`Ver rendimiento de ${producto.nombre}`} onClick={() => setDetalle(producto)}>Rendimiento</button>
                 <button type="button" className="nb-icono-boton nb-eliminar" aria-label={`Eliminar ${producto.nombre}`} title="Eliminar producto" onClick={() => solicitarEliminacion(producto)}><IconoEliminar /></button>
-              </div>
-              {ajustando === producto.id && (
+              </div>}
+              {ajustaStock && ajustando === producto.id && (
                 <AjustarStock producto={producto} onTerminado={() => setAjustando(null)} />
               )}
             </li>
@@ -303,7 +308,7 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
         </ul>
       )}
 
-      {editando && (
+      {editaCatalogo && editando && (
         <div className="stock-modal-backdrop" role="presentation" onMouseDown={(evento) => { if (evento.currentTarget === evento.target) setEditando(null) }}>
           <section className="stock-modal stock-edit-modal" role="dialog" aria-modal="true" aria-labelledby="stock-edit-title" onMouseDown={(evento) => evento.stopPropagation()}>
             <div className="stock-modal-head">
@@ -315,7 +320,7 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
         </div>
       )}
 
-      {productoAEliminar && (
+      {editaCatalogo && productoAEliminar && (
         <div className="stock-modal-backdrop" role="presentation" onMouseDown={(evento) => { if (evento.currentTarget === evento.target && !borrandoProducto) setProductoAEliminar(null) }}>
           <section className="stock-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="stock-delete-title" onMouseDown={(evento) => evento.stopPropagation()}>
             <span className="stock-delete-icon" aria-hidden="true"><IconoEliminar /></span>

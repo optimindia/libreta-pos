@@ -8,10 +8,13 @@ import { todasLasFilas } from './paginar'
  *  y así las transacciones que llegan apenas antes del cursor no se pierden. */
 const SOLAPE_MS = 30_000
 
+/** Lo que la base rechazó por permisos (`rechazado`) no va a subir: no cuenta
+ *  como pendiente y la ficha real de la nube puede pisar la local. */
 async function productoTieneCambiosPendientes(id: string): Promise<boolean> {
-  if (await db.cola.get(`producto:${id}`)) return true
+  const propio = await db.cola.get(`producto:${id}`)
+  if (propio && !propio.rechazado) return true
   const cola = await db.cola.toArray()
-  return cola.some((item) => item.entidad === 'movimientoStock' && (item.datos as { productoId?: string }).productoId === id)
+  return cola.some((item) => !item.rechazado && item.entidad === 'movimientoStock' && (item.datos as { productoId?: string }).productoId === id)
 }
 
 export type TraerCambiosFn = (tabla: string, desdeISO: string) => Promise<unknown[]>
@@ -63,7 +66,9 @@ async function escribir(tabla: string, fila: Fila): Promise<boolean> {
     }
     const local = await db.productos.get(fila.id as string)
     const nueva = fila.actualizadoEn as number
-    if (local && local.actualizadoEn > nueva) return false
+    // Una edición local rechazada por permisos no es "más nueva": no subió.
+    const rechazada = (await db.cola.get(`producto:${fila.id as string}`))?.rechazado === true
+    if (local && local.actualizadoEn > nueva && !rechazada) return false
     if (local) {
       // Son preferencias del aparato: la nube no las conoce, pero tampoco
       // debe borrarlas al bajar un precio o un stock.

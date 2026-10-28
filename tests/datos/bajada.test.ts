@@ -103,6 +103,22 @@ describe('bajarCambios', () => {
     expect(await db.productos.get('p1')).toMatchObject({ stock: 4, precio: 420 })
   })
 
+  it('un movimiento de stock que la base rechazó por permisos no frena la bajada del producto', async () => {
+    await db.negocio.put({ id: 'unico', nombre: 'Almacén', logo: null, color: null, ultimaBajada: 0 })
+    await db.productos.put({
+      id: 'p1', codigoBarras: null, nombre: 'Yerba', costo: 300, precio: 420,
+      stock: 9, stockMinimo: 2, actualizadoEn: ahora,
+    })
+    await encolar('movimientoStock', 'crear', { id: 'm1', productoId: 'p1', cantidad: 5, origen: 'ajuste' })
+    await db.cola.update('movimientoStock:m1', { intentos: 5, rechazado: true, ultimoError: 'Sin permiso: sólo el dueño' })
+    const traer = vi.fn(async (tabla: string) => tabla === 'productos'
+      ? [{ id: 'p1', codigoBarras: null, nombre: 'Yerba', costo: 300, precio: 420, stock: 4, stockMinimo: 2, actualizadoEn: ahora + 1 }]
+      : []) as unknown as TraerCambiosFn
+
+    expect(await bajarCambios(traer)).toBe(1)
+    expect(await db.productos.get('p1')).toMatchObject({ stock: 4 })
+  })
+
   it('retira de este dispositivo un producto dado de baja en otro', async () => {
     await db.negocio.put({ id: 'unico', nombre: 'Almacén', logo: null, color: null, ultimaBajada: 0 })
     await db.productos.put({
