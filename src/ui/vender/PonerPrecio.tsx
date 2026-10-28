@@ -6,6 +6,7 @@ import { pesosACentavos } from '@/dominio/dinero'
 import { conPuntos, soloDigitos } from '@/dominio/cobro'
 import { repos } from '@/datos/local/repos'
 import { Hoja } from '@/ui/sistema/Hoja'
+import { Boton } from '@/ui/sistema/Boton'
 
 /** Un producto cargado sin precio no se puede vender a $0. En vez de
  *  mandar al almacenero a Stock, se lo pide acá mismo: escribe el precio,
@@ -40,12 +41,12 @@ export function PonerPrecio({
   }
 
   return (
-    <Hoja abierta onCerrar={onCancelar} titulo="Ponele precio">
-      <form className="nb-formulario" onSubmit={(evento) => void guardar(evento)}>
-        <p className="nb-hoja-ayuda"><b>{producto.nombre}</b> no tiene precio todavía. Lo guardamos para las próximas ventas.</p>
-        <label className="nb-campo-grande">
-          <span>Precio de venta</span>
-          <span className="nb-campo-pesos">
+    <Hoja abierta onCerrar={onCancelar} titulo="Ponele precio" ancho="angosto">
+      <form className="f-cobro" onSubmit={(evento) => void guardar(evento)}>
+        <p className="f-hoja-ayuda"><b>{producto.nombre}</b> no tiene precio todavía. Lo guardamos para las próximas ventas.</p>
+        <label className="f-cobro-te-dan f-precio">
+          <span className="f-cobro-rotulo">Precio de venta</span>
+          <span className="f-cobro-monto">
             <span aria-hidden="true">$</span>
             <input
               aria-label={`Precio de ${producto.nombre}`}
@@ -53,15 +54,16 @@ export function PonerPrecio({
               autoComplete="off"
               autoFocus
               placeholder="0"
+              className="f-plata"
               value={conPuntos(pesos)}
               onChange={(evento) => { setPesos(soloDigitos(evento.target.value)); setError(null) }}
             />
           </span>
         </label>
-        {error && <p className="nb-error" role="alert">{error}</p>}
-        <button type="submit" className="libreta-button nb-boton nb-boton-principal nb-boton-ancho" disabled={guardando}>
-          {guardando ? 'Guardando…' : 'Guardar y agregar al ticket'}
-        </button>
+        {error && <p className="f-aviso" role="alert">{error}</p>}
+        <Boton type="submit" variante="principal" tamano="grande" ancho disabled={guardando}>
+          {guardando ? 'Guardando…' : 'Guardar y agregar a la venta'}
+        </Boton>
       </form>
     </Hoja>
   )

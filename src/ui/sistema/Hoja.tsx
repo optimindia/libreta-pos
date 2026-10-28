@@ -5,19 +5,27 @@ import { IconoCerrar } from './iconos'
 
 const ENFOCABLES = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
-/** Hoja que sube desde abajo en el celu y aparece centrada en la PC, como
- *  en una app nativa. Se cierra con Esc, tocando afuera, con la X o
+/** Hoja del sistema F (f/componentes.css): sube desde abajo en el celu y
+ *  aparece centrada en la PC, como en una app nativa. Se cierra con Esc, tocando afuera, con la X o
  *  deslizando hacia abajo desde la manija. Mientras está abierta el foco no
  *  se escapa y el fondo no se mueve. */
 export function Hoja({
   abierta,
   onCerrar,
   titulo,
+  extra,
+  ancho = 'normal',
+  etiquetaCerrar = 'Cerrar',
   children,
 }: {
   abierta: boolean
   onCerrar: () => void
   titulo: string
+  /** Algo al lado del título: el total en la hoja de cobro. */
+  extra?: ReactNode
+  /** En la PC, `angosto` deja la hoja en 480 px (cobro, precio). */
+  ancho?: 'normal' | 'angosto'
+  etiquetaCerrar?: string
   children: ReactNode
 }) {
   const idTitulo = useId()
@@ -32,7 +40,9 @@ export function Hoja({
     const anterior = document.activeElement as HTMLElement | null
     const overflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    panel.current?.focus()
+    // Si un campo ya tomó el foco (autoFocus), se lo deja: en la caja se
+    // escribe el monto apenas se abre la hoja.
+    if (!panel.current?.contains(document.activeElement)) panel.current?.focus()
 
     const tecla = (evento: KeyboardEvent) => {
       if (evento.key === 'Escape') {
@@ -65,6 +75,9 @@ export function Hoja({
   const arrastre = useRef<{ inicio: number; id: number } | null>(null)
   const empezar = (evento: React.PointerEvent) => {
     if (evento.pointerType === 'mouse') return
+    // Tocar la X no es arrastrar: si se captura el puntero, el toque no
+    // llega al botón.
+    if ((evento.target as HTMLElement).closest('button')) return
     arrastre.current = { inicio: evento.clientY, id: evento.pointerId }
     ;(evento.currentTarget as HTMLElement).setPointerCapture?.(evento.pointerId)
   }
@@ -84,14 +97,15 @@ export function Hoja({
   if (!abierta) return null
 
   return (
-    <div className="nb-hoja-capa" onPointerDown={(evento) => { if (evento.target === evento.currentTarget) onCerrar() }}>
-      <div ref={panel} className="nb-hoja" role="dialog" aria-modal="true" aria-labelledby={idTitulo} tabIndex={-1}>
-        <div className="nb-hoja-cabeza" onPointerDown={empezar} onPointerMove={mover} onPointerUp={soltar} onPointerCancel={soltar}>
-          <span className="nb-hoja-manija" aria-hidden="true" />
-          <h2 id={idTitulo} className="nb-hoja-titulo">{titulo}</h2>
-          <button type="button" className="nb-hoja-cerrar" aria-label="Cerrar" onClick={onCerrar}><IconoCerrar /></button>
+    <div className="f-hoja-capa" onPointerDown={(evento) => { if (evento.target === evento.currentTarget) onCerrar() }}>
+      <div ref={panel} className="f-hoja" data-ancho={ancho} role="dialog" aria-modal="true" aria-labelledby={idTitulo} tabIndex={-1}>
+        <div className="f-hoja-cabeza" onPointerDown={empezar} onPointerMove={mover} onPointerUp={soltar} onPointerCancel={soltar}>
+          <span className="f-hoja-manija" aria-hidden="true" />
+          <h2 id={idTitulo} className="f-hoja-titulo">{titulo}</h2>
+          {extra && <span className="f-hoja-extra">{extra}</span>}
+          <button type="button" className="f-hoja-cerrar" aria-label={etiquetaCerrar} onClick={onCerrar}><IconoCerrar /></button>
         </div>
-        <div className="nb-hoja-cuerpo">{children}</div>
+        <div className="f-hoja-cuerpo">{children}</div>
       </div>
     </div>
   )
