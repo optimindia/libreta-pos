@@ -13,6 +13,7 @@ import { descargarCsv, ventasACsv } from '@/datos/local/csv'
 import { Importe } from '@/ui/sistema/Importe'
 import { Boton } from '@/ui/sistema/Boton'
 import { IconoFlechaDerecha, IconoFlechaIzquierda, IconoHistorial } from '@/ui/sistema/iconos'
+import { usePuede } from '@/ui/sistema/usoRol'
 
 const ETIQUETA_PERIODO: Record<PeriodoReporte, string> = { hoy: 'Hoy', '7dias': '7 días', '30dias': '30 días', todo: 'Todo' }
 
@@ -33,6 +34,8 @@ function DetalleVenta({ venta, onCerrar, onAnulada }: { venta: Venta; onCerrar: 
   const [motivo, setMotivo] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [aviso, setAviso] = useState<string | null>(null)
+  // Anular devuelve stock y saca plata de la caja: es del dueño.
+  const anula = usePuede('anularVentas')
 
   async function anular() {
     setGuardando(true)
@@ -67,8 +70,8 @@ function DetalleVenta({ venta, onCerrar, onAnulada }: { venta: Venta; onCerrar: 
       </ul>
       <div className="mt-3 flex items-baseline justify-between"><span className="text-[12px] font-semibold">Total</span><Importe centavos={venta.total} tamaño="normal" /></div>
       {venta.referenciaPago && <div className="history-payment-reference"><span>Referencia de cobro</span><strong>{venta.referenciaPago}</strong></div>}
-      {venta.estado !== 'anulada' && <button type="button" className="history-void-button" onClick={() => { setConfirmando(true); setAviso(null) }}>Anular venta</button>}
-      {confirmando && venta.estado !== 'anulada' && (
+      {anula && venta.estado !== 'anulada' && <button type="button" className="history-void-button" onClick={() => { setConfirmando(true); setAviso(null) }}>Anular venta</button>}
+      {anula && confirmando && venta.estado !== 'anulada' && (
         <div className="history-void-form form-shell form-card">
           <div className="form-section-heading"><span className="form-step">!</span><div><h3>¿Anular esta venta?</h3><p>Se devuelve el stock y queda una salida de caja si fue en efectivo. La venta no se borra.</p></div></div>
           <label className="form-field"><span className="form-field-label">Motivo <em>recomendado</em></span><input aria-label="Motivo de anulación" className="form-input" placeholder="Ej. producto equivocado" value={motivo} onChange={(evento) => setMotivo(evento.target.value)} autoFocus /></label>

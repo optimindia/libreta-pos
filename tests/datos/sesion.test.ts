@@ -165,4 +165,25 @@ describe('entrar', () => {
     const resultado = await entrar('2615551234', '123456')
     expect(resultado).toEqual({ ok: false, motivo: 'esa cuenta no tiene un negocio asociado' })
   })
+
+  it('un vendedor no sube las preferencias del aparato: Ajustes es del dueño y la base se lo rechaza', async () => {
+    await db.preferencias.put({ id: 'unico', funciones: {}, actualizadoEn: 1000 } as never)
+    mockSignIn.mockResolvedValue({ error: null, data: { user: { id: 'u2' } } })
+    mockVinculo.mockResolvedValue({ data: { negocio_id: 'nube-1', rol: 'vendedor' } })
+
+    await entrar('2615551234', '123456')
+
+    expect((await db.negocio.get('unico'))?.rol).toBe('vendedor')
+    expect(await db.cola.get('preferencias:unico')).toBeUndefined()
+  })
+
+  it('el dueño sí sube las preferencias que tenía el aparato', async () => {
+    await db.preferencias.put({ id: 'unico', funciones: {}, actualizadoEn: 1000 } as never)
+    mockSignIn.mockResolvedValue({ error: null, data: { user: { id: 'u1' } } })
+    mockVinculo.mockResolvedValue({ data: { negocio_id: 'nube-1', rol: 'dueno' } })
+
+    await entrar('2615551234', '123456')
+
+    expect(await db.cola.get('preferencias:unico')).toBeTruthy()
+  })
 })

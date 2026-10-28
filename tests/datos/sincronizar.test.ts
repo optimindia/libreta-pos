@@ -40,7 +40,7 @@ describe('sincronizar', () => {
 
   it('con la cola vacía no hace nada y no falla', async () => {
     const subir = vi.fn()
-    expect(await sincronizar(subir)).toEqual({ subidos: 0, fallidos: 0 })
+    expect(await sincronizar(subir)).toEqual({ subidos: 0, fallidos: 0, rechazados: 0 })
     expect(subir).not.toHaveBeenCalled()
   })
 
@@ -57,6 +57,48 @@ const producto = {
   id: 'p1', codigoBarras: '779', nombre: 'Yerba',
   costo: 300000, precio: 420000, stock: 5, stockMinimo: 3, actualizadoEn: 0,
 }
+
+// Así llega de PostgREST un rechazo de RLS o de un trigger con errcode 42501.
+const sinPermiso = { code: '42501', message: 'sólo el dueño puede ajustar o cargar stock', details: null, hint: null }
+
+describe('rechazos de permiso (42501)', () => {
+  it('no se reintentan: quedan apartados con el motivo y no frenan el resto', async () => {
+    await encolar('movimientoCaja', 'crear', { id: 'm1' })
+    await encolar('venta', 'crear', { id: 'v1' })
+    const subir = vi.fn(async (item: { entidad: string }) => {
+      if (item.entidad === 'movimientoCaja') throw sinPermiso
+    })
+
+    const resultado = await sincronizar(subir)
+
+    expect(resultado).toEqual({ subidos: 1, fallidos: 0, rechazados: 1 })
+    expect(await pendientes()).toHaveLength(0)
+    const apartado = await db.cola.get('movimientoCaja:m1')
+    expect(apartado?.rechazado).toBe(true)
+    expect(apartado?.ultimoError).toMatch(/sin permiso/i)
+
+    await sincronizar(subir)
+    expect(subir).toHaveBeenCalledTimes(2)
+  })
+
+  it('un error de red común se sigue reintentando', async () => {
+    await encolar('venta', 'crear', { id: 'v1' })
+    await sincronizar(vi.fn().mockRejectedValue(new Error('Failed to fetch')))
+    const item = await db.cola.get('venta:v1')
+    expect(item?.rechazado).toBeFalsy()
+    expect(await pendientes()).toHaveLength(1)
+  })
+
+  it('un producto rechazado no le impide a la bajada traer la ficha real', async () => {
+    await db.productos.put({ ...producto, precio: 1 })
+    await encolar('producto', 'actualizar', { ...producto, precio: 1 })
+    await sincronizar(vi.fn().mockRejectedValue(sinPermiso))
+
+    await bajarTodo(async (tabla) => (tabla === 'productos' ? [{ ...producto }] : []))
+
+    expect((await db.productos.get('p1'))?.precio).toBe(420000)
+  })
+})
 
 describe('bajarTodo', () => {
   it('escribe en la base local lo que trae de la nube', async () => {

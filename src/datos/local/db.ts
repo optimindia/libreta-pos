@@ -14,6 +14,8 @@ export interface EnCola {
   creadoEn: number
   ultimoError?: string
   ultimoIntentoEn?: number
+  /** La base la rechazó por permisos (42501): no se reintenta sola. */
+  rechazado?: boolean
 }
 
 export const db = new Dexie('libreta') as Dexie & {

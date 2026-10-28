@@ -13,6 +13,7 @@ import { HerramientasCatalogo } from './HerramientasCatalogo'
 import { EscanearCodigoProducto } from './EscanearCodigoProducto'
 import { funcionActiva } from '@/dominio/funciones'
 import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
+import { usePuede } from '@/ui/sistema/usoRol'
 
 type Pestaña = 'catalogo' | 'cargar' | 'precios'
 
@@ -26,6 +27,10 @@ export function PantallaStock() {
   const escanerStock = funcionActiva(funciones, 'escanerStock')
   const importarFactura = funcionActiva(funciones, 'importarFactura')
   const faltan = faltantes(productos)
+  // El vendedor mira el stock; cargar, editar y poner precios es del dueño
+  // (la base se lo rechaza).
+  const editaCatalogo = usePuede('editarProductos')
+  const vista: Pestaña = editaCatalogo ? pestaña : 'catalogo'
 
   return (
     <div className="page-stock px-5 pt-6">
@@ -42,7 +47,7 @@ export function PantallaStock() {
         </div>
       )}
 
-      <div className="stock-tabs nb-segmentado" role="group" aria-label="Qué querés hacer">
+      {editaCatalogo && <div className="stock-tabs nb-segmentado" role="group" aria-label="Qué querés hacer">
         <Boton
           variante={pestaña === 'catalogo' ? 'principal' : 'secundario'}
           aria-pressed={pestaña === 'catalogo'}
@@ -64,12 +69,12 @@ export function PantallaStock() {
         >
           Precios
         </Boton>
-      </div>
+      </div>}
 
-      <div className={`stock-content stock-content-${pestaña}`}>
-      {pestaña === 'catalogo' && <><CatalogoStock productos={productos} onCargar={() => setPestaña('cargar')} />{importarCatalogo && <HerramientasCatalogo productos={productos} />}</>}
+      <div className={`stock-content stock-content-${vista}`}>
+      {vista === 'catalogo' && <><CatalogoStock productos={productos} onCargar={editaCatalogo ? () => setPestaña('cargar') : undefined} />{importarCatalogo && editaCatalogo && <HerramientasCatalogo productos={productos} />}</>}
 
-      {pestaña === 'cargar' && (
+      {vista === 'cargar' && (
         <div className="mt-4">
           <div className="stock-load-layout">
             <section className="stock-load-form">
@@ -98,7 +103,7 @@ export function PantallaStock() {
         </div>
       )}
 
-      {pestaña === 'precios' && (
+      {vista === 'precios' && (
         <div className="mt-4">
           <ActualizarPrecios />
         </div>

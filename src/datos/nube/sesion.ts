@@ -94,8 +94,9 @@ async function guardarNegocioLocal(
 
   // Las funciones se guardan separadas de la ficha administrativa. Si el
   // negocio era local y se acaba de vincular, su configuración viaja con él.
+  // Un vendedor no las sube: Ajustes es del dueño y la base se lo rechaza.
   const preferencias = await db.preferencias.get('unico')
-  if (preferencias && preferencias.actualizadoEn > 0) {
+  if (preferencias && preferencias.actualizadoEn > 0 && rolDe(vinculo.rol) === 'dueno') {
     const vinculadas = { ...preferencias, negocioId }
     await db.preferencias.put(vinculadas)
     await encolar('preferencias', 'actualizar', vinculadas)
