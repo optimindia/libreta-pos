@@ -537,6 +537,7 @@ export const repos = {
     ): Promise<void> {
       const actual = await db.negocio.get('unico')
       await db.negocio.put({
+        ...actual,
         id: 'unico',
         nombre,
         logo,

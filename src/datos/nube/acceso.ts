@@ -4,6 +4,7 @@ import { db } from '@/datos/local/db'
 import type { EstadoSuscripcion, Negocio, UUID } from '@/dominio/tipos'
 import type { Suscripcion } from '@/dominio/suscripcion'
 import { cliente, nubeActiva } from './cliente'
+import { rolDe } from '@/dominio/roles'
 
 export const EVENTO_ACCESO = 'libreta:acceso'
 
@@ -99,6 +100,7 @@ async function guardarAccesoLocal(
   negocioId: UUID,
   remoto: Record<string, unknown> | null,
   suscripcion: Suscripcion | null,
+  vinculo: { rol?: unknown; nombre?: unknown } = {},
 ): Promise<Negocio> {
   const negocio: Negocio = {
     id: 'unico',
@@ -108,6 +110,8 @@ async function guardarAccesoLocal(
     negocioId,
     telefono: base?.telefono,
     usuarioId,
+    rol: rolDe(vinculo.rol),
+    nombreUsuario: typeof vinculo.nombre === 'string' ? vinculo.nombre : null,
     ultimaBajada: base?.ultimaBajada,
     suscripcionEstado: suscripcion?.estado,
     suscripcionTipo: suscripcion?.tipo,
@@ -165,7 +169,7 @@ export async function cargarEstadoAcceso(): Promise<EstadoAcceso> {
   try {
     const vinculo = await cliente
       .from('usuarios_negocio')
-      .select('negocio_id')
+      .select('negocio_id,rol,nombre')
       .eq('usuario_id', usuarioId)
       .maybeSingle()
     if (vinculo.error) throw vinculo.error
@@ -191,6 +195,7 @@ export async function cargarEstadoAcceso(): Promise<EstadoAcceso> {
       negocioId,
       (negocioRemoto.data as Record<string, unknown> | null) ?? null,
       suscripcion,
+      (vinculo.data as { rol?: unknown; nombre?: unknown } | null) ?? {},
     )
     return { autenticado: true, usuarioId, negocio, suscripcion, online, verificadoRemoto: true }
   } catch {

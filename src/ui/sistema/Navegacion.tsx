@@ -8,6 +8,7 @@ import { db } from '@/datos/local/db'
 import { repos } from '@/datos/local/repos'
 import { hayPendientes } from '@/datos/local/cola'
 import { funcionActiva, type ClaveFuncion } from '@/dominio/funciones'
+import { rolDe, seccionPermitida } from '@/dominio/roles'
 import { alternarOculta, armarMenu, FIJAS, MENU_INICIAL, mover, pestanasMovil, type IdSeccion } from '@/dominio/menu'
 import { useFuncionesNegocio } from './usoFuncionesNegocio'
 import { useMenu } from './usoMenu'
@@ -172,6 +173,7 @@ export function Navegacion() {
 
   const disponible = (id: IdSeccion) => {
     const { funcion } = SECCIONES[id]
+    if (!seccionPermitida(rolDe(negocio?.rol), id)) return false
     return funcion === null || funcionActiva(funciones, funcion)
   }
   const { visibles } = armarMenu(menu, disponible)

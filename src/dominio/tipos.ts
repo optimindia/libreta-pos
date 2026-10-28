@@ -167,6 +167,10 @@ export interface Negocio {
   negocioId?: UUID
   telefono?: string
   usuarioId?: UUID
+  /** Rol de quien usa este aparato: 'vendedor' ve una app recortada. */
+  rol?: 'dueno' | 'vendedor'
+  /** Nombre del vendedor (el dueño no lo necesita). */
+  nombreUsuario?: string | null
   /** Marca de la última bajada incremental; el reloj es el del servidor. */
   ultimaBajada?: number
   /** Entitlement cacheado sólo para explicar el estado mientras se verifica.

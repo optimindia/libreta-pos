@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/datos/local/db'
 import { DEFINICIONES_FUNCION, funcionActiva, normalizarFunciones, type ClaveFuncion } from '@/dominio/funciones'
+import { rolDe, rutaPermitida } from '@/dominio/roles'
 import { IconoBloqueo, IconoConfig } from './iconos'
 
 const RUTAS_PROTEGIDAS: readonly { prefijo: string; clave: ClaveFuncion }[] = [
@@ -33,7 +34,20 @@ export function GuardiaFuncion({ children }: { children: ReactNode }) {
   const ruta = usePathname() ?? '/'
   const preferencias = useLiveQuery(() => db.preferencias.get('unico'), [], undefined)
   const funciones = normalizarFunciones(preferencias?.funciones)
+  const negocio = useLiveQuery(() => db.negocio.get('unico'), [], undefined)
   const clave = claveParaRuta(ruta)
+
+  if (!rutaPermitida(rolDe(negocio?.rol), ruta)) {
+    return (
+      <section className="feature-disabled-page" aria-labelledby="feature-disabled-title">
+        <div className="feature-disabled-icon" aria-hidden="true"><IconoBloqueo /></div>
+        <span className="page-kicker">Sólo para el dueño</span>
+        <h1 id="feature-disabled-title">Esta parte la ve el dueño</h1>
+        <p>Con tu acceso de vendedor podés vender, anotar fiados y mirar el stock.</p>
+        <Link href="/vender" className="feature-disabled-link">Ir a vender</Link>
+      </section>
+    )
+  }
 
   if (!clave || funcionActiva(funciones, clave)) return children
 

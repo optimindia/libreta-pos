@@ -9,6 +9,7 @@ import { hayPendientes } from '@/datos/local/cola'
 import { nubeActiva } from '@/datos/nube/cliente'
 import { formatearPesos } from '@/dominio/dinero'
 import { resumenDelDia } from '@/dominio/ganancia'
+import { rolDe } from '@/dominio/roles'
 import { deudaPorCliente } from '@/dominio/fiado'
 import { compararConLaSemanaPasada, fechaLarga } from '@/dominio/comparar'
 import {
@@ -58,7 +59,9 @@ export function PantallaInicio() {
   const reponer = porReponer(productos)
   const efectivoDeHoy = resumen.porMedioPago.efectivo
 
-  const hayPlata = funcionActiva(funciones, 'plata')
+  const esDueno = rolDe(negocio?.rol) === 'dueno'
+  // El vendedor no ve ganancias ni la caja: eso es del dueño.
+  const hayPlata = esDueno && funcionActiva(funciones, 'plata')
   const hayFiados = funcionActiva(funciones, 'fiados')
   const hayStock = funcionActiva(funciones, 'stock')
   const hayFactura = hayStock && funcionActiva(funciones, 'importarFactura')
@@ -97,7 +100,7 @@ export function PantallaInicio() {
         <Link href={hayPlata ? '/plata' : '/'} className="mz-baldosa mz-hero mz-ancho">
           <span className="mz-hero-fila">
             <span className="mz-etiqueta">Vendiste hoy</span>
-            <span className="mz-ficha">Ganaste {formatearPesos(resumen.ganancia)}</span>
+            {esDueno && <span className="mz-ficha">Ganaste {formatearPesos(resumen.ganancia)}</span>}
           </span>
           <span className="mz-hero-monto tabular">{formatearPesos(resumen.vendido)}</span>
           <span className="mz-hero-detalle">
