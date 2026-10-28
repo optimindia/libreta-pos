@@ -74,8 +74,8 @@ export function PantallaPedidos() {
     try {
       await repos.pedidos.actualizarEstado(pedido.id, estado)
       setAviso(`${ETIQUETA_ESTADO_PEDIDO[estado]}: ${nombreCliente(clientesPorId.get(pedido.clienteId ?? ''))}.`)
-    } catch {
-      setAviso('No se pudo actualizar el estado del pedido.')
+    } catch (error) {
+      setAviso(error instanceof Error ? error.message : 'No se pudo actualizar el estado del pedido.')
     }
   }
 
