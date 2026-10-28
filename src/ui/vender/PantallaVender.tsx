@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { ItemVenta, MedioPago, Negocio, Producto, UUID, Venta } from '@/dominio/tipos'
@@ -8,14 +7,16 @@ import { agregarProducto, cambiarCantidad, precioVigente, totalTicket } from '@/
 import { ErrorStockInsuficiente, ErrorVentaInvalida, repos } from '@/datos/local/repos'
 import { db } from '@/datos/local/db'
 import { nubeActiva } from '@/datos/nube/cliente'
-import { Ticket } from './Ticket'
-import { Cobro } from './Cobro'
+import { Ticket, VaciarVenta } from './Ticket'
+import { Cobro, OPCIONES_PAGO, type MedioCobro } from './Cobro'
 import { BotonEscanear } from './BotonEscanear'
 import { CatalogoVender } from './CatalogoVender'
 import { Entrar } from './Entrar'
 import { Cobrado } from './Cobrado'
 import { PonerPrecio } from './PonerPrecio'
-import { IconoCerrar, IconoFlechaDerecha, IconoFlechaIzquierda } from '@/ui/sistema/iconos'
+import { IconoCerrar } from '@/ui/sistema/iconos'
+import { Boton } from '@/ui/sistema/Boton'
+import { Segmentado } from '@/ui/sistema/Segmentado'
 import { formatearPesos } from '@/dominio/dinero'
 import { funcionActiva } from '@/dominio/funciones'
 import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
@@ -28,6 +29,7 @@ export function PantallaVender() {
   const [items, setItems] = useState<ItemVenta[]>([])
   const [cobrando, setCobrando] = useState(false)
   const [verTicket, setVerTicket] = useState(false)
+  const [medio, setMedio] = useState<MedioCobro>('efectivo')
   const [cobrada, setCobrada] = useState<Venta | null>(null)
   const [busqueda, setBusqueda] = useState('')
   const [deCero, setDeCero] = useState(false)
@@ -95,6 +97,7 @@ export function PantallaVender() {
       const venta = await repos.ventas.registrar({ items, medioPago: medio, clienteId, vence, referenciaPago })
       setItems([])
       setCobrando(false)
+      setMedio('efectivo')
       setCobrada(venta)
     } catch (error) {
       if (error instanceof ErrorStockInsuficiente) {
@@ -169,95 +172,119 @@ export function PantallaVender() {
   const unidades = items.reduce((suma, item) => suma + item.cantidad, 0)
   const cantidades = Object.fromEntries(items.map((item) => [item.productoId, item.cantidad]))
   const hayItems = items.length > 0
+  const textoUnidades = `${unidades} ${unidades === 1 ? 'producto' : 'productos'}`
+  const hojaAbierta = cobrando || Boolean(sinPrecio) || Boolean(cobrada)
 
-  const cobrarBoton = (
-    <button
-      type="button"
-      className="mz-cobrar mz-toque"
-      disabled={!hayItems}
-      onClick={() => { setVerTicket(false); setCobrando(true) }}
-    >
-      Cobrar venta
-    </button>
-  )
+  // En el celu, mientras hay una venta en curso, la barra de cobro ocupa el
+  // lugar de la barra de secciones (ver f/navegacion.css).
+  useEffect(() => {
+    const raiz = document.documentElement
+    if (hayItems) raiz.dataset.venta = 'abierta'
+    else delete raiz.dataset.venta
+    return () => { delete raiz.dataset.venta }
+  }, [hayItems])
+
+  // La venta abierta como hoja (celu) se cierra con Esc, como las demás.
+  useEffect(() => {
+    if (!verTicket) return
+    const tecla = (evento: KeyboardEvent) => { if (evento.key === 'Escape') setVerTicket(false) }
+    window.addEventListener('keydown', tecla)
+    return () => window.removeEventListener('keydown', tecla)
+  }, [verTicket])
 
   return (
-    <div className="mz-mostrador">
-      <header className="mz-mostrador-cabecera">
-        <Link href="/" className="mz-redondo mz-toque" aria-label="Volver al inicio"><IconoFlechaIzquierda /></Link>
-        <h1>Vender</h1>
-      </header>
+    <div className="f-vender">
+      {/* Con una hoja abierta, lo de atrás no se lee ni se toca. */}
+      <div className="f-vender-marco" aria-hidden={hojaAbierta || undefined} inert={hojaAbierta || undefined}>
+        <h1 className="f-sr">Vender</h1>
 
-      {aparatoNuevo ? (
-        <Entrar onListo={() => setDeCero(true)} />
-      ) : (
-        <div className="mz-mostrador-cuerpo">
-          <CatalogoVender
-            productos={productos}
-            disponibles={disponibles}
-            cantidades={cantidades}
-            busqueda={busqueda}
-            onBuscar={setBusqueda}
-            onElegir={elegirProducto}
-            escaner={escanerVenta ? (
-              <BotonEscanear
-                onProducto={elegirProducto}
-                onNoEncontrado={(codigo) => setAvisoStock(`No encontramos el código ${codigo}. Cargalo en Stock para venderlo.`)}
-              />
-            ) : undefined}
-          />
-
-          <aside className={`mz-ticket-panel${verTicket ? ' is-abierto' : ''}`} aria-label="Ticket de la venta">
-            <div className="mz-ticket-cabecera">
-              <div>
-                <span className="mz-subtitulo">Venta en curso</span>
-                <h2>Tu ticket</h2>
-              </div>
-              <span className="mz-ticket-cuenta">{unidades} {unidades === 1 ? 'producto' : 'productos'}</span>
-              <button type="button" className="mz-redondo mz-cerrar-ticket mz-toque" aria-label="Cerrar el ticket" onClick={() => setVerTicket(false)}><IconoCerrar /></button>
-            </div>
-
-            <Ticket
-              items={items}
-              stockPorProducto={disponibles}
-              onVaciar={() => setItems([])}
-              onCambiarCantidad={(productoId, cantidad) =>
-                setItems((actuales) => cambiarCantidad(actuales, productoId, cantidad))
-              }
-              onSinStock={(productoId) => {
-                const producto = productos.find((item) => item.id === productoId)
-                if (producto) setAvisoStock(`Solo quedan ${disponible(producto)} unidades de ${producto.nombre}.`)
-              }}
+        {aparatoNuevo ? (
+          <Entrar onListo={() => setDeCero(true)} />
+        ) : (
+          <div className="f-vender-cuerpo">
+            <CatalogoVender
+              productos={productos}
+              disponibles={disponibles}
+              cantidades={cantidades}
+              busqueda={busqueda}
+              onBuscar={setBusqueda}
+              onElegir={elegirProducto}
+              atajos={atajosPc}
+              escaner={escanerVenta ? (
+                <BotonEscanear
+                  onProducto={elegirProducto}
+                  onNoEncontrado={(codigo) => setAvisoStock(`No encontramos el código ${codigo}. Cargalo en Stock para venderlo.`)}
+                />
+              ) : undefined}
             />
 
-            <div className="mz-ticket-total">
-              <span>Total a cobrar</span>
-              <strong className="tabular">{formatearPesos(total)}</strong>
-            </div>
-            {cobrarBoton}
-          </aside>
-        </div>
-      )}
+            {verTicket && <div className="f-venta-capa" aria-hidden="true" onClick={() => setVerTicket(false)} />}
+            <aside className="f-venta" data-abierta={verTicket ? 'true' : 'false'} aria-label="Venta en curso">
+              <div className="f-venta-cabeza">
+                <div className="f-venta-titulo">
+                  <h2 className="f-seccion">Venta</h2>
+                  <span className="f-dato">{textoUnidades}</span>
+                </div>
+                {hayItems && <VaciarVenta onVaciar={() => { setItems([]); setVerTicket(false) }} />}
+                <button type="button" className="f-hoja-cerrar f-venta-cerrar" aria-label="Volver a los productos" onClick={() => setVerTicket(false)}><IconoCerrar /></button>
+              </div>
 
-      {avisoStock && <p className="mz-aviso-stock" role="status">{avisoStock}</p>}
+              <div className="f-venta-lista">
+                <Ticket
+                  items={items}
+                  stockPorProducto={disponibles}
+                  onCambiarCantidad={(productoId, cantidad) =>
+                    setItems((actuales) => cambiarCantidad(actuales, productoId, cantidad))
+                  }
+                  onSinStock={(productoId) => {
+                    const producto = productos.find((item) => item.id === productoId)
+                    if (producto) setAvisoStock(`Solo quedan ${disponible(producto)} unidades de ${producto.nombre}.`)
+                  }}
+                />
+              </div>
 
-      {!aparatoNuevo && hayItems && (
-        <div className="mz-barra-cobro">
-          <button type="button" className="mz-barra-resumen" onClick={() => setVerTicket(true)} aria-label={`Ver el ticket: ${unidades} ${unidades === 1 ? 'producto' : 'productos'}, ${formatearPesos(total)}`}>
-            <span>{unidades} {unidades === 1 ? 'producto' : 'productos'} · ver ticket</span>
-            <strong className="tabular">{formatearPesos(total)}</strong>
-          </button>
-          <button
-            type="button"
-            className="mz-barra-cobrar mz-toque"
-            aria-label="Cobrar"
-            disabled={!hayItems}
-            onClick={() => setCobrando(true)}
-          >
-            Cobrar <IconoFlechaDerecha />
-          </button>
-        </div>
-      )}
+              <div className="f-venta-pie">
+                <div className="f-venta-total">
+                  <span>Total</span>
+                  <strong className="f-plata-48">{formatearPesos(total)}</strong>
+                </div>
+                <Segmentado etiqueta="Cómo paga" opciones={OPCIONES_PAGO} valor={medio} onCambiar={setMedio} className="f-venta-medio" />
+                <Boton
+                  variante="principal"
+                  tamano="caja"
+                  ancho
+                  disabled={!hayItems}
+                  aria-keyshortcuts={atajosPc ? 'Control+Enter' : undefined}
+                  onClick={() => { setVerTicket(false); setCobrando(true) }}
+                >
+                  {hayItems ? `Cobrar ${formatearPesos(total)}` : 'Cobrar venta'}
+                  {atajosPc && hayItems && <span className="f-tecla f-solo-pc" aria-hidden="true">Ctrl+Enter</span>}
+                </Boton>
+              </div>
+            </aside>
+          </div>
+        )}
+
+        {!aparatoNuevo && hayItems && (
+          <div className="f-cobro-barra">
+            <button type="button" className="f-cobro-barra-resumen" onClick={() => setVerTicket(true)} aria-label={`Ver la venta: ${textoUnidades}, ${formatearPesos(total)}`}>
+              <span>{textoUnidades} · ver venta</span>
+              <strong className="f-plata">{formatearPesos(total)}</strong>
+            </button>
+            <button
+              type="button"
+              className="f-cobro-barra-cobrar"
+              aria-label="Cobrar"
+              disabled={!hayItems}
+              onClick={() => setCobrando(true)}
+            >
+              <span>Cobrar</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {avisoStock && <p className="f-aviso-flotante" role="status">{avisoStock}</p>}
 
       {sinPrecio && (
         <PonerPrecio
@@ -270,7 +297,7 @@ export function PantallaVender() {
         />
       )}
 
-      {cobrando && <Cobro total={total} onCobrar={cobrar} onCancelar={() => setCobrando(false)} />}
+      {cobrando && <Cobro total={total} medioInicial={medio} onCobrar={cobrar} onCancelar={() => setCobrando(false)} />}
 
       {cobrada && (
         <Cobrado

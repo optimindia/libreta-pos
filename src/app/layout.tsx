@@ -1,15 +1,27 @@
 import type { Metadata, Viewport } from 'next'
-import { Sora } from 'next/font/google'
+import { Figtree } from 'next/font/google'
 import './globals.css'
 import '../ui/sistema/pulido-final.css'
 import '../ui/sistema/mosaico.css'
 import '../ui/sistema/nativo.css'
+// Sistema F: va al final para que sus reglas manden sobre las capas viejas.
+import '../ui/sistema/f/tokens.css'
+import '../ui/sistema/f/componentes.css'
+import '../ui/sistema/f/navegacion.css'
+import '../ui/vender/vender.css'
 import { RegistrarSW } from '@/ui/sistema/RegistrarSW'
 import { Sincronizador } from '@/ui/sistema/Sincronizador'
 import { TemaInicial } from '@/ui/sistema/TemaInicial'
 import { ControlAcceso } from '@/ui/sistema/ControlAcceso'
 
-const sora = Sora({ subsets: ['latin'] })
+// Una sola letra en toda la app. Si no carga, queda la del sistema.
+const figtree = Figtree({
+  subsets: ['latin'],
+  weight: ['500', '600', '700', '800'],
+  variable: '--font-figtree',
+  display: 'swap',
+  fallback: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+})
 
 export const metadata: Metadata = {
   title: 'Libreta',
@@ -23,8 +35,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   // La barra del sistema toma el color del fondo de la app en cada tema.
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#EEF1F5' },
-    { media: '(prefers-color-scheme: dark)', color: '#0B1220' },
+    { media: '(prefers-color-scheme: light)', color: '#F1F4F2' },
+    { media: '(prefers-color-scheme: dark)', color: '#0E1513' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -33,8 +45,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es-AR" data-tema="claro">
-      <body className={sora.className}>
+    <html lang="es-AR" data-tema="claro" className={figtree.variable}>
+      <body className={figtree.className}>
         <RegistrarSW />
         <Sincronizador />
         <TemaInicial />

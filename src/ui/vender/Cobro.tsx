@@ -7,16 +7,21 @@ import { superaLimiteFiado } from '@/dominio/fiado'
 import { formatearPesos, pesosACentavos, vuelto } from '@/dominio/dinero'
 import { conPuntos, soloDigitos, sugerenciasDePago, teclear, type TeclaCobro } from '@/dominio/cobro'
 import { repos } from '@/datos/local/repos'
-import { IconoBorrar, IconoCerrar, IconoNuevoCliente } from '@/ui/sistema/iconos'
+import { IconoBorrar, IconoNuevoCliente } from '@/ui/sistema/iconos'
+import { Hoja } from '@/ui/sistema/Hoja'
+import { Boton } from '@/ui/sistema/Boton'
+import { Segmentado, type OpcionSegmentado } from '@/ui/sistema/Segmentado'
 
-type Pantalla = 'efectivo' | 'transferencia' | 'qr' | 'fiado'
+export type MedioCobro = 'efectivo' | 'transferencia' | 'qr' | 'fiado'
 
-const SEGMENTOS: { clave: Pantalla; visible: string; nombre: string }[] = [
-  { clave: 'efectivo', visible: 'Efectivo', nombre: 'Efectivo' },
-  // El nombre accesible es la palabra completa; el texto corto sólo cabe mejor.
-  { clave: 'transferencia', visible: 'Transf.', nombre: 'Transferencia' },
-  { clave: 'qr', visible: 'QR', nombre: 'QR' },
-  { clave: 'fiado', visible: 'Fiado', nombre: 'Fiado' },
+/** "Cómo paga": el mismo control en el panel de la venta (PC) y en la hoja
+ *  de cobro. El nombre accesible es la palabra completa; el texto corto
+ *  sólo cabe mejor. */
+export const OPCIONES_PAGO: OpcionSegmentado<MedioCobro>[] = [
+  { valor: 'efectivo', texto: 'Efectivo' },
+  { valor: 'transferencia', texto: 'Transf.', nombre: 'Transferencia' },
+  { valor: 'qr', texto: 'QR' },
+  { valor: 'fiado', texto: 'Fiado', tono: 'cuidado' },
 ]
 
 const TECLAS: TeclaCobro[] = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '000', '0', 'borrar']
@@ -34,13 +39,13 @@ function Efectivo({ total, onCobrar }: { total: number; onCobrar: () => void }) 
 
   return (
     <form
-      className="mz-cobro-cuerpo"
+      className="f-cobro"
       onSubmit={(evento) => { evento.preventDefault(); if (alcanza) onCobrar() }}
     >
-      <div className="mz-pares">
-        <label className="mz-tablero">
-          <span className="mz-tablero-titulo">Te dan</span>
-          <span className="mz-tablero-valor">
+      <div className="f-cobro-tablero">
+        <label className="f-cobro-te-dan">
+          <span className="f-cobro-rotulo">Te dan</span>
+          <span className="f-cobro-monto">
             <span aria-hidden="true">$</span>
             <input
               aria-label="Con cuánto pagó"
@@ -48,40 +53,41 @@ function Efectivo({ total, onCobrar }: { total: number; onCobrar: () => void }) 
               autoComplete="off"
               autoFocus
               placeholder="0"
-              className="mz-tablero-input tabular"
+              className="f-plata"
               value={conPuntos(pagoCon)}
               onChange={(evento) => setPagoCon(soloDigitos(evento.target.value))}
             />
           </span>
         </label>
-        <div className="mz-tablero mz-tablero-menta">
-          <span className="mz-tablero-titulo">Vuelto</span>
-          <strong className="mz-tablero-valor tabular">{alcanza ? formatearPesos(resto) : '—'}</strong>
+        <div className="f-cobro-vuelto">
+          <span className="f-cobro-rotulo">Vuelto</span>
+          <strong className="f-plata">{alcanza ? formatearPesos(resto) : '—'}</strong>
         </div>
       </div>
 
       {hayPago && resto < 0 && (
-        <p className="mz-aviso" role="status">Le faltan {formatearPesos(-resto)} para cubrir la venta.</p>
+        <p className="f-aviso" role="status">Le faltan {formatearPesos(-resto)} para cubrir la venta.</p>
       )}
 
-      <div className="mz-billetes">
-        <button type="button" className="mz-billete mz-toque" data-activo={pagoCon === justo ? 'true' : 'false'} onClick={() => setPagoCon(justo)}>Justo</button>
+      <div className="f-billetes">
+        <button type="button" className="f-billete" aria-pressed={pagoCon === justo} onClick={() => setPagoCon(justo)}>Justo</button>
         {sugerenciasDePago(total).map((sugerido) => {
           const pesos = String(sugerido / 100)
           return (
-            <button key={pesos} type="button" className="mz-billete mz-toque" data-activo={pagoCon === pesos ? 'true' : 'false'} onClick={() => setPagoCon(pesos)}>
+            <button key={pesos} type="button" className="f-billete f-plata" aria-pressed={pagoCon === pesos} onClick={() => setPagoCon(pesos)}>
               {formatearPesos(sugerido)}
             </button>
           )
         })}
       </div>
 
-      <div className="mz-teclado" role="group" aria-label="Teclado numérico">
+      <div className="f-teclado" role="group" aria-label="Teclado numérico">
         {TECLAS.map((tecla) => (
           <button
             key={tecla}
             type="button"
-            className="mz-tecla mz-toque"
+            className="f-tecla-num"
+            data-tecla={tecla}
             aria-label={tecla === 'borrar' ? 'Borrar' : tecla}
             onClick={() => setPagoCon((actual) => teclear(actual, tecla))}
           >
@@ -90,9 +96,10 @@ function Efectivo({ total, onCobrar }: { total: number; onCobrar: () => void }) 
         ))}
       </div>
 
-      <button type="submit" className="mz-cobrar mz-toque" disabled={!alcanza}>
-        Cobrar {formatearPesos(total)}
-      </button>
+      <Boton type="submit" variante="principal" tamano="grande" ancho className="f-cobro-confirmar" disabled={!alcanza}>
+        <span>Cobrar {formatearPesos(total)}</span>
+        {alcanza && resto > 0 && <small>{`y dar ${formatearPesos(resto)} de vuelto`}</small>}
+      </Boton>
     </form>
   )
 }
@@ -110,20 +117,20 @@ function CobroDigital({
   const [referencia, setReferencia] = useState('')
 
   return (
-    <form className="mz-cobro-cuerpo" onSubmit={(evento) => { evento.preventDefault(); if (confirmado) onCobrar(referencia) }}>
-      <div className="mz-aviso-grande">
+    <form className="f-cobro" onSubmit={(evento) => { evento.preventDefault(); if (confirmado) onCobrar(referencia) }}>
+      <div className="f-aviso" data-tono="ambar">
         <strong>Mirá tu celu antes de cobrar</strong>
         <span>La app no puede saber si {medio === 'qr' ? 'un QR' : 'una transferencia'} ya se acreditó. Confirmá el comprobante antes de entregar la mercadería.</span>
       </div>
-      <label className="mz-campo">
-        <span>Referencia o últimos dígitos <em>opcional</em></span>
-        <input aria-label="Referencia del pago" className="mz-entrada" placeholder="Ej. 8472 o MP-1234" value={referencia} onChange={(evento) => setReferencia(evento.target.value)} />
+      <label className="f-campo">
+        <span>Referencia o últimos dígitos <em>· opcional</em></span>
+        <input aria-label="Referencia del pago" className="f-entrada" placeholder="Ej. 8472 o MP-1234" value={referencia} onChange={(evento) => setReferencia(evento.target.value)} />
       </label>
-      <label className="mz-confirmar">
+      <label className="f-confirmar">
         <input type="checkbox" checked={confirmado} onChange={(evento) => setConfirmado(evento.target.checked)} />
         <span><strong>Ya vi el pago aprobado</strong><small>Confirmo que el importe es {formatearPesos(total)}.</small></span>
       </label>
-      <button type="submit" className="mz-cobrar mz-toque" disabled={!confirmado}>Registrar venta confirmada</button>
+      <Boton type="submit" variante="principal" tamano="grande" ancho disabled={!confirmado}>Registrar venta confirmada</Boton>
     </form>
   )
 }
@@ -188,157 +195,145 @@ function Fiado({
   }
 
   return (
-    <div className="mz-cobro-cuerpo">
-      <div className="mz-aviso-grande mz-aviso-arena">
+    <div className="f-cobro">
+      <div className="f-aviso" data-tono="ambar">
         <strong>No se cobra ahora</strong>
         <span>La venta queda anotada en la cuenta del cliente.</span>
       </div>
 
-      <label className="mz-campo">
-        <span>Vencimiento <em>opcional</em></span>
-        <input aria-label="Vencimiento del fiado" type="date" className="mz-entrada" value={vence} onChange={(evento) => setVence(evento.target.value)} />
+      <label className="f-campo">
+        <span>Vencimiento <em>· opcional</em></span>
+        <input aria-label="Vencimiento del fiado" type="date" className="f-entrada" value={vence} onChange={(evento) => setVence(evento.target.value)} />
       </label>
 
       {pasado && (
-        <div className="mz-aviso-grande mz-aviso-coral" role="alertdialog" aria-label="Se pasa del límite de fiado">
+        <div className="f-aviso f-cobro-limite" role="alertdialog" aria-label="Se pasa del límite de fiado">
           <strong>{pasado.nombre} se pasa de su límite</strong>
           <span>
             Debe {formatearPesos(deudas.get(pasado.id) ?? 0)} y su límite es {formatearPesos(pasado.limiteFiado ?? 0)}.
             Con esta venta quedaría en {formatearPesos((deudas.get(pasado.id) ?? 0) + total)}.
           </span>
-          <div className="nb-acciones">
-            <button type="button" className="libreta-button nb-boton nb-boton-secundario" onClick={() => setPasado(null)}>Elegir otro</button>
-            <button type="button" className="libreta-button nb-boton nb-boton-principal" onClick={() => onCobrar(pasado.id, fechaVencimiento())}>Anotar igual</button>
+          <div className="f-cobro-acciones">
+            <Boton variante="secundario" onClick={() => setPasado(null)}>Elegir otro</Boton>
+            <Boton variante="cuidado" onClick={() => onCobrar(pasado.id, fechaVencimiento())}>Anotar igual</Boton>
           </div>
         </div>
       )}
 
       {!mostrarNuevo && !pasado && (
-        <section aria-label="Elegir cliente">
-          <label className="mz-campo">
+        <section className="f-cobro-clientes" aria-label="Elegir cliente">
+          <label className="f-campo">
             <span>Buscar cliente</span>
             <input
               aria-label="Buscar cliente"
               placeholder="Ej. Marta o 261…"
-              className="mz-entrada"
+              className="f-entrada"
               value={busqueda}
               onChange={(evento) => setBusqueda(evento.target.value)}
               autoFocus
             />
           </label>
-          <div className="mz-lista-clientes">
+          <div className="f-clientes">
             {visibles.length === 0 ? (
-              <p className="mz-vacio">No encontramos ese cliente.</p>
+              <p className="f-hoja-ayuda">No encontramos ese cliente.</p>
             ) : (
-              visibles.map((cliente) => (
-                <button
-                  key={cliente.id}
-                  type="button"
-                  className="mz-cliente mz-toque"
-                  onClick={() => {
-                    if (superaLimiteFiado(deudas.get(cliente.id) ?? 0, total, cliente.limiteFiado)) setPasado(cliente)
-                    else onCobrar(cliente.id, fechaVencimiento())
-                  }}
-                  aria-label={`Anotar fiado a ${cliente.nombre}`}
-                >
-                  <span className="mz-cliente-iniciales" aria-hidden="true">{cliente.nombre.trim().slice(0, 2).toUpperCase()}</span>
-                  <span className="mz-cliente-nombre">{cliente.nombre}</span>
-                  {(deudas.get(cliente.id) ?? 0) > 0
-                    ? <span className="mz-cliente-telefono">Debe {formatearPesos(deudas.get(cliente.id) ?? 0)}</span>
-                    : cliente.telefono && <span className="mz-cliente-telefono">{cliente.telefono}</span>}
-                </button>
-              ))
+              visibles.map((cliente) => {
+                const debe = deudas.get(cliente.id) ?? 0
+                return (
+                  <button
+                    key={cliente.id}
+                    type="button"
+                    className="f-cliente"
+                    onClick={() => {
+                      if (superaLimiteFiado(debe, total, cliente.limiteFiado)) setPasado(cliente)
+                      else onCobrar(cliente.id, fechaVencimiento())
+                    }}
+                    aria-label={`Anotar fiado a ${cliente.nombre}`}
+                  >
+                    <span className="f-cliente-inicial" data-debe={debe > 0 ? 'true' : 'false'} aria-hidden="true">{cliente.nombre.trim().slice(0, 1).toUpperCase()}</span>
+                    <span className="f-renglon-cuerpo">
+                      <span className="f-renglon-titulo">{cliente.nombre}</span>
+                      {debe > 0
+                        ? <span className="f-renglon-detalle" data-tono="coral">Debe {formatearPesos(debe)}</span>
+                        : cliente.telefono && <span className="f-renglon-detalle">{cliente.telefono}</span>}
+                    </span>
+                  </button>
+                )
+              })
             )}
           </div>
-          <button type="button" className="mz-secundario mz-toque" onClick={() => setNuevo(true)}>
+          <Boton variante="secundario" ancho onClick={() => setNuevo(true)}>
             <IconoNuevoCliente /> Nuevo cliente
-          </button>
+          </Boton>
         </section>
       )}
 
       {mostrarNuevo && (
-        <form onSubmit={crearCliente} aria-label="Nuevo cliente">
-          <label className="mz-campo">
-            <span>Nombre del cliente <em>obligatorio</em></span>
+        <form className="f-cobro" onSubmit={crearCliente} aria-label="Nuevo cliente">
+          <label className="f-campo">
+            <span>Nombre del cliente <em>· obligatorio</em></span>
             <input
               aria-label="Nombre del cliente"
               autoFocus
               placeholder="Ej. Marta González"
-              className="mz-entrada"
+              className="f-entrada"
               value={nombre}
               onChange={(evento) => { setNombre(evento.target.value); setAviso(null) }}
             />
           </label>
-          <label className="mz-campo">
-            <span>Teléfono para WhatsApp <em>opcional</em></span>
+          <label className="f-campo">
+            <span>Teléfono para WhatsApp <em>· opcional</em></span>
             <input
               aria-label="Teléfono del cliente"
               inputMode="tel"
               placeholder="Ej. 261 555 1234"
-              className="mz-entrada"
+              className="f-entrada"
               value={telefono}
               onChange={(evento) => setTelefono(evento.target.value)}
             />
           </label>
-          <button type="submit" className="mz-cobrar mz-cobrar-arena mz-toque" disabled={guardando}>
+          <Boton type="submit" variante="cuidado" tamano="grande" ancho disabled={guardando}>
             {guardando ? 'Guardando cliente…' : 'Anotar fiado'}
-          </button>
+          </Boton>
           {hayClientes && (
-            <button type="button" className="mz-secundario mz-toque" onClick={() => setNuevo(false)}>
+            <Boton variante="secundario" ancho onClick={() => setNuevo(false)}>
               Elegir cliente existente
-            </button>
+            </Boton>
           )}
         </form>
       )}
 
-      {aviso && <p className="mz-aviso" role="alert">{aviso}</p>}
+      {aviso && <p className="f-aviso" role="alert">{aviso}</p>}
     </div>
   )
 }
 
+/** La hoja de cobro: el total arriba, "Cómo paga" y, según el medio, el
+ *  teclado con el vuelto, la confirmación de la transferencia o el cliente
+ *  del fiado. */
 export function Cobro({
   total,
+  medioInicial = 'efectivo',
   onCobrar,
   onCancelar,
 }: {
   total: number
+  /** El medio que ya se eligió en el panel de la venta (PC). */
+  medioInicial?: MedioCobro
   onCobrar: (medio: MedioPago, clienteId?: UUID, vence?: number | null, referenciaPago?: string) => void
   onCancelar: () => void
 }) {
-  const [pantalla, setPantalla] = useState<Pantalla>('efectivo')
+  const [pantalla, setPantalla] = useState<MedioCobro>(medioInicial)
 
   return (
-    <div className="mz-cobro" role="dialog" aria-modal="true" aria-label="Cobrar la venta">
-      <header className="mz-cobro-cabecera">
-        <button type="button" className="mz-redondo mz-toque" aria-label="Cancelar el cobro" onClick={onCancelar}><IconoCerrar /></button>
-        <h2>Cobrar</h2>
-      </header>
-
-      <div className="mz-cobro-total">
-        <span>Total a cobrar</span>
-        <strong className="tabular">{formatearPesos(total)}</strong>
-      </div>
-
-      <div className="mz-segmentos" role="group" aria-label="Forma de cobro">
-        {SEGMENTOS.map(({ clave, visible, nombre }) => (
-          <button
-            key={clave}
-            type="button"
-            className="mz-segmento"
-            aria-pressed={pantalla === clave}
-            aria-label={nombre}
-            onClick={() => setPantalla(clave)}
-          >
-            {visible}
-          </button>
-        ))}
-      </div>
+    <Hoja abierta onCerrar={onCancelar} titulo="Cobrar" extra={formatearPesos(total)} etiquetaCerrar="Cancelar el cobro" ancho="angosto">
+      <Segmentado etiqueta="Cómo paga" opciones={OPCIONES_PAGO} valor={pantalla} onCambiar={setPantalla} />
 
       {pantalla === 'efectivo' && <Efectivo total={total} onCobrar={() => onCobrar('efectivo')} />}
       {pantalla === 'fiado' && <Fiado total={total} onCobrar={(clienteId, vence) => onCobrar('fiado', clienteId, vence)} />}
       {(pantalla === 'transferencia' || pantalla === 'qr') && (
         <CobroDigital key={pantalla} medio={pantalla} total={total} onCobrar={(referencia) => onCobrar(pantalla, undefined, undefined, referencia)} />
       )}
-    </div>
+    </Hoja>
   )
 }
