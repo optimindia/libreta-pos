@@ -12,6 +12,14 @@ import { PantallaEstadoAcceso } from './PantallaEstadoAcceso'
 import { IconoAlerta, IconoCuenta } from './iconos'
 import { GuardiaFuncion } from './GuardiaFuncion'
 
+/** Páginas que cualquiera puede leer sin cuenta: los términos y la política
+ *  de privacidad tienen que poder consultarse antes de aceptarlos. */
+const RUTAS_PUBLICAS = ['/terminos', '/privacidad'] as const
+
+function esRutaPublica(ruta: string): boolean {
+  return RUTAS_PUBLICAS.some((publica) => ruta === publica || ruta.startsWith(`${publica}/`))
+}
+
 function AvisoVencimiento({ estado }: { estado: EstadoAcceso }) {
   if (!estado.verificadoRemoto || !estado.suscripcion) return null
   const efectivo = estadoSuscripcion(estado.suscripcion)
@@ -56,10 +64,11 @@ export function ControlAcceso({ children }: { children: React.ReactNode }) {
   const saas = accesoSaasObligatorio()
   const esAdmin = useMemo(() => ruta === '/admin' || ruta.startsWith('/admin/'), [ruta])
   const esCuenta = useMemo(() => ruta === '/cuenta' || ruta.startsWith('/cuenta/'), [ruta])
+  const esPublica = useMemo(() => esRutaPublica(ruta ?? ''), [ruta])
   const [estado, setEstado] = useState<EstadoAcceso | null>(null)
 
   useEffect(() => {
-    if (!saas) return
+    if (!saas || esPublica) return
     let vivo = true
 
     async function refrescar() {
@@ -94,7 +103,7 @@ export function ControlAcceso({ children }: { children: React.ReactNode }) {
       window.clearInterval(reloj)
       window.clearTimeout(limpiarEstadoAnterior)
     }
-  }, [saas, esAdmin, esCuenta])
+  }, [saas, esAdmin, esCuenta, esPublica])
 
   // No dejamos una ventana local después del vencimiento que ya conocemos.
   // El timer sólo bloquea la interfaz; RLS vuelve a validar la fecha en cada
@@ -117,6 +126,10 @@ export function ControlAcceso({ children }: { children: React.ReactNode }) {
     const relojVencimiento = window.setTimeout(bloquear, espera + 50)
     return () => window.clearTimeout(relojVencimiento)
   }, [saas, estado?.verificadoRemoto, estado?.suscripcion])
+
+  // Sin menú del POS ni chequeo de sesión: sólo el texto, legible para
+  // quien todavía no tiene cuenta.
+  if (esPublica) return <main className="legal-shell">{children}</main>
 
   if (!saas) {
     return <Marco><GuardiaFuncion>{children}</GuardiaFuncion></Marco>

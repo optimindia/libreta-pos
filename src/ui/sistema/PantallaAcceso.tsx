@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { entrar } from '@/datos/nube/sesion'
 import { bajarTodo, sincronizar, subirASupabase, traerDeSupabase } from '@/datos/nube/sincronizar'
 import { notificarCambioAcceso } from '@/datos/nube/acceso'
@@ -75,6 +76,9 @@ export function PantallaAcceso({ modo = 'negocio' }: { modo?: 'negocio' | 'admin
           </Boton>
         </form>
         {aviso && <p className="form-message form-message-error" role="alert">{aviso}</p>}
+        <p className="access-legal">
+          Al entrar aceptás los <Link href="/terminos">Términos</Link> y la <Link href="/privacidad">Política de privacidad</Link>.
+        </p>
         <div className="access-footnote">
           <span>¿Todavía no tenés una cuenta?</span>
           <a href={enlaceWhatsApp('', 'Hola, quiero solicitar acceso a Libreta.')} target="_blank" rel="noreferrer">Solicitar acceso por WhatsApp</a>
