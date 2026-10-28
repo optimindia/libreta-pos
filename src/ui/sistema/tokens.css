@@ -1,109 +1,100 @@
-/* Sistema visual "Mosaico + Pop".
-   Colores sólidos, bordes que se ven y letras grandes: nada depende de una
-   transparencia, un degradé ni un desenfoque, porque en un monitor viejo o
-   barato eso es lo primero que se pierde. Los contrastes se verifican en
+/* Tokens de las pantallas que todavía no pasaron al sistema F.
+   Los valores ya son los de la paleta F (ver f/tokens.css): así una
+   pantalla vieja y una nueva comparten fondo, tinta y colores con
+   significado aunque sus formas todavía difieran. Las pantallas nuevas
+   usan directamente los tokens --f-*.
+   El plugin postcss/mezclas-de-color.mjs lee este archivo (sólo valores
+   hexadecimales) y los contrastes se verifican en
    tests/estilos/legibilidad.test.ts en los dos temas. */
 :root {
-  --verde: #0A6F5A;
+  --verde: #0B6B52;
   --verde-texto: #FFFFFF;
-  --ambar: #8F4A12;
-  --ambar-fondo: #FFE3A3;
-  --tinta: #0F1B2D;
-  --tenue: #4B5565;
-  --hueso: #EEF1F5;
+  --ambar: #5E4300;
+  --ambar-fondo: #FFF1BF;
+  --tinta: #111A17;
+  --tenue: #4B5A55;
+  --hueso: #F1F4F2;
   --hueso-2: #FFFFFF;
-  --linea: #C3CCD8;
-  --chip-fondo: #E3E8EF;
-  --verde-suave: #DDF4EC;
-  --superficie-sutil: #F4F6F9;
-  /* Los viejos halos suaves quedan apagados: el relieve lo da el borde. */
-  --sombra: 0 0 0 0 #0F1B2D;
-  --sombra-panel: 0 0 0 0 #0F1B2D;
-  --sombra-flotante: 0 12px 32px rgba(15, 27, 45, 0.16), 0 2px 6px rgba(15, 27, 45, 0.08);
-  --radio-panel: 1.5rem;
-  --radio-control: 1rem;
+  --linea: #C6D0CB;
+  --chip-fondo: #E7ECE9;
+  --verde-suave: #DDF0E7;
+  --superficie-sutil: #F6F8F7;
+  /* Sin halos: el relieve lo da el color de fondo. */
+  --sombra: 0 0 0 0 #111A17;
+  --sombra-panel: 0 0 0 0 #111A17;
+  --sombra-flotante: 0 12px 32px rgba(17, 26, 23, 0.16), 0 2px 6px rgba(17, 26, 23, 0.08);
+  --radio-panel: 18px;
+  --radio-control: 12px;
 
   /* Baldosas de colores: cada una trae su color de texto. */
-  --arena: #FFE3A3;
-  --sobre-arena: #0F1B2D;
-  --coral: #FF8A65;
-  --sobre-coral: #0F1B2D;
-  --menta: #B8EBDD;
-  --sobre-menta: #0F1B2D;
-  --lima: #C6F432;
-  --sobre-lima: #0F1B2D;
-  --rojo: #B5321B;
-  --rojo-fondo: #FBE4DF;
+  --arena: #FFF1BF;
+  --sobre-arena: #5E4300;
+  --coral: #FFE6DA;
+  --sobre-coral: #9A3216;
+  --menta: #DDF0E7;
+  --sobre-menta: #0B6B52;
+  --lima: #C6EE4A;
+  --sobre-lima: #111A17;
+  --rojo: #9A3216;
+  --rojo-fondo: #FFE6DA;
 
   /* La tarjeta grande del inicio ("Vendiste hoy") y su gráfico de barras. */
-  --hero-fondo: #0A6F5A;
+  --hero-fondo: #0B6B52;
   --hero-texto: #FFFFFF;
   --hero-barra: #B8EBDD;
-  --hero-barra-fuerte: #C6F432;
+  --hero-barra-fuerte: #C6EE4A;
 
-  /* Bordes y relieve de superficies: finos y sólidos, como una app nativa.
-     El relieve fuerte ("acento") queda sólo para VENDER y COBRAR. */
-  --contorno: #B9C3D0;
-  --sombra-pop: 0 1px 2px rgba(15, 27, 45, 0.06), 0 2px 8px rgba(15, 27, 45, 0.05);
-  --sombra-pop-chica: 0 1px 2px rgba(15, 27, 45, 0.08);
-  --foco: #0F1B2D;
-  --acento-borde: #0F1B2D;
-  --sombra-acento: 0 5px 0 #0F1B2D;
-  --barra-fondo: #FFFFFF;
-  --barra-borde: #D5DCE5;
-  --radio-tarjeta: 20px;
-  --radio-boton: 14px;
+  --contorno: #B5C2BC;
+  --sombra-pop: none;
+  --sombra-pop-chica: none;
+  --foco: #111A17;
+  --acento-borde: #111A17;
+  --sombra-acento: none;
+  --radio-tarjeta: 18px;
+  --radio-boton: 12px;
 }
 
 [data-tema='oscuro'] {
-  /* Superficies separadas y texto de alto contraste. El tema oscuro no es
-     una versión apagada del claro: cada nivel tiene que poder distinguirse
-     rápido bajo luz baja y con textos pequeños de operación. */
-  --verde: #2FD1A6;
-  --verde-texto: #04261D;
-  --ambar: #FFB866;
-  --ambar-fondo: #3A2A10;
-  --tinta: #F2F5F9;
-  --tenue: #B4BFD0;
-  --hueso: #0B1220;
-  --hueso-2: #151F33;
-  --linea: #34425C;
-  --chip-fondo: #1E2A44;
-  --verde-suave: #123D34;
-  --superficie-sutil: #101A2C;
+  --verde: #5FD3A6;
+  --verde-texto: #0E1513;
+  --ambar: #F5D774;
+  --ambar-fondo: #3A2F0E;
+  --tinta: #EAF1EE;
+  --tenue: #A9BAB3;
+  --hueso: #0E1513;
+  --hueso-2: #17211E;
+  --linea: #3A4A44;
+  --chip-fondo: #1F2B27;
+  --verde-suave: #173A2E;
+  --superficie-sutil: #131C19;
   --sombra: 0 0 0 0 #000000;
   --sombra-panel: 0 0 0 0 #000000;
   --sombra-flotante: 0 16px 40px rgba(0, 0, 0, 0.5);
 
-  --arena: #4A3B12;
-  --sobre-arena: #F2F5F9;
-  --coral: #5C2B1D;
-  --sobre-coral: #F2F5F9;
-  --menta: #12453A;
-  --sobre-menta: #F2F5F9;
-  --lima: #C6F432;
-  --sobre-lima: #0B1220;
-  --rojo: #FF8F7A;
-  --rojo-fondo: #3A1A15;
+  --arena: #3A2F0E;
+  --sobre-arena: #F5D774;
+  --coral: #3D2018;
+  --sobre-coral: #FF9E80;
+  --menta: #173A2E;
+  --sobre-menta: #EAF1EE;
+  --lima: #C6EE4A;
+  --sobre-lima: #0E1513;
+  --rojo: #FF9E80;
+  --rojo-fondo: #3D2018;
 
-  --hero-fondo: #123D34;
-  --hero-texto: #F2F5F9;
-  --hero-barra: #2FD1A6;
-  --hero-barra-fuerte: #C6F432;
+  --hero-fondo: #173A2E;
+  --hero-texto: #EAF1EE;
+  --hero-barra: #5FD3A6;
+  --hero-barra-fuerte: #C6EE4A;
 
-  --contorno: #3A4A66;
-  --sombra-pop: 0 1px 0 rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.28);
-  --sombra-pop-chica: 0 1px 0 rgba(0, 0, 0, 0.4);
-  --foco: #F2F5F9;
-  --acento-borde: #04261D;
-  --sombra-acento: 0 5px 0 #04261D;
-  --barra-fondo: #111A2B;
-  --barra-borde: #26324A;
+  --contorno: #46574F;
+  --foco: #C6EE4A;
+  --acento-borde: #0E1513;
 }
 
 /* Todo importe usa esta clase: dígitos de ancho fijo para que la
    columna de precios quede alineada y el total no baile al cambiar. */
 .tabular {
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.02em;
 }

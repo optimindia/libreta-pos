@@ -53,8 +53,10 @@ describe('CierreCaja', () => {
     fireEvent.change(await screen.findByLabelText(/cuánto contaste/i), { target: { value: '4200' } })
     fireEvent.click(screen.getByRole('button', { name: /guardar cierre/i }))
     await waitFor(async () => expect(await repos.cierres.todos()).toHaveLength(1))
+    // Esperar a que la hoja del cierre se cierre: bajo carga el botón viejo seguía en pantalla.
+    await waitFor(() => expect(screen.queryByLabelText(/cuánto contaste/i)).toBeNull())
 
     fireEvent.click(await screen.findByRole('button', { name: /cerrar caja/i }))
-    expect((await screen.findByLabelText(/fondo inicial/i) as HTMLInputElement).value).toBe('4200')
+    await waitFor(() => expect((screen.getByLabelText(/fondo inicial/i) as HTMLInputElement).value).toBe('4200'))
   })
 })

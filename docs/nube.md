@@ -107,6 +107,34 @@ variables `AUDITORIA_TOKEN_UNO`, `AUDITORIA_NEGOCIO_UNO`,
 `AUDITORIA_TOKEN_DOS` y `AUDITORIA_NEGOCIO_DOS`. **Corrélo cada vez que toques
 una política RLS o agregues una tabla**.
 
+## Permisos del vendedor
+
+`supabase/migrations/20261028140000_permisos_vendedor.sql` hace que la base
+también le niegue al vendedor lo que la app no le muestra: Ajustes
+(`negocio_configuracion`), Plata (`movimientos_caja`, `cierres`), cargar
+mercadería (`ingresos`), dar de alta, editar la ficha o borrar productos,
+ajustar stock, anular ventas o fiados y borrar clientes. Vender, fiar, cobrar
+fiados, clientes y pedidos siguen igual. El SQL para revertirla está al final
+del archivo. El costo sigue siendo legible para el vendedor (ver el
+comentario de la migración).
+
+Si la base rechaza algo por permisos (código `42501`), la cola de subida lo
+aparta con el motivo y sigue con el resto; no lo reintenta sola.
+
+Para verificar en una rama de Supabase, con la migración aplicada:
+
+```sql
+select tablename, policyname, cmd from pg_policies
+where schemaname = 'public'
+  and (policyname like 'solo_dueno%' or policyname = 'vendedor_solo_ventas');
+-- 19 filas
+```
+
+y probar como vendedor (`set role authenticated; select
+set_config('request.jwt.claim.sub', '<usuario vendedor>', false);`) que un
+`insert into movimientos_caja ...` devuelve 42501 y una venta con sus
+renglones y `registrar_movimiento_stock(..., -1, 'venta')` pasan.
+
 ## Funciones por negocio
 
 Desde **Configuración → Funciones visibles** se puede ocultar cualquier módulo

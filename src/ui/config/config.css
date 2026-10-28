@@ -1,0 +1,186 @@
+/* Ajustes ("Tu negocio") con el sistema F (src/ui/config). Celu: una
+   columna de tarjetas. PC (≥ 900 px): dos columnas. Sólo tokens --f-*. */
+
+.f-config {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.f-config-subtitulo {
+  margin: 2px 0 0;
+  color: var(--f-tinta-2);
+  font-weight: 600;
+}
+
+.f-config-cuerpo {
+  display: grid;
+  align-items: start;
+  gap: var(--f-4);
+}
+
+.f-config-col {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.f-config-bloque,
+.f-config-form {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.f-config-bloque .f-dato,
+.f-config-bloque .f-texto { margin: 0; }
+
+.f-config-ayuda {
+  color: var(--f-tinta-2);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.f-config .f-aviso.f-config-ok {
+  background: var(--f-verde-suave);
+  color: var(--f-verde);
+}
+
+/* Color: un cuadrado grande que se toca. */
+.f-config-color {
+  width: 100%;
+  height: 52px;
+  padding: 4px;
+  border: 1.5px solid var(--f-borde);
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie);
+  cursor: pointer;
+}
+
+.f-config-logo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--f-3);
+}
+
+.f-config-botones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--f-2);
+}
+
+.f-config-pregunta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-3);
+}
+
+.f-config-cabeza {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--f-3);
+}
+
+.f-config-nube { padding: var(--f-3); border-radius: var(--f-radio-control); background: var(--f-fondo); }
+
+/* ───────────── Funciones visibles ───────────── */
+
+.f-config-grupo { display: flex; flex-direction: column; gap: var(--f-1); }
+
+.f-config-grupo-titulo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--f-2);
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.f-config-grupo-titulo span { color: var(--f-tinta-2); font-size: 13px; font-weight: 600; }
+
+.f-config-lista { display: flex; flex-direction: column; }
+
+.f-config-fila {
+  display: flex;
+  width: 100%;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-3);
+  padding: var(--f-3) 0;
+  border: 0;
+  border-bottom: 1px solid var(--f-superficie-2);
+  background: transparent;
+  color: var(--f-tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.f-config-fila:last-child { border-bottom: 0; }
+.f-config-fila:disabled { cursor: default; }
+.f-config-fila:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+
+.f-config-fila-texto { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.f-config-fila-texto strong { font-size: 16px; font-weight: 700; line-height: 1.25; }
+.f-config-fila-texto small { color: var(--f-tinta-2); font-size: 13px; font-weight: 600; line-height: 1.35; }
+.f-config-fila-texto .f-etiqueta { margin-top: var(--f-1); }
+
+/* Interruptor: apagado gris, prendido tinta (la tinta es "elegido"). */
+.f-config-interruptor {
+  position: relative;
+  display: block;
+  width: 52px;
+  height: 32px;
+  flex: 0 0 52px;
+  border-radius: var(--f-radio-chip);
+  background: var(--f-borde);
+  transition: background 0.15s ease;
+}
+
+.f-config-interruptor i {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--f-superficie);
+  transition: transform 0.15s ease;
+}
+
+.f-config-interruptor[data-activa='true'] { background: var(--f-elegido); }
+.f-config-interruptor[data-activa='true'] i { background: var(--f-sobre-elegido); transform: translateX(20px); }
+.f-config-interruptor[data-cargando='true'] { opacity: 0.6; }
+
+/* ───────────── Sesión ───────────── */
+
+.f-config-sesion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-3);
+}
+
+.f-config-sesion .f-dato { margin: 2px 0 0; }
+.f-config-sesion > .f-boton { flex: 1 1 200px; }
+
+@media (min-width: 900px) {
+  .f-config-cuerpo { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--f-6); }
+  .f-config-col { gap: var(--f-6); }
+  .f-config-sesion > .f-boton { flex: 0 0 auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f-config-interruptor,
+  .f-config-interruptor i { transition: none; }
+}

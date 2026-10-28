@@ -80,3 +80,19 @@ describe('PantallaInicio', () => {
     expect(screen.getByRole('link', { name: /cerrar caja/i }).getAttribute('href')).toBe('/plata')
   })
 })
+
+describe('PantallaInicio para un vendedor', () => {
+  it('no ofrece el atajo de factura: cargar mercadería es del dueño', async () => {
+    await repos.productos.guardar({ codigoBarras: null, nombre: 'Yerba', costo: 300000, precio: 420000, stock: 10, stockMinimo: 3 })
+    await db.negocio.put({ id: 'unico', nombre: 'Almacén', logo: null, color: null, negocioId: 'n-1', usuarioId: 'u-2', rol: 'vendedor' })
+    render(<PantallaInicio />)
+    expect(await screen.findByRole('link', { name: /^vender/i })).toBeTruthy()
+    expect(screen.queryByRole('link', { name: /foto de factura/i })).toBeNull()
+  })
+
+  it('el dueño sí lo ve', async () => {
+    await repos.productos.guardar({ codigoBarras: null, nombre: 'Yerba', costo: 300000, precio: 420000, stock: 10, stockMinimo: 3 })
+    render(<PantallaInicio />)
+    expect(await screen.findByRole('link', { name: /foto de factura/i })).toBeTruthy()
+  })
+})

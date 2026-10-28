@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { rolDe, rutaPermitida, seccionPermitida } from '@/dominio/roles'
+import { puede, rolDe, rutaPermitida, seccionPermitida, ACCIONES_SOLO_DUENO } from '@/dominio/roles'
 
 describe('roles', () => {
   it('sólo "vendedor" es vendedor; cualquier otra cosa es dueño', () => {
@@ -22,5 +22,13 @@ describe('roles', () => {
     expect(rutaPermitida('vendedor', '/plataforma')).toBe(true)
     expect(rutaPermitida('vendedor', '/vender')).toBe(true)
     expect(rutaPermitida('dueno', '/plata')).toBe(true)
+  })
+
+  it('las acciones que la base le niega al vendedor tampoco se le ofrecen', () => {
+    for (const accion of ['editarProductos', 'ajustarStock', 'cargarMercaderia', 'anularVentas', 'borrarClientes'] as const) {
+      expect(ACCIONES_SOLO_DUENO).toContain(accion)
+      expect(puede('vendedor', accion)).toBe(false)
+      expect(puede('dueno', accion)).toBe(true)
+    }
   })
 })

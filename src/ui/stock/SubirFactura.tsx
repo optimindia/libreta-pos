@@ -5,7 +5,9 @@ import { repos } from '@/datos/local/repos'
 import { cliente } from '@/datos/nube/cliente'
 import { formatearPesos } from '@/dominio/dinero'
 import { Boton } from '@/ui/sistema/Boton'
-import { IconoHistorial, IconoSubir } from '@/ui/sistema/iconos'
+import { Tarjeta } from '@/ui/sistema/Tarjeta'
+import { Hoja } from '@/ui/sistema/Hoja'
+import { IconoSubir } from '@/ui/sistema/iconos'
 
 interface ItemLeido {
   nombre: string
@@ -127,66 +129,54 @@ export function SubirFactura() {
   }
 
   return (
-    <div>
-      <div className="invoice-upload-picker">
-        <span className="invoice-upload-icon"><IconoSubir /></span>
-        <span className="invoice-upload-copy"><strong>{leyendo ? 'Leyendo factura…' : 'Leer una factura'}</strong><small>Elegí una foto clara y revisá los datos antes de sumar.</small></span>
-        <button type="button" className="button-with-icon invoice-upload-button" disabled={leyendo} onClick={() => archivo.current?.click()}>
-          <IconoSubir /> {leyendo ? 'Procesando' : 'Elegir foto'}
-        </button>
+    <div className="f-stock-factura">
+      <Tarjeta className="f-stock-subir">
+        <span className="f-stock-escanear-icono" aria-hidden="true"><IconoSubir /></span>
+        <span className="f-stock-escanear-texto"><strong>{leyendo ? 'Leyendo factura…' : 'Leer una factura'}</strong><small>Elegí una foto clara y revisá los datos antes de sumar.</small></span>
+        <Boton variante="secundario" disabled={leyendo} onClick={() => archivo.current?.click()}>
+          {leyendo ? 'Procesando' : 'Elegir foto'}
+        </Boton>
         <input
           ref={archivo}
           type="file" accept="image/*" capture="environment"
           aria-label="Foto de la factura"
-          className="sr-only"
+          className="f-sr"
           onChange={(evento) => {
             const foto = evento.target.files?.[0]
             if (foto) void leer(foto)
             evento.currentTarget.value = ''
           }}
         />
-      </div>
+      </Tarjeta>
 
-      {leyendo && (
-        <p className="mt-2 text-[12px]" style={{ color: 'var(--tenue)' }}>
-          Leyendo la factura…
-        </p>
+      {aviso && !items && (
+        <p role={avisoTipo === 'success' ? 'status' : 'alert'} className={avisoTipo === 'success' ? 'f-aviso f-stock-ok' : 'f-aviso'} data-tono={avisoTipo === 'success' ? undefined : 'ambar'}>{aviso}</p>
       )}
 
-      {aviso && (
-        <p role={avisoTipo === 'success' ? 'status' : 'alert'} className={`form-message ${avisoTipo === 'success' ? 'form-message-success' : 'form-message-error'}`}>{aviso}</p>
-      )}
-
-      {items && (
-        <form className="form-shell form-card invoice-review-form mt-3" onSubmit={(evento) => void confirmar(evento)}>
-          <div className="form-section-heading">
-            <span className="form-intro-icon" aria-hidden="true"><IconoHistorial /></span>
-            <div><h3>Revisá la factura</h3><p>La lectura es una sugerencia: corregí cantidades y costos antes de confirmar.</p></div>
-          </div>
-          <label className="form-field">
-            <span className="form-field-label">Proveedor <em>opcional</em></span>
-            <input aria-label="Proveedor de la factura" placeholder="Ej. Mayorista El Sol" className="form-input" value={proveedor} onChange={(evento) => setProveedor(evento.target.value)} />
+      <Hoja abierta={items !== null} onCerrar={() => setItems(null)} titulo="Revisá la factura">
+        {items && <form className="f-stock-form" onSubmit={(evento) => void confirmar(evento)}>
+          <p className="f-hoja-ayuda">La lectura es una sugerencia: corregí cantidades y costos antes de confirmar.</p>
+          <label className="f-campo">
+            <span>Proveedor <em>opcional</em></span>
+            <input aria-label="Proveedor de la factura" placeholder="Ej. Mayorista El Sol" className="f-entrada" value={proveedor} onChange={(evento) => setProveedor(evento.target.value)} />
           </label>
-          <div className="invoice-items-heading"><span>Producto</span><span>Unidades</span><span>Costo unitario</span></div>
-          <ul className="invoice-items-list">
+          <ul className="f-stock-items">
             {items.map((item, indice) => (
-              <li
-                key={`${item.nombre}-${indice}`}
-                className="invoice-item-row"
-              >
-                <span className="invoice-item-name">{item.nombre}</span>
-                <label className="invoice-item-field"><span className="sr-only">Unidades de {item.nombre}</span><input aria-label={`Cantidad de ${item.nombre}`} inputMode="numeric" className="form-input form-input-small tabular" value={item.cantidad} onChange={(evento) => cambiar(indice, 'cantidad', evento.target.value)} /></label>
-                <label className="invoice-item-field invoice-cost-field"><span className="invoice-cost-prefix" aria-hidden="true">$</span><span className="sr-only">Costo unitario de {item.nombre}</span><input aria-label={`Costo de ${item.nombre}`} inputMode="decimal" className="form-input form-input-small tabular" value={item.costoUnitario / 100} onChange={(evento) => cambiar(indice, 'costoUnitario', String(Number(evento.target.value) * 100))} /></label>
+              <li key={`${item.nombre}-${indice}`} className="f-stock-item">
+                <span className="f-renglon-titulo">{item.nombre}</span>
+                <label className="f-campo"><span>Unidades</span><input aria-label={`Cantidad de ${item.nombre}`} inputMode="numeric" className="f-entrada" value={item.cantidad} onChange={(evento) => cambiar(indice, 'cantidad', evento.target.value)} /></label>
+                <label className="f-campo"><span>Costo unitario</span><div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label={`Costo de ${item.nombre}`} inputMode="decimal" className="f-entrada" value={item.costoUnitario / 100} onChange={(evento) => cambiar(indice, 'costoUnitario', String(Number(evento.target.value) * 100))} /></div></label>
               </li>
             ))}
           </ul>
-          <div className="invoice-total-card"><span>Total de la compra</span><strong>{formatearPesos(items.reduce((total, item) => total + item.costoUnitario * item.cantidad, 0))}</strong></div>
-          <div className="form-actions">
+          <div className="f-stock-total"><span className="f-renglon-titulo">Total de la compra</span><strong className="f-plata-36">{formatearPesos(items.reduce((total, item) => total + item.costoUnitario * item.cantidad, 0))}</strong></div>
+          {aviso && <p role="alert" className="f-aviso" data-tono="ambar">{aviso}</p>}
+          <div className="f-stock-acciones">
             <Boton type="submit" variante="principal" disabled={confirmando}>{confirmando ? 'Sumando…' : 'Sumar al stock'}</Boton>
             <Boton type="button" variante="secundario" onClick={() => setItems(null)}>Cancelar</Boton>
           </div>
-        </form>
-      )}
+        </form>}
+      </Hoja>
     </div>
   )
 }

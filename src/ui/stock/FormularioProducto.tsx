@@ -7,7 +7,6 @@ import { pesosACentavos } from '@/dominio/dinero'
 import { hayErroresProducto, validarProducto, type ErroresProducto } from '@/dominio/validaciones'
 import { repos } from '@/datos/local/repos'
 import { Boton } from '@/ui/sistema/Boton'
-import { IconoEditar, IconoNuevaVenta } from '@/ui/sistema/iconos'
 
 const CATEGORIAS_SUGERIDAS = ['Almacén', 'Bebidas', 'Lácteos', 'Limpieza', 'Golosinas', 'Congelados', 'Panificados', 'Perfumería', 'Mascotas']
 
@@ -99,39 +98,28 @@ export function FormularioProducto({
   }
 
   return (
-    <form className="form-shell product-form" onSubmit={(evento) => void guardar(evento)}>
-      <div className="form-intro">
-        <span className="form-intro-icon" aria-hidden="true">{producto ? <IconoEditar /> : <IconoNuevaVenta />}</span>
-        <div>
-          <strong>{producto ? 'Actualizá la ficha' : 'Cargá los datos básicos'}</strong>
-          <p>{producto ? 'Los cambios se aplican al catálogo y a las próximas ventas.' : 'Con nombre, precio y stock ya podés empezar a vender.'}</p>
-        </div>
-      </div>
-
-      <section className="form-section">
-        <div className="form-section-heading">
-          <span className="form-step">1</span>
-          <div><h3>Identificación</h3><p>Cómo vas a encontrar este artículo al vender.</p></div>
-        </div>
-        <label className="form-field">
-          <span className="form-field-label">Nombre <em>obligatorio</em></span>
+    <form className="f-stock-form" onSubmit={(evento) => void guardar(evento)}>
+      <section className="f-stock-grupo">
+        <h3 className="f-stock-grupo-titulo">Identificación</h3>
+        <label className="f-campo">
+          <span>Nombre <em>obligatorio</em></span>
           <input
             aria-label="Nombre"
             autoFocus={!producto}
             placeholder="Ej. Yerba Playadito"
-            className="form-input"
+            className="f-entrada"
             value={nombre}
             aria-invalid={Boolean(errores.nombre)}
             onChange={(evento) => { setNombre(evento.target.value); setErrores((actuales) => ({ ...actuales, nombre: undefined })); setAviso(null) }}
           />
-          <span className="form-field-help">Usá un nombre corto y reconocible para encontrarlo rápido.</span>
-          {errores.nombre && <span className="form-error" role="alert">{errores.nombre}</span>}
+          <small className="f-stock-ayuda">Un nombre corto y reconocible para encontrarlo rápido.</small>
+          {errores.nombre && <small className="f-stock-error" role="alert">{errores.nombre}</small>}
         </label>
-        <label className="form-field">
-          <span className="form-field-label">Categoría <em>opcional</em></span>
+        <label className="f-campo">
+          <span>Categoría <em>opcional</em></span>
           <select
             aria-label="Categoría del producto"
-            className="form-input form-category-select"
+            className="f-entrada"
             value={categoriaPersonalizada ? '__otra__' : categoria}
             onChange={(evento) => {
               const valor = evento.target.value
@@ -147,83 +135,72 @@ export function FormularioProducto({
             <input
               aria-label="Nueva categoría del producto"
               placeholder="Ej. Librería"
-              className="form-input form-category-custom"
+              className="f-entrada"
               value={categoria}
               onChange={(evento) => setCategoria(evento.target.value)}
             />
           )}
-          <span className="form-field-help">Elegí una categoría para ordenar y filtrar tu catálogo más rápido.</span>
         </label>
       </section>
 
-      <section className="form-section">
-        <div className="form-section-heading">
-          <span className="form-step">2</span>
-          <div><h3>Precios</h3><p>Separá lo que te cuesta de lo que cobrás.</p></div>
-        </div>
-        <div className="form-field-row">
-          <label className="form-field">
-            <span className="form-field-label">Costo <em>lo que pagás</em></span>
-            <div className="form-input-with-prefix"><span aria-hidden="true">$</span><input aria-label="Costo" inputMode="decimal" placeholder="Ej. 800" className="form-input tabular" value={costo} aria-invalid={Boolean(errores.costo)} onChange={(evento) => { setCosto(evento.target.value); setErrores((actuales) => ({ ...actuales, costo: undefined })) }} /></div>
+      <section className="f-stock-grupo">
+        <h3 className="f-stock-grupo-titulo">Precios</h3>
+        <p className="f-stock-ayuda">El costo sirve para calcular tu ganancia. El precio es lo que ve el cliente.</p>
+        <div className="f-stock-fila-campos">
+          <label className="f-campo">
+            <span>Costo <em>lo que pagás</em></span>
+            <div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label="Costo" inputMode="decimal" placeholder="Ej. 800" className="f-entrada" value={costo} aria-invalid={Boolean(errores.costo)} onChange={(evento) => { setCosto(evento.target.value); setErrores((actuales) => ({ ...actuales, costo: undefined })) }} /></div>
           </label>
-          <label className="form-field">
-            <span className="form-field-label">Precio <em>lo que cobrás</em></span>
-            <div className="form-input-with-prefix"><span aria-hidden="true">$</span><input aria-label="Precio" inputMode="decimal" placeholder="Ej. 1.200" className="form-input tabular" value={precio} aria-invalid={Boolean(errores.precio)} onChange={(evento) => { setPrecio(evento.target.value); setErrores((actuales) => ({ ...actuales, precio: undefined })) }} /></div>
+          <label className="f-campo">
+            <span>Precio <em>lo que cobrás</em></span>
+            <div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label="Precio" inputMode="decimal" placeholder="Ej. 1.200" className="f-entrada" value={precio} aria-invalid={Boolean(errores.precio)} onChange={(evento) => { setPrecio(evento.target.value); setErrores((actuales) => ({ ...actuales, precio: undefined })) }} /></div>
           </label>
         </div>
-        {(errores.costo || errores.precio) && <p className="form-error" role="alert">{errores.costo ?? errores.precio}</p>}
-        <p className="form-callout">El costo sirve para calcular tu ganancia. El precio es el importe que verá el cliente.</p>
+        {(errores.costo || errores.precio) && <p className="f-stock-error" role="alert">{errores.costo ?? errores.precio}</p>}
       </section>
 
-      <section className="form-section product-offer-section">
-        <div className="form-section-heading">
-          <span className="form-step">＋</span>
-          <div><h3>Oferta opcional</h3><p>Mostrá un precio especial sin perder el precio habitual.</p></div>
-        </div>
-        <div className="form-field-row">
-          <label className="form-field">
-            <span className="form-field-label">Precio oferta <em>opcional</em></span>
-            <div className="form-input-with-prefix"><span aria-hidden="true">$</span><input aria-label="Oferta promocional" inputMode="decimal" placeholder="Ej. 1.050" className="form-input tabular" value={precioOferta} onChange={(evento) => { setPrecioOferta(evento.target.value); setAviso(null) }} /></div>
+      <section className="f-stock-grupo">
+        <h3 className="f-stock-grupo-titulo">Oferta <em>opcional</em></h3>
+        <p className="f-stock-ayuda">Aparece en Vender y se copia al ticket. Dejá los dos campos vacíos para quitarla.</p>
+        <div className="f-stock-fila-campos">
+          <label className="f-campo">
+            <span>Precio oferta <em>opcional</em></span>
+            <div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label="Oferta promocional" inputMode="decimal" placeholder="Ej. 1.050" className="f-entrada" value={precioOferta} onChange={(evento) => { setPrecioOferta(evento.target.value); setAviso(null) }} /></div>
           </label>
-          <label className="form-field">
-            <span className="form-field-label">Válida hasta <em>opcional</em></span>
-            <input aria-label="Fin de la oferta" type="date" className="form-input" value={ofertaHasta} onChange={(evento) => { setOfertaHasta(evento.target.value); setAviso(null) }} />
+          <label className="f-campo">
+            <span>Válida hasta <em>opcional</em></span>
+            <input aria-label="Fin de la oferta" type="date" className="f-entrada" value={ofertaHasta} onChange={(evento) => { setOfertaHasta(evento.target.value); setAviso(null) }} />
           </label>
         </div>
-        <span className="form-field-help">La oferta aparece en Vender y se copia al ticket; dejá ambos campos vacíos para quitarla.</span>
       </section>
 
-      <section className="form-section">
-        <div className="form-section-heading">
-          <span className="form-step">3</span>
-          <div><h3>Control de stock</h3><p>Definí cómo querés cuidar las existencias.</p></div>
-        </div>
-        <div className="form-field-row form-field-row-code">
-          <label className="form-field">
-            <span className="form-field-label">Código de barras <em>opcional</em></span>
-            <input aria-label="Código de barras" inputMode="numeric" placeholder="Escaneá o escribí el código" className="form-input tabular" value={codigo} aria-invalid={Boolean(errores.codigoBarras)} onChange={(evento) => { setCodigo(evento.target.value); setErrores((actuales) => ({ ...actuales, codigoBarras: undefined })) }} />
-            <span className="form-field-help">Podés usar el lector o dejarlo vacío.</span>
+      <section className="f-stock-grupo">
+        <h3 className="f-stock-grupo-titulo">Control de stock</h3>
+        <div className="f-stock-fila-campos f-stock-fila-ancha">
+          <label className="f-campo">
+            <span>Código de barras <em>opcional</em></span>
+            <input aria-label="Código de barras" inputMode="numeric" placeholder="Escaneá o escribí el código" className="f-entrada" value={codigo} aria-invalid={Boolean(errores.codigoBarras)} onChange={(evento) => { setCodigo(evento.target.value); setErrores((actuales) => ({ ...actuales, codigoBarras: undefined })) }} />
           </label>
-          <label className="form-field">
-            <span className="form-field-label">Mínimo <em>unidades</em></span>
-            <input aria-label="Mínimo" inputMode="numeric" placeholder="3" className="form-input tabular" value={minimo} aria-invalid={Boolean(errores.stockMinimo)} onChange={(evento) => { setMinimo(evento.target.value); setErrores((actuales) => ({ ...actuales, stockMinimo: undefined })) }} />
-            <span className="form-field-help">Te avisamos cuando llegues a este número.</span>
+          <label className="f-campo">
+            <span>Mínimo <em>unidades</em></span>
+            <input aria-label="Mínimo" inputMode="numeric" placeholder="3" className="f-entrada" value={minimo} aria-invalid={Boolean(errores.stockMinimo)} onChange={(evento) => { setMinimo(evento.target.value); setErrores((actuales) => ({ ...actuales, stockMinimo: undefined })) }} />
+            <small className="f-stock-ayuda">Te avisamos cuando llegues a este número.</small>
           </label>
         </div>
-        {(errores.codigoBarras || errores.stockMinimo) && <p className="form-error" role="alert">{errores.codigoBarras ?? errores.stockMinimo}</p>}
+        {(errores.codigoBarras || errores.stockMinimo) && <p className="f-stock-error" role="alert">{errores.codigoBarras ?? errores.stockMinimo}</p>}
 
         {!producto && (
-          <label className="form-field form-stock-field">
-            <span className="form-field-label">Stock inicial <em>unidades disponibles hoy</em></span>
-            <input aria-label="Stock inicial" inputMode="numeric" placeholder="Ej. 12" className="form-input tabular" value={stockInicial} aria-invalid={Boolean(errores.stockInicial)} onChange={(evento) => { setStockInicial(evento.target.value); setErrores((actuales) => ({ ...actuales, stockInicial: undefined })) }} />
-            <span className="form-field-help">Si todavía no tenés unidades, dejá 0. Después podés sumar ingresos.</span>
-            {errores.stockInicial && <span className="form-error" role="alert">{errores.stockInicial}</span>}
+          <label className="f-campo">
+            <span>Stock inicial <em>unidades disponibles hoy</em></span>
+            <input aria-label="Stock inicial" inputMode="numeric" placeholder="Ej. 12" className="f-entrada" value={stockInicial} aria-invalid={Boolean(errores.stockInicial)} onChange={(evento) => { setStockInicial(evento.target.value); setErrores((actuales) => ({ ...actuales, stockInicial: undefined })) }} />
+            <small className="f-stock-ayuda">Si todavía no tenés unidades, dejá 0. Después podés sumar ingresos.</small>
+            {errores.stockInicial && <small className="f-stock-error" role="alert">{errores.stockInicial}</small>}
           </label>
         )}
       </section>
 
-      {aviso && <p className="form-error form-error-banner" role="alert">{aviso}</p>}
-      <div className="form-actions">
+      {aviso && <p className="f-aviso" data-tono="ambar" role="alert">{aviso}</p>}
+      <div className="f-stock-acciones">
         <Boton variante="principal" type="submit" disabled={guardando}>
           {guardando ? 'Guardando…' : producto ? 'Guardar cambios' : 'Guardar producto'}
         </Boton>

@@ -1,28 +1,43 @@
 'use client'
 
+import './fiados.css'
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/datos/local/db'
 import { repos } from '@/datos/local/repos'
 import { deudaPorCliente, saldoFiado } from '@/dominio/fiado'
-import { pesosACentavos } from '@/dominio/dinero'
-import { estadoVencimiento, etiquetaVencimiento, porcentajeLimite, riesgoFiado, type RiesgoFiado } from '@/dominio/inteligencia'
+import { formatearPesos, pesosACentavos } from '@/dominio/dinero'
+import { estadoVencimiento, etiquetaVencimiento, porcentajeLimite, riesgoFiado, type EstadoVencimiento } from '@/dominio/inteligencia'
 import { normalizarTexto } from '@/dominio/validaciones'
 import type { Cliente, UUID } from '@/dominio/tipos'
 import { mensajeCobro, mensajePagoFiado, enlaceWhatsApp } from '@/dominio/mensajes'
-import { Importe } from '@/ui/sistema/Importe'
-import { Boton } from '@/ui/sistema/Boton'
-import { IconoEditar, IconoFiados, IconoHistorial, IconoNuevoCliente, IconoWhatsApp } from '@/ui/sistema/iconos'
+import { Boton, clasesBoton } from '@/ui/sistema/Boton'
+import { CampoBusqueda } from '@/ui/sistema/CampoBusqueda'
+import { Chip, Chips } from '@/ui/sistema/Chip'
+import { Etiqueta, type TonoEtiqueta } from '@/ui/sistema/Etiqueta'
+import { Hoja } from '@/ui/sistema/Hoja'
+import { Tarjeta } from '@/ui/sistema/Tarjeta'
+import { IconoEditar, IconoWhatsApp } from '@/ui/sistema/iconos'
+import { usePantallaAncha } from './usoPantallaAncha'
 
 function iniciales(nombre: string): string {
   return nombre.split(' ').slice(0, 2).map((palabra) => palabra.charAt(0).toUpperCase()).join('')
 }
 
-function etiquetaRiesgo(riesgo: RiesgoFiado): string {
-  if (riesgo === 'alto') return 'Riesgo alto'
-  if (riesgo === 'medio') return 'Riesgo medio'
-  if (riesgo === 'bajo') return 'Riesgo bajo'
-  return 'Sin deuda'
+function fechaLarga(epoch: number): string {
+  return new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long' }).format(new Date(epoch))
+}
+
+function textoAntiguedad(dias: number): string {
+  if (dias === 0) return 'Anotado hoy'
+  return `Hace ${dias} ${dias === 1 ? 'día' : 'días'}`
+}
+
+const ETIQUETA_ESTADO: Record<EstadoVencimiento, { texto: string; tono: TonoEtiqueta }> = {
+  vencido: { texto: 'Vencido', tono: 'coral' },
+  'vence-pronto': { texto: 'Vence pronto', tono: 'ambar' },
+  'al-dia': { texto: 'Al día', tono: 'gris' },
+  'sin-vencimiento': { texto: 'Sin vencimiento', tono: 'gris' },
 }
 
 function ClienteForm({
@@ -63,60 +78,57 @@ function ClienteForm({
   }
 
   return (
-    <form className="form-shell form-card fiado-client-form mt-3" onSubmit={guardar}>
-      <div className="form-section-heading">
-        <span className="form-intro-icon" aria-hidden="true"><IconoNuevoCliente /></span>
-        <div><h2>{cliente ? `Editar ${cliente.nombre}` : 'Nuevo cliente'}</h2><p>{cliente ? 'Actualizá los datos que usás para seguir su cuenta.' : 'Guardá sus datos una sola vez para anotar fiados más rápido.'}</p></div>
-      </div>
-      <label className="form-field">
-        <span className="form-field-label">Nombre <em>obligatorio</em></span>
-        <input
-          aria-label="Nombre del cliente"
-          autoFocus
-          placeholder="Ej. Marta González"
-          className="form-input"
-          value={nombre}
-          onChange={(evento) => { setNombre(evento.target.value); setAviso(null) }}
-        />
-      </label>
-      <label className="form-field">
-        <span className="form-field-label">Límite de fiado <em>opcional</em></span>
-        <div className="form-input-with-prefix"><span aria-hidden="true">$</span><input aria-label="Límite de fiado" inputMode="decimal" placeholder="Ej. 30.000" className="form-input tabular" value={limite} onChange={(evento) => setLimite(evento.target.value)} /></div>
-        <span className="form-field-help">Te avisamos cuando la deuda se acerque a este monto.</span>
-      </label>
-      <label className="form-field">
-        <span className="form-field-label">Teléfono para WhatsApp <em>opcional</em></span>
-        <input
-          aria-label="Teléfono del cliente"
-          inputMode="tel"
-          placeholder="Ej. 261 555 1234"
-          className="form-input"
-          value={telefono}
-          onChange={(evento) => setTelefono(evento.target.value)}
-        />
-        <span className="form-field-help">Lo usamos para enviar recordatorios o comprobantes por WhatsApp.</span>
-      </label>
-      <div className="form-actions">
-        <Boton variante="principal" type="submit" disabled={guardando}>
+    <Hoja abierta onCerrar={onCancel} titulo={cliente ? `Editar ${cliente.nombre}` : 'Nuevo cliente'} ancho="angosto">
+      <form className="f-fiados-form" onSubmit={guardar}>
+        <p className="f-hoja-ayuda">{cliente ? 'Actualizá los datos que usás para seguir su cuenta.' : 'Guardá sus datos una sola vez para anotar fiados más rápido.'}</p>
+        <label className="f-campo">
+          <span>Nombre <em>obligatorio</em></span>
+          <input
+            aria-label="Nombre del cliente"
+            autoFocus
+            placeholder="Ej. Marta González"
+            className="f-entrada"
+            value={nombre}
+            onChange={(evento) => { setNombre(evento.target.value); setAviso(null) }}
+          />
+        </label>
+        <label className="f-campo">
+          <span>Límite de fiado <em>opcional</em></span>
+          <span className="f-fiados-pesos">
+            <span aria-hidden="true">$</span>
+            <input aria-label="Límite de fiado" inputMode="decimal" placeholder="Ej. 30.000" className="f-entrada tabular" value={limite} onChange={(evento) => setLimite(evento.target.value)} />
+          </span>
+          <small className="f-dato">Te avisamos cuando la deuda se acerque a este monto.</small>
+        </label>
+        <label className="f-campo">
+          <span>Teléfono para WhatsApp <em>opcional</em></span>
+          <input
+            aria-label="Teléfono del cliente"
+            inputMode="tel"
+            placeholder="Ej. 261 555 1234"
+            className="f-entrada"
+            value={telefono}
+            onChange={(evento) => setTelefono(evento.target.value)}
+          />
+          <small className="f-dato">Lo usamos para enviar recordatorios o comprobantes por WhatsApp.</small>
+        </label>
+        {aviso && <p className="f-aviso" role="alert">{aviso}</p>}
+        <Boton variante="principal" type="submit" ancho disabled={guardando}>
           {guardando ? 'Guardando…' : 'Guardar cliente'}
         </Boton>
-        <Boton variante="secundario" type="button" onClick={onCancel}>
-          Cancelar
-        </Boton>
-      </div>
-      {aviso && <p className="form-error form-error-banner" role="alert">{aviso}</p>}
-    </form>
+      </form>
+    </Hoja>
   )
 }
 
-function HistorialCliente({ clienteId, nombre, onCerrar }: { clienteId: UUID; nombre: string; onCerrar: () => void }) {
-  const datos = useLiveQuery(async () => {
+function Movimientos({ clienteId }: { clienteId: UUID }) {
+  const movimientos = useLiveQuery(async () => {
     const [ventas, fiados, pagos] = await Promise.all([
       repos.ventas.todas(),
       db.fiados.where('clienteId').equals(clienteId).toArray(),
       repos.fiados.pagos(),
     ])
-    const movimientos = [
+    return [
       ...ventas
         .filter((venta) => venta.clienteId === clienteId)
         .map((venta) => ({ id: `venta-${venta.id}`, fecha: venta.fecha, tipo: 'Compra', monto: venta.total, signo: 1 })),
@@ -124,48 +136,137 @@ function HistorialCliente({ clienteId, nombre, onCerrar }: { clienteId: UUID; no
         .filter((pago) => fiados.some((fiado) => fiado.id === pago.fiadoId))
         .map((pago) => ({ id: `pago-${pago.id}`, fecha: pago.fecha, tipo: 'Pago', monto: pago.monto, signo: -1 })),
     ].sort((a, b) => b.fecha - a.fecha)
-    const saldo = fiados.reduce((total, fiado) => total + saldoFiado(fiado, pagos), 0)
-    return { movimientos, saldo }
   }, [clienteId])
 
-  if (!datos) return null
   return (
-    <div className="mt-3 rounded-2xl px-3.5 py-3" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)' }}>
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Historial de {nombre}</h2>
-        <button type="button" className="text-[12px]" style={{ color: 'var(--tenue)' }} onClick={onCerrar}>Cerrar</button>
-      </div>
-      <div className="mt-2 flex items-baseline justify-between">
-        <span className="text-[12px]" style={{ color: 'var(--tenue)' }}>Saldo actual</span>
-        <Importe centavos={datos.saldo} tamaño="chico" style={{ color: datos.saldo > 0 ? 'var(--ambar)' : 'var(--verde)' }} />
-      </div>
-      {datos.movimientos.length === 0 ? (
-        <p className="mt-3 text-[12px]" style={{ color: 'var(--tenue)' }}>Todavía no hay movimientos.</p>
+    <section className="f-fiados-movimientos" aria-label="Movimientos">
+      <h3 className="f-seccion">Movimientos</h3>
+      {!movimientos ? null : movimientos.length === 0 ? (
+        <p className="f-texto f-fiados-vacio">Todavía no hay movimientos.</p>
       ) : (
-        <ul className="mt-2">
-          {datos.movimientos.map((movimiento) => (
-            <li key={movimiento.id} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--linea)' }}>
-              <div>
-                <div className="text-[12px] font-medium">{movimiento.tipo}</div>
-                <div className="text-[12px]" style={{ color: 'var(--tenue)' }}>{new Date(movimiento.fecha).toLocaleDateString('es-AR')}</div>
-              </div>
-              <Importe centavos={movimiento.monto} tamaño="chico" style={{ color: movimiento.signo > 0 ? 'var(--ambar)' : 'var(--verde)' }} />
+        <ul className="f-fiados-movimientos-lista">
+          {movimientos.map((movimiento) => (
+            <li key={movimiento.id} className="f-renglon">
+              <span className="f-renglon-cuerpo">
+                <span className="f-renglon-titulo">{movimiento.tipo}</span>
+                <span className="f-renglon-detalle">{fechaLarga(movimiento.fecha)}</span>
+              </span>
+              <span className="f-renglon-fin" data-signo={movimiento.signo > 0 ? 'debe' : 'pago'}>
+                {movimiento.signo > 0 ? '+' : '−'}{formatearPesos(movimiento.monto)}
+              </span>
             </li>
           ))}
         </ul>
       )}
+    </section>
+  )
+}
+
+type Deuda = {
+  clienteId: UUID
+  saldo: number
+  diasDelMasViejo: number
+  cliente: Cliente
+  vence: number | null
+  estado: EstadoVencimiento
+  riesgo: ReturnType<typeof riesgoFiado>
+  porcentajeLimite: number | null
+}
+
+function DetalleCuenta({
+  deuda,
+  onCobrarTodo,
+  onRegistrarPago,
+  onEditar,
+}: {
+  deuda: Deuda
+  onCobrarTodo: () => void
+  onRegistrarPago: () => void
+  onEditar: () => void
+}) {
+  const { cliente } = deuda
+  const estado = ETIQUETA_ESTADO[deuda.estado]
+  const uso = deuda.porcentajeLimite
+  return (
+    <div className="f-fiados-cuenta">
+      <div className="f-fiados-cuenta-cabeza">
+        <span className="f-fiados-avatar" data-grande="true" data-vencido={deuda.estado === 'vencido'} aria-hidden="true">{iniciales(cliente.nombre)}</span>
+        <span className="f-fiados-cuenta-nombre">
+          <h2 className="f-fiados-cuenta-titulo">{cliente.nombre}</h2>
+          <span className="f-dato">
+            {cliente.telefono ?? 'Sin teléfono'}
+            {cliente.limiteFiado ? ` · límite ${formatearPesos(cliente.limiteFiado)}` : ''}
+          </span>
+        </span>
+        <span className="f-fiados-etiquetas">
+          <Etiqueta tono={estado.tono}>{estado.texto}</Etiqueta>
+          {deuda.riesgo === 'alto' && <Etiqueta tono="coral">Riesgo alto</Etiqueta>}
+          {deuda.riesgo === 'medio' && <Etiqueta tono="ambar">Riesgo medio</Etiqueta>}
+        </span>
+      </div>
+
+      <div className="f-fiados-datos">
+        <div className="f-fiados-dato">
+          <span className="f-dato">Debe</span>
+          <b className="f-fiados-dato-grande" data-tono="coral">{formatearPesos(deuda.saldo)}</b>
+        </div>
+        <div className="f-fiados-dato">
+          <span className="f-dato">Le fiás desde</span>
+          <b className="f-fiados-dato-medio">{textoAntiguedad(deuda.diasDelMasViejo)}</b>
+          <span className="f-dato">{etiquetaVencimiento(deuda.vence)}</span>
+        </div>
+        <div className="f-fiados-dato">
+          <span className="f-dato">Usó de su límite</span>
+          {uso === null ? (
+            <b className="f-fiados-dato-medio">Sin límite</b>
+          ) : (
+            <>
+              <b className="f-fiados-dato-medio">{uso}%</b>
+              <span className="f-fiados-barra" role="img" aria-label={`Usó ${uso}% de su límite`}>
+                <span style={{ width: `${Math.min(100, uso)}%` }} data-lleno={uso >= 100} />
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="f-fiados-acciones">
+        <Boton variante="principal" tamano="grande" onClick={onCobrarTodo}>
+          Cobrar todo <span className="f-fiados-monto">{formatearPesos(deuda.saldo)}</span>
+        </Boton>
+        <Boton variante="secundario" tamano="grande" onClick={onRegistrarPago}>
+          Registrar pago
+        </Boton>
+        {cliente.telefono && (
+          <a
+            className={clasesBoton('secundario')}
+            data-tamano="grande"
+            target="_blank"
+            rel="noreferrer"
+            href={enlaceWhatsApp(cliente.telefono, mensajeCobro(cliente, deuda.saldo, deuda.diasDelMasViejo))}
+          >
+            <IconoWhatsApp /> Mandar mensaje
+          </a>
+        )}
+        <Boton variante="secundario" tamano="grande" onClick={onEditar}>
+          <IconoEditar /> Editar cliente
+        </Boton>
+      </div>
+
+      <Movimientos clienteId={deuda.clienteId} />
     </div>
   )
 }
 
 export function PantallaFiados() {
+  const ancha = usePantallaAncha()
   const [busqueda, setBusqueda] = useState('')
+  const [seleccionado, setSeleccionado] = useState<UUID | null>(null)
   const [clientePagando, setClientePagando] = useState<UUID | null>(null)
   const [montoPago, setMontoPago] = useState('')
   const [guardandoPago, setGuardandoPago] = useState(false)
   const [avisoPago, setAvisoPago] = useState<string | null>(null)
   const [formularioCliente, setFormularioCliente] = useState<'nuevo' | Cliente | null>(null)
-  const [historialCliente, setHistorialCliente] = useState<UUID | null>(null)
   const [soloVencidos, setSoloVencidos] = useState(false)
   const [ultimoPago, setUltimoPago] = useState<{ clienteId: UUID; monto: number } | null>(null)
   const datos = useLiveQuery(async () => {
@@ -175,42 +276,45 @@ export function PantallaFiados() {
       repos.clientes.todos(),
     ])
     const ahora = Date.now()
-    const deudas = deudaPorCliente(fiados, pagos, ahora)
-      .map((deuda) => ({
-        ...deuda,
-        cliente: clientes.find((cliente) => cliente.id === deuda.clienteId),
-        fiadosDelCliente: fiados.filter((fiado) => fiado.clienteId === deuda.clienteId),
-      }))
-      .filter((deuda) => deuda.cliente !== undefined)
-      .map((deuda) => {
-        const abiertos = deuda.fiadosDelCliente.filter((fiado) => saldoFiado(fiado, pagos) > 0)
-        const vencimientos = abiertos.map((fiado) => fiado.vence).filter((vence): vence is number => vence !== null)
-        const vence = vencimientos.length > 0 ? Math.min(...vencimientos) : null
-        return {
-          ...deuda,
-          vence,
-          estado: estadoVencimiento(vence, ahora),
-          riesgo: riesgoFiado(deuda.saldo, deuda.cliente!.limiteFiado, deuda.diasDelMasViejo),
-          porcentajeLimite: porcentajeLimite(deuda.saldo, deuda.cliente!.limiteFiado),
-        }
+    const deudas: Deuda[] = []
+    for (const deuda of deudaPorCliente(fiados, pagos, ahora)) {
+      const cliente = clientes.find((item) => item.id === deuda.clienteId)
+      if (!cliente) continue
+      const abiertos = fiados.filter((fiado) => fiado.clienteId === deuda.clienteId && saldoFiado(fiado, pagos) > 0)
+      const vencimientos = abiertos.map((fiado) => fiado.vence).filter((vence): vence is number => vence !== null)
+      const vence = vencimientos.length > 0 ? Math.min(...vencimientos) : null
+      deudas.push({
+        clienteId: deuda.clienteId,
+        saldo: deuda.saldo,
+        diasDelMasViejo: deuda.diasDelMasViejo,
+        cliente,
+        vence,
+        estado: estadoVencimiento(vence, ahora),
+        riesgo: riesgoFiado(deuda.saldo, cliente.limiteFiado, deuda.diasDelMasViejo),
+        porcentajeLimite: porcentajeLimite(deuda.saldo, cliente.limiteFiado),
       })
+    }
     return { deudas, clientes }
-  }, [], { deudas: [], clientes: [] })
+  }, [], { deudas: [] as Deuda[], clientes: [] as Cliente[] })
 
   const aguja = normalizarTexto(busqueda)
   const deudas = datos.deudas.filter((deuda) => {
     if (soloVencidos && deuda.estado !== 'vencido') return false
     if (aguja === '') return true
-    return normalizarTexto(`${deuda.cliente!.nombre} ${deuda.cliente!.telefono ?? ''}`).includes(aguja)
+    return normalizarTexto(`${deuda.cliente.nombre} ${deuda.cliente.telefono ?? ''}`).includes(aguja)
   })
   const vencidas = datos.deudas.filter((deuda) => deuda.estado === 'vencido').length
   const totalDeuda = datos.deudas.reduce((total, deuda) => total + deuda.saldo, 0)
-  const clienteHistorial = historialCliente ? datos.clientes.find((cliente) => cliente.id === historialCliente) : undefined
+  // En la PC siempre hay una cuenta a la vista (la elegida o la primera);
+  // en el celu sólo cuando se toca un cliente.
+  const abierta = datos.deudas.find((deuda) => deuda.clienteId === seleccionado) ?? (ancha ? deudas[0] : undefined)
+  const pagando = clientePagando ? datos.deudas.find((deuda) => deuda.clienteId === clientePagando) : undefined
 
   async function cobrarTodo(clienteId: UUID, saldo: number) {
     if (saldo <= 0) return
     const pagado = await repos.fiados.pagarCliente(clienteId, saldo)
     setUltimoPago({ clienteId, monto: pagado })
+    setSeleccionado(null)
   }
 
   async function registrarPago(clienteId: UUID, saldo: number) {
@@ -237,25 +341,109 @@ export function PantallaFiados() {
     }
   }
 
+  const detalle = abierta && (
+    <DetalleCuenta
+      deuda={abierta}
+      onCobrarTodo={() => void cobrarTodo(abierta.clienteId, abierta.saldo)}
+      onRegistrarPago={() => { setClientePagando(abierta.clienteId); setMontoPago(''); setAvisoPago(null) }}
+      onEditar={() => setFormularioCliente(abierta.cliente)}
+    />
+  )
+
+  const clientePago = ultimoPago ? datos.clientes.find((item) => item.id === ultimoPago.clienteId) : undefined
+  const deudaActualPago = ultimoPago ? datos.deudas.find((item) => item.clienteId === ultimoPago.clienteId)?.saldo ?? 0 : 0
+
   return (
-    <div className="page-fiados px-5 pt-6">
-      <div className="page-module-head fiados-head">
-        <div>
-          <span className="page-kicker">Relación con clientes</span>
-          <h1 className="page-title">Fiados</h1>
-          <div className="mt-2 text-[12px] font-semibold uppercase tracking-wider">Te deben</div>
-          <Importe centavos={totalDeuda} tamaño="grande" />
+    <div className="page-fiados f-fiados">
+      <div className="f-fiados-lista-col">
+        <header className="f-fiados-cabeza">
+          <h1 className="f-titulo">Fiados</h1>
+          <Boton variante="secundario" onClick={() => setFormularioCliente('nuevo')}>
+            + Cliente
+          </Boton>
+        </header>
+
+        <div className="f-fiados-total">
+          <span className="f-fiados-total-texto">
+            <span className="f-fiados-total-rotulo">Te deben</span>
+            <span className="f-dato">
+              {datos.deudas.length} {datos.deudas.length === 1 ? 'cliente' : 'clientes'} · {vencidas} {vencidas === 1 ? 'vencido' : 'vencidos'}
+            </span>
+          </span>
+          <b className="f-plata f-fiados-total-monto">{formatearPesos(totalDeuda)}</b>
         </div>
-        <Boton variante="secundario" className="button-with-icon !py-2.5 !text-[12px]" onClick={() => setFormularioCliente('nuevo')}>
-          <IconoNuevoCliente /> Nuevo cliente
-        </Boton>
+
+        {datos.clientes.length > 0 && (
+          <CampoBusqueda etiqueta="Buscar cliente en fiados" placeholder="Buscar cliente" valor={busqueda} onCambiar={setBusqueda} />
+        )}
+
+        {datos.deudas.length > 0 && (
+          <Chips etiqueta="Filtrar fiados">
+            <Chip activo={!soloVencidos} onClick={() => setSoloVencidos(false)}>Todos</Chip>
+            <Chip activo={soloVencidos} onClick={() => setSoloVencidos(true)}>Vencidos ({vencidas})</Chip>
+          </Chips>
+        )}
+
+        {ultimoPago && clientePago && (
+          <div className="f-fiados-pago" role="status">
+            <span>Pago de {clientePago.nombre} guardado: <strong>{formatearPesos(ultimoPago.monto)}</strong></span>
+            {clientePago.telefono && (
+              <a className="f-fiados-enlace" target="_blank" rel="noreferrer" href={enlaceWhatsApp(clientePago.telefono, mensajePagoFiado(clientePago, ultimoPago.monto, deudaActualPago))}>
+                Enviar comprobante por WhatsApp
+              </a>
+            )}
+          </div>
+        )}
+
+        {deudas.length === 0 ? (
+          datos.deudas.length === 0 ? (
+            <Tarjeta como="section" relleno="grande" className="f-fiados-vacia" aria-labelledby="fiados-vacio">
+              <Etiqueta tono="verde">Todo al día</Etiqueta>
+              <h2 id="fiados-vacio" className="f-seccion">No te debe nadie</h2>
+              <p className="f-texto">Cuando anotes una venta fiada, acá vas a ver quién debe, cuánto y desde cuándo.</p>
+              <Boton variante="principal" onClick={() => setFormularioCliente('nuevo')}>Agregar un cliente</Boton>
+            </Tarjeta>
+          ) : (
+            <p className="f-texto f-fiados-vacio">Ningún cliente coincide con la búsqueda.</p>
+          )
+        ) : (
+          <Tarjeta como="ul" relleno="ninguno" className="f-fiados-lista" aria-label="Clientes que deben">
+            {deudas.map((deuda) => {
+              const vencido = deuda.estado === 'vencido'
+              return (
+                <li key={deuda.clienteId}>
+                  <button
+                    type="button"
+                    className="f-fiados-fila"
+                    aria-current={abierta?.clienteId === deuda.clienteId ? 'true' : undefined}
+                    onClick={() => setSeleccionado(deuda.clienteId)}
+                  >
+                    <span className="f-fiados-avatar" data-vencido={vencido} aria-hidden="true">{iniciales(deuda.cliente.nombre)}</span>
+                    <span className="f-renglon-cuerpo">
+                      <span className="f-renglon-titulo">{deuda.cliente.nombre}</span>
+                      <span className="f-renglon-detalle" data-tono={vencido ? 'coral' : undefined}>{etiquetaVencimiento(deuda.vence)}</span>
+                    </span>
+                    <span className="f-renglon-fin">{formatearPesos(deuda.saldo)}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </Tarjeta>
+        )}
+
+        {deudas.length > 0 && <p className="f-texto f-fiados-pista">Tocá un cliente para cobrarle, ver su cuenta o recordarle por WhatsApp.</p>}
       </div>
 
-      <div className="fiados-summary-grid">
-        <div className="fiados-summary-card"><span>Clientes activos</span><strong>{datos.deudas.length}</strong></div>
-        <div className="fiados-summary-card"><span>Vencidos</span><strong style={{ color: vencidas > 0 ? 'var(--ambar)' : 'var(--verde)' }}>{vencidas}</strong></div>
-        <div className="fiados-summary-card"><span>Promedio por cliente</span><strong>{datos.deudas.length > 0 ? <Importe centavos={Math.round(totalDeuda / datos.deudas.length)} tamaño="chico" /> : '$0'}</strong></div>
-      </div>
+      {abierta && ancha && (
+        <Tarjeta como="section" relleno="grande" className="f-fiados-detalle" aria-label={`Cuenta de ${abierta.cliente.nombre}`}>
+          {detalle}
+        </Tarjeta>
+      )}
+      {abierta && !ancha && (
+        <Hoja abierta onCerrar={() => setSeleccionado(null)} titulo={`Cuenta de ${abierta.cliente.nombre}`}>
+          {detalle}
+        </Hoja>
+      )}
 
       {formularioCliente && (
         <ClienteForm
@@ -265,132 +453,34 @@ export function PantallaFiados() {
         />
       )}
 
-      {datos.clientes.length > 0 && (
-        <input
-          aria-label="Buscar cliente en fiados"
-          placeholder="Buscar cliente…"
-          className="mt-3 w-full rounded-xl px-3 py-2.5 text-[14px]"
-          style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)', color: 'var(--tinta)' }}
-          value={busqueda}
-          onChange={(evento) => setBusqueda(evento.target.value)}
-        />
-      )}
-
-      <div className="fiados-toolbar mt-2 flex gap-2">
-        <Boton variante={soloVencidos ? 'fiado' : 'secundario'} className="nb-chip-filtro" aria-pressed={soloVencidos} onClick={() => setSoloVencidos((actual) => !actual)}>
-          {soloVencidos ? 'Mostrando vencidos' : `Vencidos (${vencidas})`}
-        </Boton>
-      </div>
-
-      {ultimoPago && (() => {
-        const cliente = datos.clientes.find((item) => item.id === ultimoPago.clienteId)
-        const deudaActual = datos.deudas.find((item) => item.clienteId === ultimoPago.clienteId)?.saldo ?? 0
-        return cliente ? (
-          <div className="mt-3 rounded-xl px-3 py-2.5 text-[12px]" style={{ background: 'var(--chip-fondo)', border: '1px solid var(--linea)' }}>
-            <div>Pago de {cliente.nombre} guardado: <strong>{new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(ultimoPago.monto / 100)}</strong></div>
-            {cliente.telefono && <a className="mt-1 inline-block font-semibold" style={{ color: 'var(--verde)' }} target="_blank" rel="noreferrer" href={enlaceWhatsApp(cliente.telefono, mensajePagoFiado(cliente, ultimoPago.monto, deudaActual))}>Enviar comprobante por WhatsApp</a>}
-          </div>
-        ) : null
-      })()}
-
-      {clienteHistorial && historialCliente && (
-        <HistorialCliente clienteId={historialCliente} nombre={clienteHistorial.nombre} onCerrar={() => setHistorialCliente(null)} />
-      )}
-
-      {deudas.length === 0 ? (
-        datos.deudas.length === 0 ? (
-          <section className="fiados-empty-state" aria-labelledby="fiados-empty-title">
-            <span className="fiados-empty-icon" aria-hidden="true"><IconoFiados /></span>
-            <span className="fiados-empty-kicker">Todo al día</span>
-            <h2 id="fiados-empty-title">No te debe nadie</h2>
-            <p>Cuando anotes una venta fiada, acá vas a ver quién debe, cuánto y desde cuándo.</p>
-            <Boton variante="principal" className="button-with-icon fiados-empty-action" onClick={() => setFormularioCliente('nuevo')}><IconoNuevoCliente /> Agregar un cliente</Boton>
-          </section>
-        ) : (
-          <p className="px-0 py-12 text-center text-sm" style={{ color: 'var(--tenue)' }}>Ningún cliente coincide con la búsqueda.</p>
-        )
-      ) : (
-        <ul className="fiados-list mt-3">
-          {deudas.map((deuda) => (
-            <li key={deuda.clienteId} className="fiado-card">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold" style={{ background: 'var(--ambar-fondo)', color: 'var(--ambar)' }}>
-                  {iniciales(deuda.cliente!.nombre)}
-                </div>
-                <div className="min-w-0 flex-1 leading-tight">
-                  <div className="truncate text-[15px] font-semibold">{deuda.cliente!.nombre}</div>
-                  <div className="mt-0.5 text-[12px]" style={{ color: 'var(--tenue)' }}>
-                    {deuda.diasDelMasViejo === 0 ? 'anotado hoy' : `desde hace ${deuda.diasDelMasViejo} ${deuda.diasDelMasViejo === 1 ? 'día' : 'días'}`}
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    <span className="rounded-full px-1.5 py-0.5 text-[12px] font-semibold" style={{ background: deuda.riesgo === 'alto' ? 'var(--ambar-fondo)' : 'var(--hueso-2)', color: deuda.riesgo === 'alto' ? 'var(--ambar)' : 'var(--tenue)' }}>{etiquetaRiesgo(deuda.riesgo)}</span>
-                    <span className="rounded-full px-1.5 py-0.5 text-[12px]" style={{ background: deuda.estado === 'vencido' ? 'var(--ambar-fondo)' : 'var(--hueso-2)', color: deuda.estado === 'vencido' ? 'var(--ambar)' : 'var(--tenue)' }}>{etiquetaVencimiento(deuda.vence)}</span>
-                  </div>
-                </div>
-                <Importe centavos={deuda.saldo} style={{ color: 'var(--ambar)' }} />
-              </div>
-              {deuda.porcentajeLimite !== null && <div className="mt-2"><div className="flex justify-between text-[12px]" style={{ color: 'var(--tenue)' }}><span>Uso de límite</span><span>{deuda.porcentajeLimite}%</span></div><div className="mt-1 h-1.5 overflow-hidden rounded-full" style={{ background: 'var(--linea)' }}><div className="h-full rounded-full" style={{ width: `${Math.min(100, deuda.porcentajeLimite)}%`, background: deuda.porcentajeLimite >= 100 ? 'var(--ambar)' : 'var(--verde)' }} /></div></div>}
-
-              <div className="nb-acciones">
-                <Boton variante="principal" onClick={() => void cobrarTodo(deuda.clienteId, deuda.saldo)}>
-                  Cobrar todo
-                </Boton>
-                <Boton variante="secundario" onClick={() => { setClientePagando(deuda.clienteId); setMontoPago(''); setAvisoPago(null) }}>
-                  Registrar pago
-                </Boton>
-              </div>
-              <div className="nb-acciones-sec">
-                <button type="button" className="nb-accion-sec" onClick={() => setHistorialCliente(deuda.clienteId)}>
-                  <IconoHistorial /> Ver historial
-                </button>
-                {deuda.cliente!.telefono && (
-                  <a
-                    className="nb-accion-sec"
-                    target="_blank"
-                    rel="noreferrer"
-                    href={enlaceWhatsApp(deuda.cliente!.telefono, mensajeCobro(deuda.cliente!, deuda.saldo, deuda.diasDelMasViejo))}
-                  >
-                    <IconoWhatsApp /> Mandar mensaje
-                  </a>
-                )}
-                <button type="button" className="nb-accion-sec" onClick={() => setFormularioCliente(deuda.cliente!)}>
-                  <IconoEditar /> Editar cliente
-                </button>
-              </div>
-
-              {clientePagando === deuda.clienteId && (
-                <form className="form-shell form-card fiado-payment-form mt-3" onSubmit={(evento) => { evento.preventDefault(); void registrarPago(deuda.clienteId, deuda.saldo) }}>
-                  <div className="form-section-heading">
-                    <span className="form-step"><IconoFiados /></span>
-                    <div><h3>Registrar un pago</h3><p>El importe se descuenta de la deuda más antigua.</p></div>
-                  </div>
-                  <div className="form-callout payment-total-callout">
-                    <span>Deuda actual</span>
-                    <strong><Importe centavos={deuda.saldo} tamaño="normal" style={{ color: 'var(--ambar)' }} /></strong>
-                  </div>
-                  <label className="form-field">
-                    <span className="form-field-label">¿Cuánto pagó? <em>importe recibido</em></span>
-                    <div className="form-input-with-prefix"><span aria-hidden="true">$</span><input
-                      aria-label={`Pago de ${deuda.cliente!.nombre}`}
-                      inputMode="decimal"
-                      autoFocus
-                      placeholder="Ej. 2.000"
-                      className="form-input form-input-large tabular"
-                      value={montoPago}
-                      onChange={(evento) => { setMontoPago(evento.target.value); setAvisoPago(null) }}
-                    /></div>
-                    <span className="form-field-help">No puede superar la deuda actual.</span>
-                  </label>
-                  <div className="form-actions">
-                    <Boton variante="principal" type="submit" disabled={guardandoPago}>{guardandoPago ? 'Guardando…' : 'Confirmar pago'}</Boton>
-                    <Boton variante="secundario" type="button" onClick={() => setClientePagando(null)}>Cancelar</Boton>
-                  </div>
-                  {avisoPago && <p className="form-error form-error-banner" role="alert">{avisoPago}</p>}
-                </form>
-              )}
-            </li>
-          ))}
-        </ul>
+      {pagando && (
+        <Hoja abierta onCerrar={() => setClientePagando(null)} titulo="Registrar un pago" ancho="angosto">
+          <form className="f-fiados-form" onSubmit={(evento) => { evento.preventDefault(); void registrarPago(pagando.clienteId, pagando.saldo) }}>
+            <p className="f-hoja-ayuda">El importe se descuenta de la deuda más antigua de <b>{pagando.cliente.nombre}</b>.</p>
+            <div className="f-fiados-deuda-actual">
+              <span>Deuda actual</span>
+              <b className="f-plata">{formatearPesos(pagando.saldo)}</b>
+            </div>
+            <label className="f-campo">
+              <span>¿Cuánto pagó? <em>importe recibido</em></span>
+              <span className="f-fiados-pesos">
+                <span aria-hidden="true">$</span>
+                <input
+                  aria-label={`Pago de ${pagando.cliente.nombre}`}
+                  inputMode="decimal"
+                  autoFocus
+                  placeholder="Ej. 2.000"
+                  className="f-entrada tabular"
+                  value={montoPago}
+                  onChange={(evento) => { setMontoPago(evento.target.value); setAvisoPago(null) }}
+                />
+              </span>
+              <small className="f-dato">No puede superar la deuda actual.</small>
+            </label>
+            {avisoPago && <p className="f-aviso" role="alert">{avisoPago}</p>}
+            <Boton variante="principal" type="submit" ancho disabled={guardandoPago}>{guardandoPago ? 'Guardando…' : 'Confirmar pago'}</Boton>
+          </form>
+        </Hoja>
       )}
     </div>
   )

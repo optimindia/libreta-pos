@@ -21,3 +21,19 @@ export function rutaPermitida(rol: Rol, ruta: string): boolean {
   if (rol === 'dueno') return true
   return !RUTAS_SOLO_DUENO.some((prefijo) => ruta === prefijo || ruta.startsWith(`${prefijo}/`))
 }
+
+/** Lo que la base (RLS y triggers de 20261028140000_permisos_vendedor.sql)
+ *  le rechaza a un vendedor. La app no se lo ofrece, así nada queda trabado
+ *  en la cola esperando un permiso que no va a llegar. */
+export const ACCIONES_SOLO_DUENO = [
+  'editarProductos', // alta, ficha (nombre, precio, costo…) y borrado
+  'ajustarStock',
+  'cargarMercaderia',
+  'anularVentas',
+  'borrarClientes',
+] as const
+export type AccionSoloDueno = (typeof ACCIONES_SOLO_DUENO)[number]
+
+export function puede(rol: Rol, accion: AccionSoloDueno): boolean {
+  return rol === 'dueno' || !ACCIONES_SOLO_DUENO.includes(accion)
+}

@@ -1,0 +1,457 @@
+/* Sistema F · armazón y navegación (Navegacion.tsx, ControlAcceso.tsx).
+   PC (≥ 900 px): barra lateral oscura de 96 px a la izquierda.
+   Celu: barra oscura abajo con VENDER al centro en lima. */
+
+/* ───────────── Armazón ───────────── */
+
+.nb-app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--f-fondo);
+}
+
+.nb-app > .app-main {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(var(--f-alto-barra) + 32px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+.nb-app > .app-main > * {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+/* Las pantallas viejas traen su propio relleno (px-5 pt-6): el armazón ya
+   lo da, así que se anula para que todas arranquen a la misma altura. */
+.nb-app > .app-main > :is(.page-stock, .page-plata, .page-fiados, .page-historial, .page-config, .page-pedidos, .page-clientes, .page-account, [class*='page-']) {
+  padding-inline: 0 !important;
+  padding-top: 0 !important;
+}
+
+@media (min-width: 900px) {
+  .nb-app {
+    padding-left: var(--f-ancho-lateral);
+    transition: padding-left 0.18s ease;
+  }
+
+  .nb-app > .app-main {
+    padding: 28px clamp(24px, 3vw, 48px) 48px !important;
+  }
+}
+
+/* ───────────── Barra lateral (PC) ───────────── */
+
+.f-lateral { display: none; }
+
+@media (min-width: 900px) {
+  .f-lateral {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 40;
+    display: flex;
+    width: var(--f-ancho-lateral);
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0 16px;
+    border-right: 1px solid var(--f-nav-borde);
+    background: var(--f-nav);
+    color: var(--f-nav-texto);
+    transition: width 0.18s ease;
+  }
+}
+
+.f-lateral-marca {
+  display: grid;
+  flex: 0 0 auto;
+  margin-bottom: 16px;
+}
+
+.f-logo {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: var(--f-radio-control);
+  background: var(--f-lima);
+  color: #111A17;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.f-lateral-lista {
+  display: flex;
+  min-height: 0;
+  width: 100%;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.f-lateral-lista::-webkit-scrollbar { display: none; }
+
+.f-nav-item {
+  position: relative;
+  display: flex;
+  width: 80px;
+  min-height: 64px;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: var(--f-radio-control);
+  background: transparent;
+  color: var(--f-nav-texto);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.f-nav-item:hover { background: var(--f-nav-activo); color: var(--f-nav-texto-activo); }
+
+.f-nav-item[aria-current='page'] {
+  background: var(--f-nav-activo);
+  color: var(--f-nav-texto-activo);
+  font-weight: 800;
+}
+
+.f-nav-icono { display: grid; place-items: center; }
+.f-nav-icono svg { width: 22px; height: 22px; }
+.f-nav-item[aria-current='page'] .f-nav-icono svg { color: var(--f-lima); stroke-width: 2.2; }
+
+.f-nav-texto {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* El número de fiados abiertos: sobre el ícono, en coral. */
+.f-insignia {
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  place-items: center;
+  border-radius: var(--f-radio-chip);
+  background: var(--f-nav-insignia);
+  color: #111A17;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.f-nav-item .f-insignia {
+  position: absolute;
+  top: 6px;
+  left: calc(50% + 6px);
+}
+
+.f-lateral-pie {
+  display: flex;
+  width: 100%;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 12px;
+}
+
+.f-lateral-herramientas {
+  display: flex;
+  gap: 4px;
+}
+
+.f-nav-mini {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--f-nav-texto);
+  cursor: pointer;
+}
+
+.f-nav-mini:hover { background: var(--f-nav-activo); color: var(--f-nav-texto-activo); }
+.f-nav-mini svg { width: 20px; height: 20px; }
+
+.f-guardado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--f-nav-guardado);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.f-guardado-punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.f-guardado[data-pendiente='true'] { color: var(--f-nav-pendiente); }
+
+/* Compacta: 72 px, sólo íconos; el nombre aparece al pasar el mouse. */
+.f-lateral[data-compacta='true'] .f-nav-texto { display: none; }
+.f-lateral[data-compacta='true'] .f-nav-item { width: 56px; min-height: 52px; }
+.f-lateral[data-compacta='true'] .f-lateral-herramientas { flex-direction: column; }
+.f-lateral[data-compacta='true'] .f-nav-item .f-insignia { top: 4px; left: calc(50% + 4px); }
+
+.f-lateral[data-compacta='true'] [data-tip]:is(:hover, :focus-visible)::after {
+  content: attr(data-tip);
+  position: fixed;
+  left: calc(var(--f-ancho-lateral) - 4px);
+  z-index: 60;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--f-nav);
+  color: var(--f-nav-texto-activo);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ───────────── Barra inferior (celu) ───────────── */
+
+.f-barra {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: center;
+  height: calc(var(--f-alto-barra) + env(safe-area-inset-bottom, 0px));
+  padding: 0 4px env(safe-area-inset-bottom, 0px);
+  border-top: 1px solid var(--f-nav-borde);
+  background: var(--f-nav);
+}
+
+@media (min-width: 900px) {
+  .f-barra { display: none; }
+}
+
+.f-barra-item {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--f-nav-texto);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.f-barra-item > svg { width: 24px; height: 24px; }
+
+.f-barra-item > span:not(.f-insignia) {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.f-barra-item:is([aria-current='page'], [data-activa='true'], [aria-expanded='true']) {
+  color: var(--f-nav-texto-activo);
+  font-weight: 800;
+}
+
+.f-barra-item:is([aria-current='page'], [data-activa='true']) > svg { color: var(--f-lima); }
+
+.f-barra-item .f-insignia {
+  position: absolute;
+  top: 12px;
+  left: calc(50% + 4px);
+}
+
+.f-barra-vender {
+  display: flex;
+  height: 100%;
+  align-items: flex-start;
+  justify-content: center;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.f-barra-vender-boton {
+  display: grid;
+  width: 60px;
+  height: 60px;
+  margin-top: -18px;
+  place-items: center;
+  border: 4px solid var(--f-nav);
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-lima);
+  color: #111A17;
+  transition: transform 0.08s ease;
+}
+
+.f-barra-vender-boton svg { width: 26px; height: 26px; stroke-width: 2.4; }
+.f-barra-vender:active .f-barra-vender-boton { transform: translateY(2px); }
+
+/* En Vender, mientras hay una venta en curso, la barra de cobro ocupa el
+   lugar de la de secciones (como en el diseño de la caja). */
+@media (max-width: 899px) {
+  :root[data-venta='abierta'] .f-barra { display: none; }
+}
+
+/* ───────────── Hoja "Más" y editor del menú ───────────── */
+
+.f-mas-grilla {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.f-mas-item {
+  position: relative;
+  display: flex;
+  min-height: 88px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 6px;
+  border-radius: var(--f-radio-control);
+  background: var(--f-fondo);
+  color: var(--f-tinta);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.f-mas-item[aria-current='page'] { background: var(--f-elegido); color: var(--f-sobre-elegido); }
+.f-mas-icono { display: grid; place-items: center; }
+.f-mas-icono svg { width: 24px; height: 24px; }
+.f-mas-item .f-insignia { position: absolute; top: 8px; right: 8px; }
+
+.f-filas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.f-fila-accion {
+  display: flex;
+  width: 100%;
+  min-height: 52px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  border: 1.5px solid var(--f-borde);
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.f-fila-accion .f-nav-icono svg { width: 22px; height: 22px; }
+
+.f-editor {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.f-editor-fila {
+  display: flex;
+  min-height: 60px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--f-superficie-2);
+}
+
+.f-editor-icono {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: var(--f-radio-control);
+  background: var(--f-fondo);
+}
+
+.f-editor-icono svg { width: 22px; height: 22px; }
+
+.f-editor-nombre {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.f-editor-nombre small {
+  color: var(--f-tinta-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.f-editor-fila[data-oculta='true'] :is(.f-editor-icono, .f-editor-nombre) { opacity: 0.55; }
+
+.f-editor-acciones { display: flex; gap: 4px; }
+
+.f-interruptor[aria-checked='true'] { background: var(--f-verde-suave); color: var(--f-verde); }
+.f-interruptor[aria-checked='false'] { background: var(--f-superficie-2); color: var(--f-tinta-2); }
+
+.f-pasos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.f-pasos li { display: flex; align-items: center; gap: 12px; }
+
+.f-paso-icono {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border-radius: var(--f-radio-control);
+  background: var(--f-verde-suave);
+  color: var(--f-verde);
+}
