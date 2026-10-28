@@ -286,7 +286,7 @@ export function CentroPro() {
 
       <div className="pro-toolbar">
         <div><span className="pro-toolbar-kicker">Ventana de análisis</span><strong>{periodoLabel(periodo)}</strong><small>Las métricas se recalculan con tus datos locales.</small></div>
-        <div className="pro-periods" role="group" aria-label="Período de análisis">{PERIODOS.map((opcion) => <button key={opcion.id} type="button" className={periodo === opcion.id ? 'is-selected' : ''} aria-pressed={periodo === opcion.id} onClick={() => setPeriodo(opcion.id)}>{opcion.label}</button>)}</div>
+        <div className="pro-periods nb-segmentado" role="group" aria-label="Período de análisis">{PERIODOS.map((opcion) => <button key={opcion.id} type="button" className={periodo === opcion.id ? 'is-selected' : ''} aria-pressed={periodo === opcion.id} onClick={() => setPeriodo(opcion.id)}>{opcion.label}</button>)}</div>
       </div>
 
       {aviso && <div className="pro-toast" role="status"><IconoReintentar /><span>{aviso}</span><button type="button" onClick={() => setAviso(null)} aria-label="Cerrar aviso">×</button></div>}
@@ -358,7 +358,7 @@ export function CentroPro() {
 
       <section className="pro-quick-actions">
         <div><span className="page-kicker">Atajos de operación</span><h2>Resolver en dos toques</h2><p>Las acciones más usadas, siempre a mano.</p></div>
-        <div className="pro-quick-grid"><Link href="/" className="is-primary"><IconoEscanear /><span><strong>Nueva venta</strong><small>Escanear o buscar</small></span><IconoFlechaDerecha /></Link><Link href="/stock"><IconoStock /><span><strong>Cargar stock</strong><small>Producto o factura</small></span><IconoFlechaDerecha /></Link><Link href="/fiados"><IconoFiados /><span><strong>Cobrar fiados</strong><small>Ver vencimientos</small></span><IconoFlechaDerecha /></Link><Link href="/plata"><IconoMovimiento /><span><strong>Revisar caja</strong><small>Ver movimientos</small></span><IconoFlechaDerecha /></Link><Link href="/historial"><IconoHistorial /><span><strong>Auditar ventas</strong><small>Buscar comprobantes</small></span><IconoFlechaDerecha /></Link><Link href="/config"><IconoConfig /><span><strong>Configurar</strong><small>Preferencias y backup</small></span><IconoFlechaDerecha /></Link></div>
+        <div className="pro-quick-grid"><Link href="/vender" className="is-primary"><IconoEscanear /><span><strong>Nueva venta</strong><small>Escanear o buscar</small></span><IconoFlechaDerecha /></Link><Link href="/stock"><IconoStock /><span><strong>Cargar stock</strong><small>Producto o factura</small></span><IconoFlechaDerecha /></Link><Link href="/fiados"><IconoFiados /><span><strong>Cobrar fiados</strong><small>Ver vencimientos</small></span><IconoFlechaDerecha /></Link><Link href="/plata"><IconoMovimiento /><span><strong>Revisar caja</strong><small>Ver movimientos</small></span><IconoFlechaDerecha /></Link><Link href="/historial"><IconoHistorial /><span><strong>Auditar ventas</strong><small>Buscar comprobantes</small></span><IconoFlechaDerecha /></Link><Link href="/config"><IconoConfig /><span><strong>Configurar</strong><small>Preferencias y backup</small></span><IconoFlechaDerecha /></Link></div>
       </section>
     </div>
   )

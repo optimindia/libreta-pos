@@ -7,7 +7,7 @@ test('la puerta de entrada aparece en un aparato vacío y se puede empezar de ce
 
   await page.getByRole('button', { name: /empezar de cero/i }).click()
 
-  // al empezar de cero se muestra la pantalla normal de venta, sin la puerta
+  // al empezar de cero se muestra el inicio normal, sin la puerta, con VENDER arriba de todo
   await expect(page.getByText('¿Ya usás Libreta en otro aparato?')).toBeHidden()
-  await expect(page.getByRole('button', { name: /^cobrar$/i })).toBeVisible()
+  await expect(page.getByRole('link', { name: /^vender/i }).first()).toBeVisible()
 })

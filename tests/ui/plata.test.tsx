@@ -40,7 +40,7 @@ describe('PantallaPlata', () => {
 
   it('cambia el rango y comparte un resumen', async () => {
     render(<PantallaPlata />)
-    fireEvent.click(await screen.findByRole('button', { name: '7dias' }))
+    fireEvent.click(await screen.findByRole('button', { name: '7 días' }))
     expect(await screen.findByText('Últimos 7 días')).toBeDefined()
     const enlace = screen.getByRole('link', { name: /compartir resumen/i }) as HTMLAnchorElement
     expect(decodeURIComponent(enlace.href)).toContain('Resumen de últimos 7 días')

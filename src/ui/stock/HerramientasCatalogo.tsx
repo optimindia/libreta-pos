@@ -46,14 +46,14 @@ export function HerramientasCatalogo({ productos }: { productos: Producto[] }) {
 
   return (
     <section className="mt-6 rounded-2xl px-3.5 py-3" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)' }}>
-      <h2 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Herramientas del catálogo</h2>
-      <p className="mt-1 text-[11px]" style={{ color: 'var(--tenue)' }}>Mové tus productos entre dispositivos con un CSV. Los duplicados no se pisan.</p>
+      <h2 className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Herramientas del catálogo</h2>
+      <p className="mt-1 text-[12px]" style={{ color: 'var(--tenue)' }}>Mové tus productos entre dispositivos con un CSV. Los duplicados no se pisan.</p>
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <Boton variante="secundario" className="button-with-icon !py-2.5 !text-[11px]" onClick={exportar}><IconoDescargar /> Exportar CSV</Boton>
-        <Boton variante="principal" className="button-with-icon !py-2.5 !text-[11px]" disabled={importando} onClick={() => archivo.current?.click()}>{importando ? 'Importando…' : <><IconoSubir /> Importar CSV</>}</Boton>
+        <Boton variante="secundario" className="button-with-icon !py-2.5 !text-[12px]" onClick={exportar}><IconoDescargar /> Exportar CSV</Boton>
+        <Boton variante="principal" className="button-with-icon !py-2.5 !text-[12px]" disabled={importando} onClick={() => archivo.current?.click()}>{importando ? 'Importando…' : <><IconoSubir /> Importar CSV</>}</Boton>
       </div>
       <input ref={archivo} type="file" accept=".csv,text/csv" className="sr-only" aria-label="Archivo CSV del catálogo" onChange={(evento) => { const file = evento.target.files?.[0]; if (file) void importar(file) }} />
-      {aviso && <p role="status" className="mt-2 text-[11px]" style={{ color: 'var(--verde)' }}>{aviso}</p>}
+      {aviso && <p role="status" className="mt-2 text-[12px]" style={{ color: 'var(--verde)' }}>{aviso}</p>}
     </section>
   )
 }

@@ -186,7 +186,7 @@ function Fila({
 function Historial({ cierres }: { cierres: { id: string; fecha: number; contado: number; esperado: number }[] }) {
   return (
     <>
-      <h3 className="mt-6 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
+      <h3 className="mt-6 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
         Últimos cierres
       </h3>
       <ul className="mt-2">

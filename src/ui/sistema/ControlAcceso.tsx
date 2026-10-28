@@ -30,7 +30,7 @@ function AvisoVencimiento({ estado }: { estado: EstadoAcceso }) {
 
 function Marco({ children, admin = false, estado }: { children: React.ReactNode; admin?: boolean; estado?: EstadoAcceso }) {
   return (
-    <div className={`app-shell${admin ? ' app-shell-admin' : ''}`}>
+    <div className={admin ? 'app-shell app-shell-admin' : 'nb-app'}>
       {!admin && <Navegacion />}
       <main className={`app-main${admin ? ' admin-main' : ''}`}>{!admin && estado && <AvisoVencimiento estado={estado} />}{children}</main>
     </div>
@@ -67,8 +67,14 @@ export function ControlAcceso({ children }: { children: React.ReactNode }) {
       if (vivo) setEstado(siguiente)
     }
 
-    void refrescar()
-    const limpiarEstadoAnterior = window.setTimeout(() => setEstado(null), 0)
+    // Primero se descarta el estado de la ruta anterior y recién después se
+    // consulta: si la consulta respondía antes que este borrado (sin red o
+    // sin nube, cuando todo sale de este aparato), la pantalla quedaba en
+    // "Preparando tu acceso…" hasta el próximo chequeo de 30 segundos.
+    const limpiarEstadoAnterior = window.setTimeout(() => {
+      setEstado(null)
+      void refrescar()
+    }, 0)
     const cambio = () => void refrescar()
     window.addEventListener(EVENTO_ACCESO, cambio)
     window.addEventListener('online', cambio)

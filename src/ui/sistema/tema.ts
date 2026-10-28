@@ -24,6 +24,13 @@ export function guardarPreferenciaTema(preferencia: PreferenciaTema): void {
 
 export function aplicarTema(preferencia: PreferenciaTema, ahora: Date = new Date()): Tema {
   const tema = temaInicial(preferencia, ahora.getHours())
-  if (typeof document !== 'undefined') document.documentElement.dataset.tema = tema
+  if (typeof document !== 'undefined') {
+    document.documentElement.dataset.tema = tema
+    // La barra de estado del celu (y la de la ventana instalada) acompaña
+    // al tema elegido, no al del sistema.
+    document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => {
+      meta.content = tema === 'oscuro' ? '#0B1220' : '#EEF1F5'
+    })
+  }
   return tema
 }

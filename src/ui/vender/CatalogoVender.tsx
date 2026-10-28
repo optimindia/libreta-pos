@@ -1,103 +1,137 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { Producto } from '@/dominio/tipos'
-import { Importe } from '@/ui/sistema/Importe'
+import { formatearPesos } from '@/dominio/dinero'
 import { repos } from '@/datos/local/repos'
 import { precioVigente, tieneOfertaVigente } from '@/dominio/ticket'
-import { IconoBuscar, IconoFavorito, IconoFlechaDerecha, IconoNuevaVenta, IconoStock } from '@/ui/sistema/iconos'
-
-const campo = {
-  background: 'var(--hueso-2)',
-  border: '1px solid var(--linea)',
-  color: 'var(--tinta)',
-}
+import { IconoBuscar, IconoFavorito, IconoFlechaDerecha, IconoStock } from '@/ui/sistema/iconos'
 
 /** Quita acentos y pasa a minúscula, igual que repos.productos.buscar. */
 function normalizar(texto: string): string {
   return texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 }
 
-/** El catálogo para vender: cada producto es una tarjeta con su precio a la
- *  vista y búsqueda por nombre o código desde el primer producto. */
+/** Cuánto stock queda como para avisarlo en la baldosa. */
+const POCO_STOCK = 3
+
+/** El catálogo para vender: cada producto es una baldosa con el precio bien
+ *  grande, un contador de cuántos hay en el ticket y un aviso si se acaba. */
 export function CatalogoVender({
   productos,
+  cantidades,
   busqueda,
   onBuscar,
   onElegir,
+  escaner,
 }: {
   productos: Producto[]
+  /** Cuántas unidades de cada producto lleva el ticket (por id). */
+  cantidades: Record<string, number>
   busqueda: string
   onBuscar: (texto: string) => void
   onElegir: (producto: Producto) => void
+  /** El botón de la cámara, que va al lado del buscador. */
+  escaner?: ReactNode
 }) {
   const aguja = normalizar(busqueda)
   const categorias = [...new Set(productos.map((producto) => producto.categoria).filter((valor): valor is string => Boolean(valor)))].sort((a, b) => a.localeCompare(b, 'es'))
   const [categoria, setCategoria] = useState('')
-  const visibles = aguja === ''
-    ? productos.filter((producto) => categoria === '' || producto.categoria === categoria)
-    : productos.filter((producto) => normalizar(`${producto.nombre} ${producto.codigoBarras ?? ''} ${producto.categoria ?? ''}`).includes(aguja) && (categoria === '' || producto.categoria === categoria))
-  const favoritos = productos.filter((producto) => producto.favorito && (categoria === '' || producto.categoria === categoria))
+  const deLaCategoria = (producto: Producto) => categoria === '' || producto.categoria === categoria
+  const visibles = productos.filter((producto) =>
+    deLaCategoria(producto) &&
+    (aguja === '' || normalizar(`${producto.nombre} ${producto.codigoBarras ?? ''} ${producto.categoria ?? ''}`).includes(aguja)),
+  )
+  const favoritos = productos.filter((producto) => producto.favorito && deLaCategoria(producto) && producto.stock > 0)
 
   return (
-    <section className="catalogo-venta mt-6 px-5">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
-          Productos
-        </h2>
-        <span className="text-[11px]" style={{ color: 'var(--tenue)' }}>{productos.length}</span>
+    <section className="mz-catalogo" aria-label="Productos">
+      <div className="mz-buscar-fila">
+        <label className="mz-buscador">
+          <IconoBuscar />
+          <input
+            aria-label="Buscar producto"
+            placeholder="Buscar o escanear"
+            value={busqueda}
+            onChange={(evento) => onBuscar(evento.target.value)}
+          />
+        </label>
+        {escaner}
       </div>
+      <p className="mz-atajos">Atajos: / buscar · Esc limpiar · Ctrl+Enter cobrar</p>
 
-      <div className="catalog-search-wrap mt-2">
-        <IconoBuscar />
-        <input
-          aria-label="Buscar producto"
-          placeholder="Buscar por nombre o código…"
-          className="catalogo-search w-full rounded-xl px-3 py-2.5 text-[13px]"
-          style={campo}
-          value={busqueda}
-          onChange={(evento) => onBuscar(evento.target.value)}
-        />
-      </div>
-      <p className="mt-1 text-[10px]" style={{ color: 'var(--tenue)' }}>Atajos: / buscar · Esc limpiar · Ctrl+Enter cobrar</p>
+      {categorias.length > 0 && (
+        <div className="mz-chips" role="group" aria-label="Categorías">
+          <button type="button" className="mz-chip" aria-pressed={categoria === ''} onClick={() => setCategoria('')}>Todo</button>
+          {categorias.map((opcion) => (
+            <button key={opcion} type="button" className="mz-chip" aria-pressed={categoria === opcion} onClick={() => setCategoria(opcion)}>{opcion}</button>
+          ))}
+        </div>
+      )}
 
-      {categorias.length > 0 && <div className="catalogo-categories mt-2 flex gap-1.5 overflow-x-auto pb-0.5"><button type="button" className="shrink-0 rounded-full px-2.5 py-1.5 text-[10px] font-semibold" style={{ background: categoria === '' ? 'var(--verde)' : 'var(--hueso-2)', color: categoria === '' ? 'var(--verde-texto)' : 'var(--tinta)', border: '1px solid var(--linea)' }} onClick={() => setCategoria('')}>Todo</button>{categorias.map((opcion) => <button type="button" key={opcion} className="shrink-0 rounded-full px-2.5 py-1.5 text-[10px] font-semibold" style={{ background: categoria === opcion ? 'var(--verde)' : 'var(--hueso-2)', color: categoria === opcion ? 'var(--verde-texto)' : 'var(--tinta)', border: '1px solid var(--linea)' }} onClick={() => setCategoria(opcion)}>{opcion}</button>)}</div>}
-
-      {busqueda.trim() === '' && favoritos.length > 0 && <div className="catalogo-favoritos mt-4"><div className="flex items-baseline justify-between"><h3 className="text-[10.5px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Favoritos rápidos</h3><span className="text-[10px]" style={{ color: 'var(--tenue)' }}>{favoritos.length}</span></div><div className="mt-2 flex gap-2 overflow-x-auto pb-1">{favoritos.map((producto) => <button type="button" key={producto.id} className="favorito-card min-w-28 rounded-xl px-2.5 py-2 text-left" style={{ background: 'var(--chip-fondo)', border: '1px solid var(--linea)' }} onClick={() => onElegir(producto)}><div className="truncate text-[11px] font-medium">{producto.nombre}</div><Importe centavos={producto.precio} tamaño="chico" className="mt-0.5" /></button>)}</div></div>}
+      {busqueda.trim() === '' && favoritos.length > 0 && (
+        <div className="mz-favoritos">
+          <h2 className="mz-subtitulo">Favoritos</h2>
+          <div className="mz-chips">
+            {favoritos.map((producto) => (
+              <button key={producto.id} type="button" className="mz-chip mz-chip-precio" onClick={() => onElegir(producto)}>
+                {producto.nombre} <b className="tabular">{formatearPesos(precioVigente(producto))}</b>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {visibles.length === 0 ? (
-        <div className="catalog-empty mt-5 text-center">
-          <span className="catalog-empty-icon" aria-hidden="true">
-            <IconoStock />
-          </span>
-          <strong className="mt-3 block text-[14px]">{productos.length === 0 ? 'Tu catálogo te espera' : 'No encontramos ese producto'}</strong>
-          <p className="mx-auto mt-1 max-w-xs text-[12px]" style={{ color: 'var(--tenue)' }}>
-            {productos.length === 0 ? 'Cargá tus productos una vez y después vendé con dos toques.' : `Ningún producto coincide con “${busqueda}”.`}
-          </p>
-          {productos.length === 0 && <Link href="/stock" className="button-with-icon catalog-empty-action mt-4 inline-flex items-center rounded-xl px-3.5 py-2.5 text-[12px] font-semibold">Cargar productos <IconoFlechaDerecha /></Link>}
+        <div className="mz-vacio-catalogo">
+          <span aria-hidden="true"><IconoStock /></span>
+          <strong>{productos.length === 0 ? 'Tu catálogo te espera' : 'No encontramos ese producto'}</strong>
+          <p>{productos.length === 0 ? 'Cargá tus productos una vez y después vendé con dos toques.' : `Ningún producto coincide con “${busqueda}”.`}</p>
+          {productos.length === 0 && <Link href="/stock" className="mz-boton-oscuro mz-toque">Cargar productos <IconoFlechaDerecha /></Link>}
         </div>
       ) : (
-        <div className="catalogo-grid mt-3 grid grid-cols-2 gap-2">
-          {visibles.map((producto) => (
-            <div
-              key={producto.id}
-              className="catalogo-producto rounded-2xl px-3.5 py-3"
-              style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)', boxShadow: 'var(--sombra)' }}
-            >
-              <div className="flex items-start gap-1"><button type="button" className="min-w-0 flex-1 truncate text-left text-[13px] font-medium active:opacity-70" onClick={() => onElegir(producto)}>{producto.nombre}</button><button type="button" aria-label={producto.favorito ? 'Quitar favorito' : 'Agregar favorito'} title={producto.nombre} className="product-favorite-button" data-active={producto.favorito ? 'true' : 'false'} onClick={() => void repos.productos.marcarFavorito(producto.id, !producto.favorito)}><IconoFavorito /></button></div>
-              <button type="button" disabled={producto.stock <= 0} className="catalogo-producto-action mt-1 w-full text-left active:opacity-70 disabled:cursor-not-allowed disabled:opacity-55" onClick={() => onElegir(producto)}>
-                <span className="catalogo-producto-price-row">
-                  <span className="catalogo-producto-prices">
-                    {tieneOfertaVigente(producto) && <span className="catalogo-producto-old-price"><Importe centavos={producto.precio} tamaño="chico" /></span>}
-                    <Importe centavos={precioVigente(producto)} tamaño="chico" style={{ color: producto.stock <= 0 ? 'var(--tenue)' : 'var(--verde)' }} />
+        <div className="mz-productos">
+          {visibles.map((producto) => {
+            const sinStock = producto.stock <= 0
+            const enTicket = cantidades[producto.id] ?? 0
+            const poco = !sinStock && producto.stock <= POCO_STOCK
+            const oferta = tieneOfertaVigente(producto)
+            return (
+              <div key={producto.id} className="mz-producto-caja">
+                <button
+                  type="button"
+                  className="mz-producto mz-toque"
+                  data-en-ticket={enTicket > 0 ? 'true' : 'false'}
+                  disabled={sinStock}
+                  onClick={() => onElegir(producto)}
+                >
+                  <span className="mz-producto-nombre">{producto.nombre}</span>
+                  <span className="mz-producto-precio tabular">
+                    {oferta && <s className="mz-producto-viejo">{formatearPesos(producto.precio)}</s>}
+                    {formatearPesos(precioVigente(producto))}
                   </span>
-                  <span className="catalogo-producto-add">{producto.stock <= 0 ? 'No disponible' : <><IconoNuevaVenta /> Agregar</>}</span>
-                </span>
-                <span className="mt-1 block text-[10px] font-semibold" style={{ color: producto.stock <= 0 ? 'var(--ambar)' : tieneOfertaVigente(producto) ? 'var(--verde)' : 'var(--tenue)' }}>{producto.stock <= 0 ? 'Sin stock · no vendible' : tieneOfertaVigente(producto) ? `Oferta activa · ${producto.stock} disponibles` : `${producto.stock} disponibles`}</span>
-              </button>
-            </div>
-          ))}
+                  <span className={`mz-producto-nota${sinStock || poco ? ' is-poco' : ''}`}>
+                    {sinStock
+                      ? 'Sin stock · no vendible'
+                      : poco ? `Quedan ${producto.stock}`
+                      : oferta ? `Oferta · ${producto.stock} disponibles`
+                      : `${producto.stock} disponibles`}
+                  </span>
+                </button>
+                {enTicket > 0 && <span className="mz-contador" aria-label={`${enTicket} en el ticket`}>{enTicket}</span>}
+                <button
+                  type="button"
+                  className="mz-estrella"
+                  data-active={producto.favorito ? 'true' : 'false'}
+                  aria-label={producto.favorito ? `Quitar ${producto.nombre} de favoritos` : `Agregar ${producto.nombre} a favoritos`}
+                  onClick={() => void repos.productos.marcarFavorito(producto.id, !producto.favorito)}
+                >
+                  <IconoFavorito />
+                </button>
+              </div>
+            )
+          })}
         </div>
       )}
     </section>

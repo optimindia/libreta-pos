@@ -1,0 +1,1534 @@
+/* Capa "nativa": la última de la cascada (ver layout.tsx).
+   Una sola gramática para todas las pantallas, pensada para que Libreta se
+   sienta como una app instalada y no como una página web:
+   - título grande arriba, a la izquierda, como en iOS/Android;
+   - superficies blancas con borde fino sólido (se ve en un monitor viejo)
+     y sombra suave; el relieve fuerte queda sólo para VENDER y COBRAR;
+   - nada de rótulos en mayúsculas espaciadas: frases normales, más fáciles
+     de leer para cualquiera. */
+
+/* ───────────── Sensación nativa ───────────── */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--hueso);
+  color: var(--tinta);
+  overscroll-behavior-y: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a,
+button,
+[role='button'],
+[role='tab'],
+summary,
+select {
+  touch-action: manipulation;
+}
+
+/* En la interfaz no se selecciona texto por accidente al tocar; en los
+   campos, los importes y los textos largos sí. */
+button,
+[role='button'],
+[role='tab'],
+.nb-barra,
+.nb-lateral,
+.nb-hoja-grilla {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+select,
+textarea {
+  font-size: max(16px, 1em); /* iOS no hace zoom al enfocar un campo de 16px */
+}
+
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ───────────── Rótulos: sin mayúsculas espaciadas ───────────── */
+
+.page-kicker,
+.vender-eyebrow,
+.form-section-heading,
+.sidebar-section-label {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+/* Los componentes viejos usan `uppercase tracking-wider` de Tailwind para
+   los rótulos chicos; en todo Libreta pasan a frase normal. */
+.uppercase {
+  text-transform: none;
+}
+
+.tracking-wider,
+.tracking-wide,
+.tracking-widest {
+  letter-spacing: 0;
+}
+
+/* ───────────── Título de pantalla (estilo nativo) ───────────── */
+
+.page-module-head,
+.app-header {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 16px;
+  min-height: 0;
+  margin: 0 0 16px;
+  padding: 8px 0 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  background-image: none;
+  box-shadow: none;
+  color: var(--tinta);
+  overflow: visible;
+}
+
+.page-module-head::before,
+.page-module-head::after,
+.app-header::before,
+.app-header::after {
+  display: none;
+  content: none;
+}
+
+.page-module-head > :first-child {
+  min-width: 0;
+  flex: 1 1 16rem;
+}
+
+.page-module-head :where(div, span, strong, p, small) {
+  color: inherit;
+}
+
+.page-module-head .page-kicker {
+  display: block;
+  color: var(--tenue);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.page-module-head .page-title {
+  margin: 2px 0 0;
+  color: var(--tinta);
+  font-size: clamp(30px, 7vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.page-module-head .page-description {
+  max-width: 40rem;
+  margin-top: 6px;
+  color: var(--tenue);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+/* Importe destacado dentro del título (Fiados: "Te deben"). */
+.page-module-head .tabular.text-4xl {
+  display: block;
+  margin-top: 2px;
+  color: var(--tinta);
+  font-size: clamp(34px, 9vw, 44px);
+  font-weight: 800;
+}
+
+/* La acción principal del título: botón verde sólido, al alcance del pulgar. */
+.page-module-head > .libreta-button,
+.page-module-head > a,
+.page-module-head > button,
+.page-module-head > .pedidos-new-button,
+.page-module-head > .clientes-new-button,
+.mz-boton-cabecera {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--verde) !important;
+  color: var(--verde-texto) !important;
+  box-shadow: var(--sombra-pop-chica) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  white-space: nowrap;
+}
+
+.page-module-head > :is(.libreta-button, a, button):hover {
+  filter: brightness(1.06);
+}
+
+.page-head-stat,
+.page-module-head .page-head-stat {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--linea);
+  border-radius: 999px;
+  background: var(--hueso-2);
+  box-shadow: none;
+  color: var(--tinta);
+}
+
+.page-module-head .page-head-stat strong {
+  color: var(--tinta);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.page-module-head .page-head-stat span {
+  color: var(--tenue);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ───────────── Botones ───────────── */
+
+.nb-boton {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radio-boton) !important;
+  box-shadow: none;
+  font-weight: 700;
+  line-height: 1.2;
+  transition: transform 0.08s ease, filter 0.12s ease, background-color 0.12s ease;
+}
+
+.nb-boton:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.nb-boton-principal {
+  border-color: var(--verde);
+  background: var(--verde);
+  color: var(--verde-texto);
+  box-shadow: var(--sombra-pop-chica);
+}
+
+.nb-boton-principal:hover:not(:disabled) {
+  filter: brightness(1.07);
+}
+
+.nb-boton-secundario {
+  border-color: var(--linea);
+  background: var(--hueso-2);
+  color: var(--tinta);
+}
+
+.nb-boton-secundario:hover:not(:disabled) {
+  background: var(--superficie-sutil);
+}
+
+.nb-boton-secundario[aria-pressed='true'] {
+  border-color: var(--tinta);
+  background: var(--tinta);
+  color: var(--hueso-2);
+}
+
+.nb-boton-fiado {
+  border-color: var(--ambar-fondo);
+  background: var(--ambar-fondo);
+  color: var(--ambar);
+}
+
+.nb-boton-fiado[aria-pressed='true'] {
+  border-color: var(--tinta);
+  background: var(--tinta);
+  color: var(--hueso-2);
+}
+
+/* ───────────── Campos ───────────── */
+
+.form-input,
+input.form-input,
+select.form-input,
+textarea.form-input,
+.form-input-with-prefix,
+.form-input-with-suffix {
+  min-height: 48px;
+  border: 1px solid var(--contorno) !important;
+  border-radius: var(--radio-boton) !important;
+  background: var(--hueso-2) !important;
+  box-shadow: none !important;
+  color: var(--tinta);
+}
+
+.form-input:focus,
+.form-input-with-prefix:focus-within,
+.form-input-with-suffix:focus-within {
+  border-color: var(--verde) !important;
+  outline: 2px solid var(--verde);
+  outline-offset: 0;
+}
+
+.form-input::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: var(--tenue);
+  opacity: 1;
+}
+
+/* ───────────── Tarjetas ───────────── */
+
+.form-card,
+.fiados-summary-card,
+.fiado-card,
+.plata-operation-card,
+.plata-report-card,
+.control-action-card,
+.stock-scan-card,
+.caja-difference-card,
+.invoice-total-card,
+.control-center {
+  border: 1px solid var(--linea) !important;
+  border-radius: var(--radio-tarjeta) !important;
+  background: var(--hueso-2) !important;
+  background-image: none !important;
+  box-shadow: var(--sombra-pop) !important;
+}
+
+.control-center .page-kicker,
+.control-center :where(h2, p, small, strong) {
+  color: var(--tinta);
+}
+
+.control-center p,
+.control-center small {
+  color: var(--tenue);
+}
+
+.fiados-summary-card,
+.fiados-summary-card span {
+  color: var(--tenue);
+}
+
+.fiados-summary-card strong {
+  color: var(--tinta);
+}
+
+/* ───────────── Acentos: VENDER y COBRAR conservan el relieve ───────────── */
+
+.mz-vender,
+.mz-cobrar,
+.mz-barra-cobrar {
+  border: 2px solid var(--acento-borde) !important;
+  box-shadow: var(--sombra-acento) !important;
+}
+
+.mz-vender:active,
+.mz-cobrar:active:not(:disabled),
+.mz-barra-cobrar:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--acento-borde) !important;
+}
+
+/* ───────────── Armazón de la app ───────────── */
+
+.nb-app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--hueso);
+}
+
+.nb-app > .app-main {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(112px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+.nb-app > .app-main > * {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+/* Las pantallas viejas traen su propio relleno (px-5 pt-6): el armazón ya
+   lo da, así que se anula para que todas arranquen a la misma altura. */
+.nb-app > .app-main > :is(.page-vender, .page-stock, .page-plata, .page-fiados, .page-historial, .page-config, .page-pedidos, .page-clientes, .page-account, [class*='page-']) {
+  padding-inline: 0 !important;
+  padding-top: 0 !important;
+}
+
+@media (min-width: 900px) {
+  .nb-app {
+    padding-left: var(--ancho-lateral, 260px);
+    transition: padding-left 0.18s ease;
+  }
+
+  .nb-app > .app-main {
+    padding: 28px clamp(24px, 3vw, 48px) 48px !important;
+  }
+}
+
+:root { --ancho-lateral: 260px; }
+:root[data-lateral='compacta'] { --ancho-lateral: 84px; }
+
+/* ───────────── Barra lateral (PC) ───────────── */
+
+.nb-lateral {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .nb-lateral {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 40;
+    display: flex;
+    width: var(--ancho-lateral);
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 12px;
+    border-right: 1px solid var(--barra-borde);
+    background: var(--barra-fondo);
+    overflow-x: hidden;
+    overflow-y: auto;
+    transition: width 0.18s ease;
+  }
+}
+
+.nb-lateral-marca {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px 10px;
+}
+
+.nb-logo {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--verde);
+  color: var(--verde-texto);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.nb-lateral-negocio {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.nb-lateral-negocio strong {
+  overflow: hidden;
+  color: var(--tinta);
+  font-size: 15px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nb-lateral-negocio small {
+  color: var(--tenue);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.nb-icono-boton {
+  display: inline-grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--tenue);
+  cursor: pointer;
+}
+
+.nb-icono-boton:hover:not(:disabled) {
+  background: var(--chip-fondo);
+  color: var(--tinta);
+}
+
+.nb-icono-boton:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.nb-lateral-vender {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 4px 0 14px;
+  padding: 0 16px;
+  border: 2px solid var(--acento-borde);
+  border-radius: 16px;
+  background: var(--lima);
+  box-shadow: var(--sombra-acento);
+  color: var(--sobre-lima);
+  font-size: 17px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.nb-lateral-vender:hover { filter: brightness(1.04); }
+.nb-lateral-vender:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--acento-borde); }
+.nb-lateral-vender svg { width: 24px; height: 24px; }
+
+.nb-lateral-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nb-lateral-enlace,
+.nb-instalar {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--tinta);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.nb-lateral-enlace svg,
+.nb-instalar svg {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  color: var(--tenue);
+}
+
+.nb-lateral-enlace:hover,
+.nb-instalar:hover {
+  background: var(--chip-fondo);
+}
+
+.nb-lateral-enlace[aria-current='page'] {
+  background: var(--verde-suave);
+  color: var(--tinta);
+  font-weight: 800;
+}
+
+.nb-lateral-enlace[aria-current='page'] svg {
+  color: var(--verde);
+}
+
+.nb-instalar {
+  border: 1px solid var(--linea);
+  background: var(--hueso-2);
+  font-weight: 700;
+}
+
+.nb-instalar svg { color: var(--verde); }
+
+.nb-lateral-texto {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nb-insignia {
+  display: inline-grid;
+  min-width: 22px;
+  height: 22px;
+  margin-left: auto;
+  padding: 0 6px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--rojo);
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+[data-tema='oscuro'] .nb-insignia { color: #1A0B07; }
+
+.nb-lateral-pie {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--barra-borde);
+}
+
+.nb-estado {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  color: var(--tenue);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.nb-estado-punto {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  border-radius: 999px;
+  background: var(--verde);
+}
+
+.nb-estado[data-pendiente='true'] .nb-estado-punto { background: var(--ambar); }
+
+/* Barra compacta: sólo íconos, con el nombre al pasar el mouse. */
+.nb-lateral[data-compacta='true'] {
+  align-items: center;
+  padding-inline: 10px;
+}
+
+.nb-lateral[data-compacta='true'] .nb-lateral-texto { display: none; }
+.nb-lateral[data-compacta='true'] .nb-lateral-marca { flex-direction: column; padding-inline: 0; }
+.nb-lateral[data-compacta='true'] :is(.nb-lateral-enlace, .nb-instalar, .nb-lateral-vender) {
+  width: 56px;
+  justify-content: center;
+  padding: 0;
+}
+.nb-lateral[data-compacta='true'] .nb-lateral-vender { height: 56px; }
+.nb-lateral[data-compacta='true'] .nb-estado { justify-content: center; padding: 0; }
+.nb-lateral[data-compacta='true'] .nb-insignia {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 20px;
+  height: 20px;
+  font-size: 12px;
+}
+
+.nb-lateral[data-compacta='true'] [data-tip]:is(:hover, :focus-visible)::after {
+  content: attr(data-tip);
+  position: fixed;
+  left: calc(var(--ancho-lateral) - 6px);
+  z-index: 60;
+  margin-top: -2px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--tinta);
+  color: var(--hueso-2);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ───────────── Barra inferior (celu) ───────────── */
+
+.nb-barra {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+  height: calc(68px + env(safe-area-inset-bottom, 0px));
+  padding: 0 4px env(safe-area-inset-bottom, 0px);
+  border-top: 1px solid var(--barra-borde);
+  background: var(--barra-fondo);
+}
+
+@media (min-width: 900px) {
+  .nb-barra { display: none; }
+}
+
+.nb-pestana {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--tenue);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.nb-pestana > svg {
+  width: 52px;
+  height: 30px;
+  padding: 4px 15px;
+  border-radius: 999px;
+  box-sizing: border-box;
+  transition: background-color 0.15s ease;
+}
+
+.nb-pestana > span:not(.nb-insignia) {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nb-pestana[aria-current='page'],
+.nb-pestana[data-activa='true'],
+.nb-pestana[aria-expanded='true'] {
+  color: var(--tinta);
+  font-weight: 800;
+}
+
+.nb-pestana[aria-current='page'] > svg,
+.nb-pestana[data-activa='true'] > svg,
+.nb-pestana[aria-expanded='true'] > svg {
+  background: var(--verde-suave);
+  color: var(--verde);
+}
+
+.nb-pestana .nb-insignia {
+  position: absolute;
+  top: 4px;
+  left: calc(50% + 6px);
+  min-width: 20px;
+  height: 20px;
+  margin: 0;
+}
+
+.nb-barra-vender {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  padding-bottom: 6px;
+  color: var(--tinta);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.nb-barra-vender-circulo {
+  display: grid;
+  width: 60px;
+  height: 60px;
+  margin-top: -22px;
+  place-items: center;
+  border: 2px solid var(--acento-borde);
+  border-radius: 999px;
+  background: var(--lima);
+  box-shadow: var(--sombra-acento);
+  color: var(--sobre-lima);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.nb-barra-vender-circulo svg { width: 28px; height: 28px; stroke-width: 2.2; }
+.nb-barra-vender:active .nb-barra-vender-circulo { transform: translateY(4px); box-shadow: 0 1px 0 var(--acento-borde); }
+
+/* ───────────── Hoja (bottom sheet / diálogo) ───────────── */
+
+.nb-hoja-capa {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(8, 14, 26, 0.55);
+  animation: nb-aparecer 0.18s ease;
+}
+
+.nb-hoja {
+  width: 100%;
+  max-width: 560px;
+  max-height: 88vh;
+  max-height: 88dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  border-radius: 24px 24px 0 0;
+  background: var(--hueso-2);
+  box-shadow: var(--sombra-flotante);
+  color: var(--tinta);
+  outline: 0;
+  animation: nb-subir 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@media (min-width: 900px) {
+  .nb-hoja-capa { align-items: center; padding: 24px; }
+  .nb-hoja { max-width: 520px; padding-bottom: 20px; border-radius: 24px; animation-name: nb-aparecer; }
+  .nb-hoja-manija { display: none !important; }
+}
+
+.nb-hoja-cabeza {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  padding: 10px 0 8px;
+  background: var(--hueso-2);
+  touch-action: none;
+}
+
+.nb-hoja-manija {
+  display: block;
+  width: 44px;
+  height: 5px;
+  margin: 0 auto 10px;
+  grid-column: 1 / -1;
+  border-radius: 999px;
+  background: var(--linea);
+}
+
+.nb-hoja-titulo {
+  margin: 0;
+  color: var(--tinta);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.nb-hoja-cerrar {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: var(--chip-fondo);
+  color: var(--tinta);
+  cursor: pointer;
+}
+
+.nb-hoja-cuerpo { padding-top: 8px; }
+
+.nb-hoja-ayuda {
+  margin: 0 0 14px;
+  color: var(--tenue);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.nb-hoja-grilla {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.nb-hoja-tile {
+  position: relative;
+  display: flex;
+  min-height: 96px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 6px;
+  border: 1px solid var(--linea);
+  border-radius: 18px;
+  background: var(--superficie-sutil);
+  color: var(--tinta);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.nb-hoja-tile:active { transform: scale(0.97); }
+.nb-hoja-tile[aria-current='page'] { border-color: var(--verde); background: var(--verde-suave); }
+
+.nb-hoja-tile-icono {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--hueso-2);
+  color: var(--verde);
+}
+
+.nb-hoja-tile .nb-insignia { position: absolute; top: 8px; right: 8px; margin: 0; }
+
+.nb-hoja-subtitulo {
+  margin: 22px 0 10px;
+  color: var(--tenue);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.nb-segmentos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--chip-fondo);
+}
+
+.nb-segmento {
+  display: flex;
+  min-height: 48px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--tenue);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.nb-segmento svg { width: 20px; height: 20px; }
+
+.nb-segmento[aria-checked='true'] {
+  background: var(--hueso-2);
+  box-shadow: var(--sombra-pop-chica);
+  color: var(--tinta);
+}
+
+.nb-hoja-filas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.nb-fila-accion {
+  display: flex;
+  width: 100%;
+  min-height: 52px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  border: 1px solid var(--linea);
+  border-radius: 16px;
+  background: var(--hueso-2);
+  color: var(--tinta);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nb-fila-accion svg { color: var(--verde); }
+.nb-hoja-filas .nb-instalar { min-height: 52px; padding: 0 16px; border-radius: 16px; font-size: 16px; }
+
+.nb-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.nb-editor-fila {
+  display: flex;
+  min-height: 60px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 12px;
+  border: 1px solid var(--linea);
+  border-radius: 16px;
+  background: var(--hueso-2);
+}
+
+.nb-editor-fila[data-fija='true'] { background: var(--superficie-sutil); }
+.nb-editor-fila[data-oculta='true'] .nb-editor-nombre,
+.nb-editor-fila[data-oculta='true'] .nb-editor-icono { color: var(--tenue); }
+
+.nb-editor-icono { display: grid; color: var(--verde); }
+
+.nb-editor-nombre {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.nb-editor-nombre small {
+  color: var(--tenue);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.nb-editor-acciones { display: flex; align-items: center; gap: 2px; }
+
+.nb-interruptor {
+  display: grid;
+  width: 56px;
+  height: 40px;
+  place-items: center;
+  margin-left: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--verde);
+  color: var(--verde-texto);
+  cursor: pointer;
+}
+
+.nb-interruptor[aria-checked='false'] {
+  background: var(--chip-fondo);
+  color: var(--tenue);
+}
+
+.nb-pasos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nb-pasos li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.nb-paso-icono {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--verde-suave);
+  color: var(--verde);
+}
+
+@keyframes nb-subir {
+  from { transform: translateY(40px); opacity: 0.4; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes nb-aparecer {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ───────────── Ajustes de pantallas ───────────── */
+
+/* El armazón ya da los márgenes: las páginas del estilo Mosaico no suman otros. */
+.nb-app .mz-pagina {
+  max-width: 1200px;
+  padding: 0;
+}
+
+.mz-saludo > :first-child { min-width: 0; }
+.mz-saludo > span { flex: 0 0 auto; white-space: nowrap; }
+
+/* Títulos: el rótulo de arriba se va; el título solo dice dónde estás. */
+.page-module-head .page-kicker,
+.pro-head .page-kicker {
+  display: none;
+}
+
+.page-module-head {
+  min-height: 0 !important;
+  margin-top: 0 !important;
+  flex-direction: row !important;
+  align-items: flex-end !important;
+}
+
+.page-module-head > span:not(.page-head-stat) {
+  color: var(--tenue) !important;
+  font-size: 14px !important;
+  font-weight: 600;
+}
+
+.page-module-head > div:first-child > a {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  color: var(--verde) !important;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Centro Pro usa su propio encabezado: mismo idioma que el resto. */
+.pro-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+  margin: 0 0 16px;
+  padding: 8px 0 4px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--tinta) !important;
+}
+
+.pro-head::before,
+.pro-head::after { display: none !important; }
+.pro-head-copy { flex: 1 1 16rem; min-width: 0; }
+.pro-head-copy h1 { margin: 2px 0 0; color: var(--tinta) !important; font-size: clamp(30px, 7vw, 40px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.05; }
+.pro-head-copy p { margin-top: 6px; color: var(--tenue) !important; font-size: 15px; font-weight: 500; }
+.pro-head :where(span, strong, small, b) { color: inherit; }
+
+.pro-head > :not(.pro-head-copy):not(.pro-head-actions) {
+  border: 1px solid var(--linea) !important;
+  background: var(--hueso-2) !important;
+  color: var(--tinta) !important;
+  box-shadow: none !important;
+}
+
+.pro-head > :not(.pro-head-copy):not(.pro-head-actions) * { color: var(--tinta) !important; }
+
+.pro-head-actions { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+
+.pro-head-actions button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px !important;
+  border: 1px solid var(--linea) !important;
+  border-radius: 999px !important;
+  background: var(--hueso-2) !important;
+  color: var(--tinta) !important;
+  box-shadow: none !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+}
+
+/* Control segmentado (períodos): un solo bloque, la opción elegida se levanta. */
+.nb-segmentado {
+  display: grid !important;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 4px !important;
+  padding: 4px !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  background: var(--chip-fondo) !important;
+  box-shadow: none !important;
+}
+
+.nb-segmentado > :is(button, .nb-boton) {
+  min-height: 44px !important;
+  padding: 0 6px !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--tenue) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+.nb-segmentado > :is(button, .nb-boton):is([aria-pressed='true'], .is-selected) {
+  background: var(--hueso-2) !important;
+  box-shadow: var(--sombra-pop-chica) !important;
+  color: var(--tinta) !important;
+}
+
+/* Acciones dentro de una tarjeta: dos grandes y el resto livianas. */
+.nb-acciones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.nb-acciones > .nb-boton { padding: 10px 12px; font-size: 15px; }
+
+.nb-acciones-sec {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.nb-accion-sec {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--verde);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.nb-accion-sec:hover { background: var(--verde-suave); }
+.nb-accion-sec svg { width: 18px; height: 18px; }
+
+.fiado-card {
+  padding: 16px !important;
+  border-bottom: 1px solid var(--linea) !important;
+}
+
+.fiados-list {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 900px) {
+  .fiados-list { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+}
+
+/* Productos del stock */
+.nb-grilla-productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+@media (min-width: 900px) {
+  .nb-grilla-productos { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+}
+
+.nb-producto-stock {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 14px;
+  border: 1px solid var(--linea);
+  border-radius: 18px;
+  background: var(--hueso-2);
+  box-shadow: var(--sombra-pop);
+}
+
+.nb-producto-cabeza { display: flex; align-items: flex-start; gap: 4px; }
+
+.nb-producto-nombre {
+  display: -webkit-box;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--tinta);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.nb-producto-cabeza .nb-icono-boton { width: 36px; height: 36px; flex-basis: 36px; margin: -6px -6px 0 0; }
+.nb-producto-cabeza .nb-icono-boton[data-active='true'] { color: var(--ambar); }
+.nb-producto-cabeza .nb-icono-boton[data-active='true'] svg { fill: currentColor; }
+
+.nb-producto-categoria { margin-top: 2px; color: var(--tenue); font-size: 13px; font-weight: 500; }
+
+.nb-producto-precio {
+  display: block;
+  margin-top: 8px;
+  color: var(--tinta);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.nb-producto-nivel {
+  height: 6px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--chip-fondo);
+}
+
+.nb-producto-nivel > div { height: 100%; border-radius: 999px; }
+
+.nb-producto-datos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 8px;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.nb-producto-acciones {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px !important;
+  margin-top: 12px !important;
+}
+
+.nb-producto-acciones .stock-product-action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 6px !important;
+  border: 1px solid var(--linea) !important;
+  border-radius: 12px !important;
+  background: var(--hueso-2) !important;
+  color: var(--tinta) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+.nb-producto-acciones .stock-product-action svg { width: 18px; height: 18px; }
+
+.nb-producto-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.nb-producto-pie .nb-accion-sec { padding-left: 2px; }
+.nb-eliminar { color: var(--rojo); }
+.nb-eliminar:hover:not(:disabled) { background: var(--rojo-fondo); color: var(--rojo); }
+
+/* Filas de filtros que se deslizan de costado, como en una app. */
+[data-scroll-x] {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+  margin-inline: -16px;
+  padding: 2px 16px 6px !important;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+[data-scroll-x]::-webkit-scrollbar { display: none; }
+
+[data-scroll-x] > button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 16px !important;
+  border: 1px solid var(--linea) !important;
+  border-radius: 999px !important;
+  background: var(--hueso-2) !important;
+  box-shadow: none !important;
+  color: var(--tinta) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  white-space: nowrap;
+}
+
+[data-scroll-x] > button.is-selected {
+  border-color: var(--tinta) !important;
+  background: var(--tinta) !important;
+  color: var(--hueso-2) !important;
+}
+
+@media (min-width: 900px) {
+  [data-scroll-x] { flex-wrap: wrap !important; margin-inline: 0; padding-inline: 0 !important; }
+}
+
+/* Buscadores con ícono (Pedidos, Clientes): el campo ocupa toda la caja. */
+.pedidos-search,
+.clientes-search {
+  min-height: 48px;
+  border: 1px solid var(--contorno) !important;
+  border-radius: var(--radio-boton) !important;
+  background: var(--hueso-2) !important;
+}
+
+.pedidos-search input,
+.clientes-search input {
+  min-height: 46px;
+  align-self: stretch;
+}
+
+/* Stock: los filtros en dos filas que no se aprietan. */
+.nb-filtros-stock {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.nb-filtros-stock > select { grid-column: 1 / -1; min-height: 48px; font-size: 15px !important; }
+.nb-filtros-stock > .nb-boton { min-height: 44px; padding: 0 10px !important; font-size: 15px !important; }
+
+@media (min-width: 900px) {
+  .nb-filtros-stock { grid-template-columns: auto auto minmax(12rem, 18rem); justify-content: start; }
+  .nb-filtros-stock > select { grid-column: auto; }
+}
+
+.nb-producto-cabeza .nb-icono-boton { width: 40px; height: 40px; flex-basis: 40px; }
+
+/* Centro Pro: todo lo que se toca llega a 44px. */
+.pro-feature-action :is(a, button),
+.pro-panel-link,
+.pro-client-callout a,
+.pro-integrity-footer a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px !important;
+  border-radius: 12px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+.pro-alert-row > a {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.pro-inline-warning { min-height: 44px; }
+
+.pro-section-heading { flex-wrap: wrap; }
+.pro-section-count { flex: 0 0 auto; }
+
+.plata-operation-card { min-width: 0; max-width: 100%; }
+.historial-export { min-height: 44px; font-size: 14px !important; }
+
+/* Plata en la PC: las tarjetas se acomodan al ancho, sin salirse. */
+@media (min-width: 900px) {
+  .plata-operations-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)) !important;
+  }
+
+  .plata-operation-card:nth-child(2) { grid-column: auto !important; }
+}
+
+.plata-operation-card > h2:first-child { margin-top: 0 !important; }
+
+.config-file-button { min-height: 44px; padding-inline: 14px !important; }
+
+.nb-boton.nb-chip-filtro {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px !important;
+  font-size: 15px;
+}
+
+/* Mientras el formulario está abierto, el botón que lo abre sobra. */
+.page-module-head > .nb-boton:disabled { display: none; }
+
+/* Opciones grandes con título y explicación (Precios): la elegida se marca
+   con borde y fondo verde suave, y los dos textos se leen siempre. */
+.price-mode-button {
+  display: flex !important;
+  min-height: 64px;
+  flex-direction: column;
+  align-items: flex-start !important;
+  justify-content: center;
+  gap: 2px;
+  padding: 10px 14px !important;
+  border: 1px solid var(--linea) !important;
+  background: var(--hueso-2) !important;
+  box-shadow: none !important;
+  color: var(--tinta) !important;
+  text-align: left;
+}
+
+.price-mode-button strong { font-size: 15px; font-weight: 800; color: var(--tinta); }
+.price-mode-button small { font-size: 13px; font-weight: 600; color: var(--tenue); }
+
+.price-mode-button[aria-pressed='true'] {
+  border: 2px solid var(--verde) !important;
+  background: var(--verde-suave) !important;
+}
+
+/* ───────────── Marca y pantalla de acceso ───────────── */
+
+/* El mismo ícono que se instala en el celu, en vez de una "L" suelta. */
+.nb-logo,
+.access-brand-mark {
+  background: #0A6F5A url('/icon-192.png') center / cover no-repeat !important;
+  color: transparent !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 599px) {
+  /* En el celu el acceso ocupa la pantalla entera, como el login de una app. */
+  .access-page {
+    align-items: stretch !important;
+    padding: 0 !important;
+    background: var(--hueso-2) !important;
+  }
+
+  .access-card {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0 !important;
+    padding: calc(28px + env(safe-area-inset-top, 0px)) 20px calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    align-content: start !important;
+    justify-content: stretch;
+  }
+}

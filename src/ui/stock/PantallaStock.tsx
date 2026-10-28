@@ -42,24 +42,24 @@ export function PantallaStock() {
         </div>
       )}
 
-      <div className="stock-tabs flex gap-2">
+      <div className="stock-tabs nb-segmentado" role="group" aria-label="Qué querés hacer">
         <Boton
           variante={pestaña === 'catalogo' ? 'principal' : 'secundario'}
-          className="flex-1 !py-2 !text-[12px]"
+          aria-pressed={pestaña === 'catalogo'}
           onClick={() => setPestaña('catalogo')}
         >
           Catálogo ({productos.length})
         </Boton>
         <Boton
           variante={pestaña === 'cargar' ? 'principal' : 'secundario'}
-          className="flex-1 !py-2 !text-[12px]"
+          aria-pressed={pestaña === 'cargar'}
           onClick={() => setPestaña('cargar')}
         >
           Cargar
         </Boton>
         <Boton
           variante={pestaña === 'precios' ? 'principal' : 'secundario'}
-          className="flex-1 !py-2 !text-[12px]"
+          aria-pressed={pestaña === 'precios'}
           onClick={() => setPestaña('precios')}
         >
           Precios
@@ -88,7 +88,7 @@ export function PantallaStock() {
           </div>
 
           {importarFactura && <>
-            <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
+            <h2 className="mt-8 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
               Cargar desde una factura
             </h2>
             <div className="mt-2">

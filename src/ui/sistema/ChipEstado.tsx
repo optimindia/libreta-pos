@@ -6,7 +6,7 @@ export function ChipEstado({ pendientes }: { pendientes: boolean }) {
   const color = pendientes ? 'var(--ambar)' : 'var(--verde)'
   return (
     <span
-      className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-medium"
+      className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium"
       style={{ background: 'var(--chip-fondo)', color: 'var(--tenue)' }}
     >
       <span className="block h-1.5 w-1.5 rounded-full" style={{ background: color }} />

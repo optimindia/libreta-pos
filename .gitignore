@@ -42,3 +42,7 @@ next-env.d.ts
 out/
 .nojekyll
 .superpowers/
+
+# resultados de las corridas de Playwright
+/test-results/
+/playwright-report/

@@ -50,7 +50,7 @@ export function RespaldoLocal() {
 
   return (
     <section className="mt-8">
-      <h2 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Copia en este aparato</h2>
+      <h2 className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Copia en este aparato</h2>
       <p className="mt-1 text-[12px]" style={{ color: 'var(--tenue)' }}>Descargá un archivo para guardarlo o pasarlo a otro celular. Al restaurar, se mezclan los datos y no se borra lo actual.</p>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <Boton variante="secundario" className="button-with-icon !py-3 !text-[12px]" onClick={() => void descargar()}><IconoDescargar /> Descargar copia</Boton>

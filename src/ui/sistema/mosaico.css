@@ -1,0 +1,1191 @@
+/* Capa del sistema visual nuevo ("Mosaico + Pop"). Va después de las hojas
+   anteriores para que gane donde se superponen. Colores sólidos siempre:
+   nada de transparencias, degradés ni desenfoques. */
+
+/* Lo que se toca se hunde: la sombra dura desaparece y el botón baja. */
+.libreta-button:active:not(:disabled),
+.mz-toque:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 0 var(--contorno) !important;
+}
+
+.libreta-button:disabled {
+  background: var(--chip-fondo) !important;
+  color: var(--tenue) !important;
+  box-shadow: none !important;
+  border-color: var(--linea) !important;
+  opacity: 1;
+}
+
+/* Foco visible para quien navega con teclado o con un lector. */
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 2px;
+}
+
+/* ───────────── Inicio: tarjetas tipo mosaico ───────────── */
+
+.mz-pagina {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 16px 16px 120px;
+}
+
+.mz-saludo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mz-fecha {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tenue);
+}
+
+.mz-titulo {
+  margin: 2px 0 0;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--tinta);
+}
+
+.mz-bento {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.mz-ancho { grid-column: span 2; }
+
+.mz-etiqueta {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mz-monto {
+  display: block;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.mz-monto { overflow-wrap: anywhere; }
+/* Cuando en vez de un número va una frase, baja el tamaño para que entre. */
+.mz-monto-texto { font-size: 22px; line-height: 1.2; }
+
+.mz-nota {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.mz-punto {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--rojo);
+  flex: 0 0 auto;
+}
+
+.mz-baldosa {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 148px;
+  padding: 16px 18px;
+  border-radius: 28px;
+  box-sizing: border-box;
+  text-decoration: none;
+  color: inherit;
+}
+
+.mz-arena { background: var(--arena); color: var(--sobre-arena); }
+.mz-coral { background: var(--coral); color: var(--sobre-coral); }
+.mz-menta { background: var(--menta); color: var(--sobre-menta); }
+.mz-blanca { background: var(--hueso-2); color: var(--tinta); border: 2px solid var(--contorno); }
+
+/* El botón VENDER: lo más grande y más vivo de la pantalla. */
+.mz-vender {
+  grid-column: span 2;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 132px;
+  padding: 18px 20px;
+  border-radius: 30px;
+  background: var(--lima);
+  color: var(--sobre-lima);
+  border: 2px solid var(--contorno);
+  box-shadow: var(--sombra-pop);
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+.mz-vender-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 76px;
+  height: 76px;
+  border-radius: 24px;
+  background: var(--sobre-lima);
+  color: var(--lima);
+}
+.mz-vender-icono svg { width: 40px; height: 40px; }
+
+.mz-vender-texto { display: block; min-width: 0; }
+.mz-vender-texto strong {
+  display: block;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+.mz-vender-texto small {
+  display: block;
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.mz-vender-flecha {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin-left: auto;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--sobre-lima);
+}
+.mz-vender-flecha svg { width: 26px; height: 26px; }
+
+/* La tarjeta de lo vendido hoy, con su gráfico por franja horaria. */
+.mz-hero {
+  min-height: 212px;
+  background: var(--hero-fondo);
+  color: var(--hero-texto);
+  gap: 8px;
+}
+
+.mz-hero-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mz-ficha {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--menta);
+  color: var(--sobre-menta);
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.mz-hero-monto {
+  display: block;
+  font-size: 46px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.mz-hero-detalle {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mz-barras {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 56px;
+  margin-top: 4px;
+}
+
+.mz-barra {
+  flex: 1;
+  border-radius: 6px 6px 3px 3px;
+  background: var(--hero-barra);
+}
+.mz-barra-fuerte { background: var(--hero-barra-fuerte); }
+
+.mz-caja {
+  flex-direction: row;
+  align-items: center;
+  min-height: 0;
+}
+
+.mz-boton-oscuro {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 18px;
+  border-radius: 16px;
+  background: var(--tinta);
+  color: var(--hueso);
+  border: 2px solid var(--contorno);
+  box-shadow: var(--sombra-pop-chica);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.mz-atajo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 84px;
+  padding: 0 16px;
+  border-radius: 24px;
+  background: var(--hueso-2);
+  color: var(--tinta);
+  border: 2px solid var(--contorno);
+  box-shadow: var(--sombra-pop-chica);
+  box-sizing: border-box;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+}
+.mz-atajo svg { width: 28px; height: 28px; flex: 0 0 auto; }
+
+@media (min-width: 900px) {
+  .mz-pagina { padding: 32px 32px 48px; }
+  .mz-bento { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .mz-vender { grid-column: span 4; min-height: 150px; }
+  .mz-vender-texto strong { font-size: 48px; }
+  .mz-hero { grid-column: span 2; }
+  .mz-hero + .mz-arena,
+  .mz-hero + .mz-coral { grid-column: span 1; }
+  .mz-caja { grid-column: span 2; }
+}
+
+/* ───────────── Navegación inferior con el botón central ───────────── */
+
+.mz-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
+  height: 76px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--hueso-2);
+  border-top: 2px solid var(--contorno);
+  box-sizing: content-box;
+}
+
+.mz-nav-grupo { display: flex; align-items: stretch; }
+.mz-nav-grupo > * { flex: 1 1 0; min-width: 0; }
+
+.mz-nav-enlace {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 56px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tinta);
+  text-decoration: none;
+  cursor: pointer;
+}
+.mz-nav-enlace svg { width: 24px; height: 24px; }
+.mz-nav-enlace[aria-current='page'],
+.mz-nav-enlace[data-activa='true'] { color: var(--verde); font-weight: 800; }
+
+.mz-nav-insignia {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  margin-left: 6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--rojo);
+  color: var(--hueso);
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.mz-fab {
+  position: relative;
+  width: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--verde);
+  text-decoration: none;
+}
+
+.mz-fab-circulo {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  margin-left: -37px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: var(--verde);
+  color: var(--verde-texto);
+  border: 3px solid var(--contorno);
+  box-shadow: var(--sombra-pop-chica);
+  box-sizing: border-box;
+}
+.mz-fab-circulo svg { width: 34px; height: 34px; }
+.mz-fab:active .mz-fab-circulo { transform: translateY(3px); box-shadow: none; }
+
+.mz-nav-mas { position: relative; display: flex; }
+.mz-nav-mas > .mz-nav-enlace { width: 100%; }
+
+.mz-nav-panel {
+  position: absolute;
+  right: 8px;
+  bottom: 84px;
+  width: 15rem;
+  padding: 8px;
+  border-radius: 20px;
+  background: var(--hueso-2);
+  border: 2px solid var(--contorno);
+  box-shadow: var(--sombra-flotante);
+}
+
+.mz-nav-panel a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 12px;
+  border-radius: 12px;
+  color: var(--tinta);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.mz-nav-panel a[aria-current='page'] { background: var(--verde-suave); color: var(--verde); }
+
+@media (min-width: 900px) {
+  .mz-nav { display: none; }
+}
+
+/* ───────────── Vender: el mostrador ───────────── */
+
+.mz-mostrador {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 12px 16px 176px;
+}
+
+.mz-mostrador-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.mz-mostrador-cabecera h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--tinta);
+}
+
+.mz-redondo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--contorno);
+  background: var(--hueso-2);
+  color: var(--tinta);
+  box-shadow: var(--sombra-pop-chica);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.mz-subtitulo {
+  display: block;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--tenue);
+}
+
+/* Buscador y botón de la cámara */
+.mz-buscar-fila { display: flex; gap: 10px; }
+
+.mz-buscador {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 14px;
+  border-radius: 18px;
+  background: var(--hueso-2);
+  color: var(--tinta);
+  border: 2px solid var(--contorno);
+  box-shadow: var(--sombra-pop-chica);
+  box-sizing: border-box;
+}
+.mz-buscador:focus-within { outline: 3px solid var(--foco); outline-offset: 2px; }
+.mz-buscador input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--tinta);
+}
+.mz-buscador input::placeholder { color: var(--tenue); opacity: 1; }
+.mz-buscador svg { flex: 0 0 auto; width: 22px; height: 22px; }
+
+.mz-escanear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: 18px;
+  border: 2px solid var(--contorno);
+  background: var(--verde);
+  color: var(--verde-texto);
+  box-shadow: var(--sombra-pop-chica);
+  cursor: pointer;
+}
+.mz-escanear svg { width: 28px; height: 28px; }
+
+.mz-atajos {
+  display: none;
+  margin: 6px 2px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tenue);
+}
+
+/* Categorías y favoritos */
+.mz-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 14px 2px 4px;
+}
+.mz-chip {
+  flex: 0 0 auto;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 2px solid var(--contorno);
+  background: var(--hueso-2);
+  color: var(--tinta);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.mz-chip[aria-pressed='true'] { background: var(--tinta); color: var(--hueso); }
+.mz-chip-precio b { margin-left: 4px; color: var(--verde); }
+.mz-favoritos { margin-top: 12px; }
+.mz-favoritos .mz-chips { padding-top: 6px; }
+
+/* Las baldosas de productos */
+.mz-productos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 12px;
+  padding: 16px 2px 0;
+}
+
+.mz-producto-caja { position: relative; }
+
+.mz-producto {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  min-height: 108px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 2px solid var(--contorno);
+  background: var(--hueso-2);
+  color: var(--tinta);
+  box-shadow: var(--sombra-pop);
+  box-sizing: border-box;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.mz-producto[data-en-ticket='true'] { background: var(--verde-suave); }
+.mz-producto:disabled {
+  background: var(--chip-fondo);
+  color: var(--tenue);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.mz-producto-nombre {
+  padding-right: 34px;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.mz-producto-precio {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+.mz-producto-viejo { font-size: 14px; font-weight: 700; color: var(--tenue); }
+.mz-producto-nota { font-size: 13px; font-weight: 700; color: var(--tenue); }
+.mz-producto-nota.is-poco { color: var(--rojo); }
+.mz-producto:disabled .mz-producto-nota { color: var(--rojo); }
+
+.mz-contador {
+  position: absolute;
+  top: -10px;
+  left: -8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 7px;
+  border-radius: 999px;
+  border: 2px solid var(--contorno);
+  background: var(--lima);
+  color: var(--sobre-lima);
+  font-size: 16px;
+  font-weight: 900;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.mz-estrella {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--tenue);
+  cursor: pointer;
+}
+.mz-estrella svg { width: 22px; height: 22px; }
+.mz-estrella[data-active='true'] { color: var(--ambar); }
+.mz-estrella[data-active='true'] svg { fill: currentColor; }
+
+.mz-vacio-catalogo {
+  margin-top: 24px;
+  padding: 28px 20px;
+  border-radius: 24px;
+  border: 2px dashed var(--contorno);
+  text-align: center;
+  color: var(--tinta);
+}
+.mz-vacio-catalogo > span { display: inline-flex; }
+.mz-vacio-catalogo svg { width: 36px; height: 36px; }
+.mz-vacio-catalogo strong { display: block; margin-top: 10px; font-size: 18px; font-weight: 800; }
+.mz-vacio-catalogo p { margin: 6px auto 16px; max-width: 22rem; font-size: 15px; font-weight: 600; color: var(--tenue); }
+.mz-vacio-catalogo .mz-boton-oscuro { display: inline-flex; gap: 8px; }
+
+.mz-aviso-stock {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(176px + env(safe-area-inset-bottom, 0px));
+  z-index: 36;
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 18px;
+  border: 2px solid var(--contorno);
+  background: var(--arena);
+  color: var(--sobre-arena);
+  font-size: 15px;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+
+/* La barra de abajo: cuánto lleva el ticket y el botón de cobrar */
+.mz-barra-cobro {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 72px;
+  padding: 0 10px 0 16px;
+  border-radius: 22px;
+  border: 2px solid var(--contorno);
+  background: var(--verde);
+  color: var(--verde-texto);
+  box-shadow: var(--sombra-pop);
+  box-sizing: border-box;
+}
+.mz-barra-resumen {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.mz-barra-resumen span { display: block; font-size: 13px; font-weight: 700; }
+.mz-barra-resumen strong { display: block; font-size: 28px; font-weight: 900; letter-spacing: -0.02em; line-height: 1.1; }
+
+.mz-barra-cobrar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 52px;
+  padding: 0 20px;
+  border-radius: 16px;
+  border: 2px solid var(--contorno);
+  background: var(--lima);
+  color: var(--sobre-lima);
+  font: inherit;
+  font-size: 19px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.mz-barra-cobrar svg { width: 20px; height: 20px; }
+.mz-barra-cobrar:disabled {
+  background: var(--chip-fondo);
+  color: var(--tenue);
+  border-color: var(--linea);
+  cursor: not-allowed;
+}
+
+/* El ticket: en el celu es una hoja que sube; en la PC, un panel al costado */
+.mz-ticket-panel { display: none; }
+.mz-ticket-panel.is-abierto {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px 28px;
+  overflow-y: auto;
+  background: var(--hueso);
+}
+
+.mz-ticket-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mz-ticket-cabecera > div { flex: 1; }
+.mz-ticket-cabecera h2 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; color: var(--tinta); }
+.mz-ticket-cuenta { font-size: 14px; font-weight: 700; color: var(--tenue); }
+
+.mz-ticket-vacio {
+  padding: 28px 12px;
+  text-align: center;
+  color: var(--tinta);
+}
+.mz-ticket-vacio strong { display: block; font-size: 17px; font-weight: 800; }
+.mz-ticket-vacio p { margin: 6px 0 0; font-size: 15px; font-weight: 600; color: var(--tenue); }
+
+.mz-ticket-acciones { display: flex; justify-content: flex-end; }
+.mz-texto-boton {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--tenue);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.mz-texto-rojo { color: var(--rojo); }
+.mz-confirmar-vaciar { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--tenue); }
+
+.mz-renglones { list-style: none; margin: 0; padding: 0; }
+.mz-renglon {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 2px solid var(--linea);
+}
+.mz-renglon-datos { flex: 1; min-width: 0; }
+.mz-renglon-datos strong { display: block; font-size: 16px; font-weight: 800; line-height: 1.2; color: var(--tinta); }
+.mz-renglon-datos span { display: block; margin-top: 2px; font-size: 14px; font-weight: 600; color: var(--tenue); }
+
+.mz-paso {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  border: 2px solid var(--contorno);
+  border-radius: 14px;
+  background: var(--hueso-2);
+  overflow: hidden;
+}
+.mz-paso button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--tinta);
+  cursor: pointer;
+}
+.mz-paso button:disabled { color: var(--linea); cursor: not-allowed; }
+.mz-paso-n { min-width: 28px; text-align: center; font-size: 18px; font-weight: 800; color: var(--tinta); }
+
+.mz-renglon-subtotal {
+  width: 84px;
+  flex: 0 0 auto;
+  text-align: right;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--tinta);
+}
+
+.mz-ticket-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-top: 8px;
+  color: var(--tinta);
+}
+.mz-ticket-total span { font-size: 15px; font-weight: 700; color: var(--tenue); }
+.mz-ticket-total strong { font-size: 40px; font-weight: 900; letter-spacing: -0.03em; }
+
+/* El botón grande de cobrar (ticket, cobro y cierre) */
+.mz-cobrar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 64px;
+  padding: 0 16px;
+  border-radius: 20px;
+  border: 2px solid var(--contorno);
+  background: var(--verde);
+  color: var(--verde-texto);
+  box-shadow: var(--sombra-pop);
+  font: inherit;
+  font-size: 20px;
+  font-weight: 900;
+  text-decoration: none;
+  cursor: pointer;
+}
+.mz-cobrar:disabled {
+  background: var(--chip-fondo);
+  color: var(--tenue);
+  border-color: var(--linea);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.mz-cobrar-arena { background: var(--arena); color: var(--sobre-arena); }
+
+.mz-secundario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 52px;
+  margin-top: 10px;
+  border-radius: 16px;
+  border: 2px solid var(--contorno);
+  background: var(--hueso-2);
+  color: var(--tinta);
+  box-shadow: var(--sombra-pop-chica);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@media (min-width: 900px) {
+  .mz-mostrador { padding: 24px 32px 48px; }
+  .mz-mostrador-cuerpo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 24rem;
+    gap: 24px;
+    align-items: start;
+  }
+  .mz-productos { grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr)); }
+  .mz-atajos { display: block; }
+  .mz-barra-cobro, .mz-cerrar-ticket { display: none; }
+  .mz-aviso-stock { left: auto; right: 32px; bottom: 32px; width: 24rem; }
+  .mz-ticket-panel,
+  .mz-ticket-panel.is-abierto {
+    position: sticky;
+    inset: auto;
+    top: 16px;
+    z-index: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 24px;
+    border: 2px solid var(--contorno);
+    background: var(--hueso-2);
+    box-shadow: var(--sombra-pop);
+    overflow: visible;
+  }
+}
+
+/* ───────────── Cobrar: la hoja con teclado ───────────── */
+
+.mz-cobro {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px 28px;
+  overflow-y: auto;
+  background: var(--hueso);
+  color: var(--tinta);
+}
+.mz-cobro > * { width: 100%; max-width: 34rem; margin-inline: auto; box-sizing: border-box; }
+
+.mz-cobro-cabecera { display: flex; align-items: center; gap: 12px; }
+.mz-cobro-cabecera h2 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+
+.mz-cobro-total {
+  padding: 14px 18px;
+  border-radius: 24px;
+  background: var(--tinta);
+  color: var(--hueso);
+}
+.mz-cobro-total span { display: block; font-size: 14px; font-weight: 700; }
+.mz-cobro-total strong { display: block; font-size: 48px; font-weight: 900; letter-spacing: -0.03em; line-height: 1.1; }
+
+.mz-segmentos {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 20px;
+  border: 2px solid var(--contorno);
+  background: var(--hueso-2);
+}
+.mz-segmento {
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 15px;
+  background: transparent;
+  color: var(--tinta);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.mz-segmento[aria-pressed='true'] { background: var(--tinta); color: var(--hueso); }
+
+.mz-cobro-cuerpo { display: flex; flex-direction: column; gap: 10px; }
+
+.mz-pares { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.mz-tablero {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 20px;
+  border: 2px solid var(--contorno);
+  background: var(--hueso-2);
+  color: var(--tinta);
+  box-sizing: border-box;
+}
+.mz-tablero-menta { background: var(--menta); color: var(--sobre-menta); }
+.mz-tablero-titulo { display: block; font-size: 13px; font-weight: 700; opacity: 1; }
+.mz-tablero-valor {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.mz-tablero-input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--tinta);
+  font: inherit;
+  font-size: 28px;
+  font-weight: 900;
+}
+.mz-tablero:focus-within { outline: 3px solid var(--foco); outline-offset: 2px; }
+
+.mz-aviso {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--rojo-fondo);
+  color: var(--rojo);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.mz-billetes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.mz-billete {
+  height: 48px;
+  padding: 0;
+  border-radius: 16px;
+  border: 2px solid var(--contorno);
+  background: var(--hueso-2);
+  color: var(--tinta);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.mz-billete[data-activo='true'] { background: var(--verde); color: var(--verde-texto); }
+
+.mz-teclado { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.mz-tecla {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  padding: 0;
+  border-radius: 18px;
+  border: 2px solid var(--linea);
+  background: var(--hueso-2);
+  color: var(--tinta);
+  font: inherit;
+  font-size: 24px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.mz-tecla svg { width: 28px; height: 28px; }
+
+.mz-aviso-grande {
+  padding: 14px 16px;
+  border-radius: 22px;
+  border: 2px solid var(--contorno);
+  background: var(--arena);
+  color: var(--sobre-arena);
+}
+.mz-aviso-grande strong { display: block; font-size: 17px; font-weight: 800; }
+.mz-aviso-grande span { display: block; margin-top: 4px; font-size: 14px; font-weight: 600; line-height: 1.4; }
+
+.mz-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.mz-campo em { font-style: normal; font-weight: 600; color: var(--tenue); }
+.mz-entrada {
+  box-sizing: border-box;
+  width: 100%;
+  height: 52px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 2px solid var(--contorno);
+  background: var(--hueso-2);
+  color: var(--tinta);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.mz-confirmar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 8px 14px;
+  border-radius: 18px;
+  border: 2px solid var(--contorno);
+  background: var(--hueso-2);
+  cursor: pointer;
+}
+.mz-confirmar input { flex: 0 0 auto; width: 26px; height: 26px; margin: 0; accent-color: var(--verde); }
+.mz-confirmar strong { display: block; font-size: 16px; font-weight: 800; }
+.mz-confirmar small { display: block; font-size: 13px; font-weight: 600; color: var(--tenue); }
+
+.mz-lista-clientes { display: flex; flex-direction: column; gap: 8px; max-height: 15rem; margin-top: 10px; overflow-y: auto; }
+.mz-cliente {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 60px;
+  padding: 0 14px;
+  border-radius: 18px;
+  border: 2px solid var(--contorno);
+  background: var(--hueso-2);
+  color: var(--tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.mz-cliente-iniciales {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--contorno);
+  background: var(--arena);
+  color: var(--sobre-arena);
+  font-size: 14px;
+  font-weight: 800;
+  box-sizing: border-box;
+}
+.mz-cliente-nombre { flex: 1; min-width: 0; font-size: 17px; font-weight: 800; }
+.mz-cliente-telefono { font-size: 13px; font-weight: 600; color: var(--tenue); }
+.mz-vacio { margin: 0; padding: 12px; font-size: 15px; font-weight: 600; color: var(--tenue); }
+
+/* La hoja de "Cobrado" */
+.mz-hoja {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px 28px;
+  background: var(--hueso);
+  color: var(--tinta);
+  overflow-y: auto;
+}
+.mz-hoja-centro {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.mz-exito {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  border: 3px solid var(--contorno);
+  background: var(--verde);
+  color: var(--verde-texto);
+  box-shadow: var(--sombra-pop);
+}
+.mz-exito svg { width: 56px; height: 56px; stroke-width: 2.6; }
+.mz-hoja-titulo { margin: 24px 0 0; font-size: 24px; font-weight: 800; }
+.mz-hoja-monto { display: block; font-size: 56px; font-weight: 900; letter-spacing: -0.03em; line-height: 1.15; }
+.mz-hoja-detalle { margin: 8px 0 0; font-size: 17px; font-weight: 600; color: var(--tenue); }
+.mz-hoja-detalle b { color: var(--verde); font-weight: 800; }
+.mz-hoja-pie { width: 100%; max-width: 34rem; margin: 0 auto; }
+
+/* ───────────── Foco y selección: siempre sólidos ───────────── */
+
+/* Las reglas anteriores dibujaban el foco con un halo semitransparente, que
+   en un monitor viejo casi no se ve. Acá es un contorno firme. */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--contorno) !important;
+  box-shadow: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 2px;
+}
+
+/* Donde el campo vive dentro de un tablero o un buscador, el aro lo dibuja
+   el contenedor (:focus-within), no el campo. */
+.mz-tablero-input:focus-visible,
+.mz-buscador input:focus-visible {
+  outline: 0;
+}
+
+::selection {
+  background: var(--verde-suave);
+  color: var(--tinta);
+}
