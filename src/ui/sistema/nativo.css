@@ -1726,3 +1726,61 @@ textarea::placeholder {
 .mz-aviso-coral { background: var(--rojo-fondo) !important; color: var(--tinta) !important; border-color: var(--rojo) !important; }
 .mz-aviso-coral strong { color: var(--rojo); }
 .mz-aviso-coral .nb-acciones { margin-top: 12px; }
+
+/* ───────────── Plata: resumen del período ───────────── */
+
+.nb-resumen-plata {
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  padding: 20px;
+  border-radius: 24px;
+  background: var(--hero-fondo);
+  color: var(--hero-texto);
+}
+
+.nb-resumen-rotulo { font-size: 14px; font-weight: 700; }
+.nb-resumen-monto { display: block; margin-top: 2px; font-size: clamp(40px, 11vw, 56px); font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; }
+.nb-resumen-detalle { margin-top: 4px; font-size: 14px; font-weight: 600; }
+
+.nb-resumen-datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.nb-resumen-datos > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--hueso-2);
+  color: var(--tinta);
+}
+
+.nb-resumen-datos span { color: var(--tenue); font-size: 13px; font-weight: 700; }
+.app-main .nb-resumen-plata .nb-resumen-dato { font-size: 24px; font-weight: 800; color: var(--tinta); }
+.nb-resumen-datos > div:first-child .nb-resumen-dato { color: var(--verde); }
+.nb-resumen-datos small { color: var(--tenue); font-size: 12px; font-weight: 600; }
+
+.app-main .nb-tarjeta-titulo {
+  margin: 0 0 10px !important;
+  color: var(--tinta) !important;
+  font-size: 17px !important;
+  font-weight: 800 !important;
+}
+
+.plata-report-card,
+.plata-operation-card { padding: 18px !important; }
+
+.nb-medios { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.nb-medios-fila { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 600; }
+.nb-medios-fila > span:last-child { display: inline-flex; align-items: baseline; gap: 8px; }
+.nb-medios-fila small { color: var(--tenue); font-size: 13px; font-weight: 700; }
+.nb-medios-barra { height: 8px; margin-top: 6px; overflow: hidden; border-radius: 999px; background: var(--chip-fondo); }
+.nb-medios-barra > div { height: 100%; border-radius: 999px; background: var(--verde); }
+
+.plata-report-grid,
+.plata-operations-grid { margin-top: 16px !important; gap: 14px !important; }

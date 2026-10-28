@@ -94,27 +94,19 @@ export function PantallaPlata() {
         ))}
       </div>
 
-      <div className="plata-kpis mt-5 grid grid-cols-2 gap-2">
-        <div className="rounded-2xl px-3.5 py-3" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)' }}>
-          <div className="text-[12px]" style={{ color: 'var(--tenue)' }}>Vendiste</div>
-          <Importe centavos={datos.resumen.vendido} tamaño="grande" className="mt-0.5 !text-2xl" />
-          <div className="mt-1 text-[12px]" style={{ color: 'var(--tenue)' }}>{datos.resumen.cantidadVentas} ventas</div>
+      <section className="nb-resumen-plata" aria-label="Resumen del período">
+        <span className="nb-resumen-rotulo">Vendiste · {etiquetaPeriodo(periodo).toLowerCase()}</span>
+        <Importe centavos={datos.resumen.vendido} className="nb-resumen-monto" />
+        <span className="nb-resumen-detalle">{datos.resumen.cantidadVentas} {datos.resumen.cantidadVentas === 1 ? 'venta' : 'ventas'}</span>
+        <div className="nb-resumen-datos">
+          <div><span>Ganaste</span><Importe centavos={datos.resumen.ganancia} className="nb-resumen-dato" /><small>{porcentajeMargen(datos.resumen.vendido, datos.resumen.ganancia)}% de margen</small></div>
+          <div><span>Ticket promedio</span><Importe centavos={datos.resumen.ticketPromedio} className="nb-resumen-dato" /><small>por venta</small></div>
         </div>
-        <div className="rounded-2xl px-3.5 py-3" style={{ background: 'var(--chip-fondo)', border: '1px solid var(--linea)' }}>
-          <div className="text-[12px]" style={{ color: 'var(--tenue)' }}>Ganaste</div>
-          <Importe centavos={datos.resumen.ganancia} tamaño="grande" className="mt-0.5 !text-2xl" style={{ color: 'var(--verde)' }} />
-          <div className="mt-1 text-[12px]" style={{ color: 'var(--tenue)' }}>{porcentajeMargen(datos.resumen.vendido, datos.resumen.ganancia)}% de margen</div>
-        </div>
-      </div>
-
-      <div className="plata-ticket mt-2 flex items-center justify-between rounded-xl px-3 py-2" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)' }}>
-        <span className="text-[12px]" style={{ color: 'var(--tenue)' }}>Ticket promedio</span>
-        <Importe centavos={datos.resumen.ticketPromedio} tamaño="chico" />
-      </div>
+      </section>
 
       <div className="plata-report-grid">
       <section className="plata-report-card">
-      <h2 className="mt-8 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Lo que más rindió</h2>
+      <h2 className="nb-tarjeta-titulo">Lo que más rindió</h2>
       {datos.ranking.length === 0 ? (
         <p className="mt-2 text-[13px]" style={{ color: 'var(--tenue)' }}>Todavía no hay ventas en este período.</p>
       ) : (
@@ -134,17 +126,23 @@ export function PantallaPlata() {
 
       </section>
       <section className="plata-report-card">
-      <h2 className="mt-8 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Cómo te pagaron</h2>
+      <h2 className="nb-tarjeta-titulo">Cómo te pagaron</h2>
       {medios.length === 0 ? (
         <p className="mt-2 text-[13px]" style={{ color: 'var(--tenue)' }}>Todavía no cobraste en este período.</p>
       ) : (
-        <ul className="mt-2">
-          {medios.map(([medio, monto]) => (
-            <li key={medio} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--linea)' }}>
-              <span className="text-[13px]">{NOMBRE_MEDIO[medio]}</span>
-              <span className="flex items-center gap-2"><span className="text-[12px]" style={{ color: 'var(--tenue)' }}>{datos.resumen.porcentajePorMedio[medio as keyof typeof datos.resumen.porcentajePorMedio]}%</span><Importe centavos={monto} tamaño="chico" /></span>
-            </li>
-          ))}
+        <ul className="nb-medios">
+          {medios.map(([medio, monto]) => {
+            const porcentaje = datos.resumen.porcentajePorMedio[medio as keyof typeof datos.resumen.porcentajePorMedio]
+            return (
+              <li key={medio}>
+                <div className="nb-medios-fila">
+                  <span>{NOMBRE_MEDIO[medio]}</span>
+                  <span><small>{porcentaje}%</small><Importe centavos={monto} tamaño="chico" /></span>
+                </div>
+                <div className="nb-medios-barra" aria-hidden="true"><div style={{ width: `${Math.max(2, porcentaje)}%` }} /></div>
+              </li>
+            )
+          })}
         </ul>
       )}
 
@@ -153,7 +151,7 @@ export function PantallaPlata() {
 
       <div className="plata-operations-grid">
       <section id="caja" className="plata-operation-card">
-      <h2 className="mt-8 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Caja</h2>
+      <h2 className="nb-tarjeta-titulo">Caja</h2>
       <div className="mt-2"><CierreCaja /></div>
       <MovimientosCaja />
       </section>
@@ -169,7 +167,7 @@ export function PantallaPlata() {
       </section>
 
       <section className="plata-operation-card">
-      <h2 className="mt-8 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Tenés que reponer</h2>
+      <h2 className="nb-tarjeta-titulo">Tenés que reponer</h2>
       {datos.compras.length === 0 ? (
         <p className="mt-2 text-[13px]" style={{ color: 'var(--tenue)' }}>Por ahora no te falta nada.</p>
       ) : (
