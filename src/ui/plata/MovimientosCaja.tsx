@@ -6,13 +6,19 @@ import type { MedioCaja, TipoMovimientoCaja } from '@/dominio/tipos'
 import { formatearPesos, pesosACentavos } from '@/dominio/dinero'
 import { repos } from '@/datos/local/repos'
 import { Boton } from '@/ui/sistema/Boton'
-import { IconoCerrar, IconoMovimiento } from '@/ui/sistema/iconos'
-import { Importe } from '@/ui/sistema/Importe'
+import { Hoja } from '@/ui/sistema/Hoja'
+import { Segmentado, type OpcionSegmentado } from '@/ui/sistema/Segmentado'
+import { IconoCerrar } from '@/ui/sistema/iconos'
 
-const MEDIOS: { valor: MedioCaja; texto: string }[] = [
+const MEDIOS: OpcionSegmentado<MedioCaja>[] = [
   { valor: 'efectivo', texto: 'Efectivo' },
-  { valor: 'transferencia', texto: 'Transferencia' },
+  { valor: 'transferencia', texto: 'Transf.', nombre: 'Transferencia' },
   { valor: 'qr', texto: 'QR' },
+]
+
+const TIPOS: OpcionSegmentado<TipoMovimientoCaja>[] = [
+  { valor: 'salida', texto: 'Salida' },
+  { valor: 'entrada', texto: 'Entrada' },
 ]
 
 const SUGERENCIAS = ['Pago a proveedor', 'Retiro del dueño', 'Cambio', 'Otro']
@@ -50,71 +56,57 @@ export function MovimientosCaja() {
   }
 
   return (
-    <div className="mt-2 rounded-2xl px-3.5 py-3" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)' }}>
-      <div className="flex items-center justify-between gap-2">
+    <div className="fp-movimientos">
+      <div className="fp-movimientos-cabeza">
         <div>
-          <h3 className="text-[12px] font-semibold">Movimientos manuales</h3>
-          <p className="mt-0.5 text-[12px]" style={{ color: 'var(--tenue)' }}>Solo los de efectivo impactan el cierre.</p>
+          <h3 className="f-renglon-texto">Movimientos manuales</h3>
+          <p className="f-dato">Solo los de efectivo impactan el cierre.</p>
         </div>
-        <Boton variante="secundario" className="!px-2.5 !py-2 !text-[12px]" onClick={() => setAbierto((actual) => !actual)}>
-          {abierto ? 'Cerrar' : 'Agregar'}
+        <Boton variante="secundario" tamano="chico" className="fp-boton-44" onClick={() => setAbierto(true)}>
+          Agregar
         </Boton>
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-2 text-[12px]">
-        <div className="rounded-xl px-2.5 py-2" style={{ background: 'var(--chip-fondo)' }}>
-          <span style={{ color: 'var(--tenue)' }}>Entradas</span><div className="mt-0.5 font-semibold" style={{ color: 'var(--verde)' }}>{formatearPesos(entradas)}</div>
-        </div>
-        <div className="rounded-xl px-2.5 py-2" style={{ background: 'var(--chip-fondo)' }}>
-          <span style={{ color: 'var(--tenue)' }}>Salidas</span><div className="mt-0.5 font-semibold" style={{ color: 'var(--ambar)' }}>{formatearPesos(salidas)}</div>
-        </div>
+      <div className="fp-pareja">
+        <div className="fp-dato-caja" data-tono="verde"><span>Entradas</span><b className="f-plata f-plata-16">{formatearPesos(entradas)}</b></div>
+        <div className="fp-dato-caja" data-tono="ambar"><span>Salidas</span><b className="f-plata f-plata-16">{formatearPesos(salidas)}</b></div>
       </div>
 
-      {abierto && (
-        <form className="form-shell form-card movement-form mt-3" onSubmit={(evento) => void guardar(evento)}>
-          <div className="form-section-heading">
-            <span className="form-intro-icon" aria-hidden="true"><IconoMovimiento /></span>
-            <div><h3>Registrar movimiento</h3><p>Anotá entradas o salidas que no vienen de una venta.</p></div>
-          </div>
-          <div className="form-field-row">
-            <label className="form-field">
-              <span className="form-field-label">Tipo</span>
-              <select aria-label="Tipo de movimiento" className="form-input" value={tipo} onChange={(evento) => setTipo(evento.target.value as TipoMovimientoCaja)}>
-                <option value="salida">Salida</option><option value="entrada">Entrada</option>
-              </select>
-            </label>
-            <label className="form-field">
-              <span className="form-field-label">Medio</span>
-              <select aria-label="Medio del movimiento" className="form-input" value={medioPago} onChange={(evento) => setMedioPago(evento.target.value as MedioCaja)}>
-                {MEDIOS.map((medio) => <option key={medio.valor} value={medio.valor}>{medio.texto}</option>)}
-              </select>
-            </label>
-          </div>
-          <p className="form-callout movement-impact" data-kind={tipo}>
+      <Hoja abierta={abierto} onCerrar={() => setAbierto(false)} titulo="Registrar movimiento">
+        <form className="fp-formulario" onSubmit={(evento) => void guardar(evento)}>
+          <p className="f-hoja-ayuda">Anotá entradas o salidas que no vienen de una venta.</p>
+          <Segmentado etiqueta="Tipo de movimiento" opciones={TIPOS} valor={tipo} onCambiar={setTipo} />
+          <Segmentado etiqueta="Medio del movimiento" opciones={MEDIOS} valor={medioPago} onCambiar={setMedioPago} />
+          <p className="fp-impacto" data-tono={tipo === 'entrada' ? 'verde' : 'ambar'}>
             {tipo === 'entrada' ? 'Esta entrada va a sumar al saldo de caja.' : 'Esta salida va a descontarse del saldo de caja.'}
           </p>
-          <label className="form-field">
-            <span className="form-field-label">Concepto <em>obligatorio</em></span>
-            <input aria-label="Concepto del movimiento" placeholder="Ej. Pago a proveedor" className="form-input" list="conceptos-caja" value={concepto} onChange={(evento) => setConcepto(evento.target.value)} />
+          <label className="f-campo">
+            <span>Concepto <em>obligatorio</em></span>
+            <input aria-label="Concepto del movimiento" placeholder="Ej. Pago a proveedor" className="f-entrada" list="conceptos-caja" value={concepto} onChange={(evento) => setConcepto(evento.target.value)} />
             <datalist id="conceptos-caja">{SUGERENCIAS.map((sugerencia) => <option key={sugerencia} value={sugerencia} />)}</datalist>
-            <span className="form-field-help">Elegí una sugerencia o escribí una referencia para reconocerlo después.</span>
           </label>
-          <label className="form-field">
-            <span className="form-field-label">Monto <em>importe en pesos</em></span>
-            <div className="form-input-with-prefix"><span aria-hidden="true">$</span><input aria-label="Monto del movimiento" inputMode="decimal" placeholder="Ej. 15.000" className="form-input form-input-large tabular" value={monto} onChange={(evento) => setMonto(evento.target.value)} /></div>
+          <label className="f-campo">
+            <span>Monto <em>importe en pesos</em></span>
+            <span className="fp-prefijo">
+              <span aria-hidden="true">$</span>
+              <input aria-label="Monto del movimiento" inputMode="decimal" placeholder="Ej. 15.000" className="f-entrada fp-entrada-grande tabular" value={monto} onChange={(evento) => setMonto(evento.target.value)} />
+            </span>
           </label>
-          <Boton variante="principal" type="submit" className="w-full !py-2.5 !text-[12px]">Guardar movimiento</Boton>
-          {aviso && <p className="form-error form-error-banner" role="alert">{aviso}</p>}
+          {aviso && <p className="f-aviso" role="alert">{aviso}</p>}
+          <Boton variante="principal" tamano="grande" ancho type="submit">Guardar movimiento</Boton>
         </form>
-      )}
+      </Hoja>
 
       {(movimientos ?? []).length > 0 && (
-        <ul className="mt-3">
+        <ul className="fp-lista">
           {(movimientos ?? []).slice(0, 8).map((movimiento) => (
-            <li key={movimiento.id} className="flex items-center gap-2 py-2" style={{ borderTop: '1px solid var(--linea)' }}>
-              <span className="flex-1 min-w-0"><span className="block truncate text-[12px]">{movimiento.concepto}</span><span className="text-[12px]" style={{ color: 'var(--tenue)' }}>{new Date(movimiento.fecha).toLocaleDateString('es-AR')} · {movimiento.medioPago}</span></span>
-              <Importe centavos={movimiento.tipo === 'salida' ? -movimiento.monto : movimiento.monto} tamaño="chico" style={{ color: movimiento.tipo === 'salida' ? 'var(--ambar)' : 'var(--verde)' }} />
-              <button type="button" aria-label={`Eliminar movimiento ${movimiento.concepto}`} className="icon-action-button" style={{ color: 'var(--tenue)' }} onClick={() => void eliminar(movimiento.id)}><IconoCerrar /></button>
+            <li key={movimiento.id} className="f-renglon">
+              <span className="f-renglon-cuerpo">
+                <span className="f-renglon-titulo">{movimiento.concepto}</span>
+                <span className="f-renglon-detalle">{new Date(movimiento.fecha).toLocaleDateString('es-AR')} · {movimiento.medioPago}</span>
+              </span>
+              <span className="f-renglon-fin" data-tono={movimiento.tipo === 'salida' ? 'ambar' : 'verde'}>{formatearPesos(movimiento.tipo === 'salida' ? -movimiento.monto : movimiento.monto)}</span>
+              <button type="button" aria-label={`Eliminar movimiento ${movimiento.concepto}`} className="f-icono-boton" onClick={() => void eliminar(movimiento.id)}><IconoCerrar /></button>
             </li>
           ))}
         </ul>

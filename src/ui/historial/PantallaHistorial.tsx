@@ -8,13 +8,19 @@ import type { Venta } from '@/dominio/tipos'
 import { etiquetaPeriodo, filtrarVentas, rangoReporte, type PeriodoReporte } from '@/dominio/reportes'
 import { normalizarTexto } from '@/dominio/validaciones'
 import { enlaceWhatsApp, mensajeTicket } from '@/dominio/mensajes'
+import { formatearPesos } from '@/dominio/dinero'
 import { ErrorVentaNoAnulable, ErrorVentaYaAnulada, repos } from '@/datos/local/repos'
 import { descargarCsv, ventasACsv } from '@/datos/local/csv'
-import { Importe } from '@/ui/sistema/Importe'
-import { Boton } from '@/ui/sistema/Boton'
+import { Boton, clasesBoton } from '@/ui/sistema/Boton'
+import { CampoBusqueda } from '@/ui/sistema/CampoBusqueda'
+import { Chip, Chips } from '@/ui/sistema/Chip'
+import { Etiqueta } from '@/ui/sistema/Etiqueta'
+import { Hoja } from '@/ui/sistema/Hoja'
+import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { IconoFlechaDerecha, IconoFlechaIzquierda, IconoHistorial } from '@/ui/sistema/iconos'
 
 const ETIQUETA_PERIODO: Record<PeriodoReporte, string> = { hoy: 'Hoy', '7dias': '7 días', '30dias': '30 días', todo: 'Todo' }
+const PERIODOS: PeriodoReporte[] = ['hoy', '7dias', '30dias', 'todo']
 
 const MEDIOS: Record<string, string> = {
   efectivo: 'Efectivo', transferencia: 'Transferencia', qr: 'QR', fiado: 'Fiado',
@@ -26,13 +32,14 @@ function fechaVenta(epoch: number): string {
   }).format(new Date(epoch))
 }
 
-function DetalleVenta({ venta, onCerrar, onAnulada }: { venta: Venta; onCerrar: () => void; onAnulada: (venta: Venta) => void }) {
+function DetalleVenta({ venta, onAnulada }: { venta: Venta; onAnulada: (venta: Venta) => void }) {
   const negocio = useLiveQuery(() => db.negocio.get('unico'), [], undefined)
   const nombre = negocio?.nombre || 'Tu almacén'
   const [confirmando, setConfirmando] = useState(false)
   const [motivo, setMotivo] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [aviso, setAviso] = useState<string | null>(null)
+  const anulada = venta.estado === 'anulada'
 
   async function anular() {
     setGuardando(true)
@@ -51,39 +58,50 @@ function DetalleVenta({ venta, onCerrar, onAnulada }: { venta: Venta; onCerrar: 
   }
 
   return (
-    <div className="mt-3 rounded-2xl px-3.5 py-3" style={{ background: 'var(--chip-fondo)', border: '1px solid var(--linea)' }}>
-      <div className="flex items-baseline justify-between">
-        <div><h2 className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Detalle de venta</h2><div className="mt-1 text-[12px]" style={{ color: 'var(--tenue)' }}>{fechaVenta(venta.fecha)} · {MEDIOS[venta.medioPago]}{venta.estado === 'anulada' ? ' · Anulada' : ''}</div></div>
-        <button type="button" className="text-[12px]" style={{ color: 'var(--tenue)' }} onClick={onCerrar}>Cerrar</button>
-      </div>
-      {venta.estado === 'anulada' && <div className="history-void-banner"><strong>Venta anulada</strong><span>{venta.motivoAnulacion || 'Sin motivo detallado'} · stock devuelto</span></div>}
-      <ul className="mt-3">
+    <>
+      <p className="f-hoja-ayuda">{fechaVenta(venta.fecha)} · {MEDIOS[venta.medioPago]}{anulada ? ' · Anulada' : ''}</p>
+      {anulada && (
+        <div className="f-aviso" data-tono="ambar">
+          <strong>Venta anulada</strong>
+          <span>{venta.motivoAnulacion || 'Sin motivo detallado'} · stock devuelto</span>
+        </div>
+      )}
+      <ul className="fh-items">
         {venta.items.map((item) => (
-          <li key={item.productoId} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--linea)' }}>
-            <span className="text-[13px]">{item.cantidad} × {item.nombre}</span>
-            <Importe centavos={item.precio * item.cantidad} tamaño="chico" />
+          <li key={item.productoId} className="f-renglon">
+            <span className="f-renglon-cuerpo"><span className="f-renglon-titulo">{item.cantidad} × {item.nombre}</span></span>
+            <span className="f-renglon-fin">{formatearPesos(item.precio * item.cantidad)}</span>
           </li>
         ))}
       </ul>
-      <div className="mt-3 flex items-baseline justify-between"><span className="text-[12px] font-semibold">Total</span><Importe centavos={venta.total} tamaño="normal" /></div>
-      {venta.referenciaPago && <div className="history-payment-reference"><span>Referencia de cobro</span><strong>{venta.referenciaPago}</strong></div>}
-      {venta.estado !== 'anulada' && <button type="button" className="history-void-button" onClick={() => { setConfirmando(true); setAviso(null) }}>Anular venta</button>}
-      {confirmando && venta.estado !== 'anulada' && (
-        <div className="history-void-form form-shell form-card">
-          <div className="form-section-heading"><span className="form-step">!</span><div><h3>¿Anular esta venta?</h3><p>Se devuelve el stock y queda una salida de caja si fue en efectivo. La venta no se borra.</p></div></div>
-          <label className="form-field"><span className="form-field-label">Motivo <em>recomendado</em></span><input aria-label="Motivo de anulación" className="form-input" placeholder="Ej. producto equivocado" value={motivo} onChange={(evento) => setMotivo(evento.target.value)} autoFocus /></label>
-          <div className="form-actions"><button type="button" className="history-void-confirm" disabled={guardando} onClick={() => void anular()}>{guardando ? 'Anulando…' : 'Sí, anular venta'}</button><button type="button" className="history-void-cancel" onClick={() => setConfirmando(false)}>Volver</button></div>
+      <div className="fh-total"><span>Total</span><span className="f-plata f-plata-36">{formatearPesos(venta.total)}</span></div>
+      {venta.referenciaPago && <div className="fh-referencia"><span>Referencia de cobro</span><strong>{venta.referenciaPago}</strong></div>}
+
+      {confirmando && !anulada ? (
+        <div className="fh-anular" role="group" aria-label="Anular venta">
+          <h3 className="f-renglon-texto">¿Anular esta venta?</h3>
+          <p className="f-hoja-ayuda">Se devuelve el stock y queda una salida de caja si fue en efectivo. La venta no se borra.</p>
+          <label className="f-campo">
+            <span>Motivo <em>recomendado</em></span>
+            <input aria-label="Motivo de anulación" className="f-entrada" placeholder="Ej. producto equivocado" value={motivo} onChange={(evento) => setMotivo(evento.target.value)} autoFocus />
+          </label>
+          <div className="fh-acciones">
+            <Boton variante="cuidado" disabled={guardando} onClick={() => void anular()}>{guardando ? 'Anulando…' : 'Sí, anular venta'}</Boton>
+            <Boton variante="secundario" onClick={() => setConfirmando(false)}>Volver</Boton>
+          </div>
+        </div>
+      ) : anulada ? (
+        <p className="f-hoja-ayuda">El comprobante queda sólo como registro interno.</p>
+      ) : (
+        <div className="fh-acciones" data-orden="columna">
+          <a className={clasesBoton('principal')} target="_blank" rel="noreferrer" href={enlaceWhatsApp('', mensajeTicket({ id: 'unico', nombre, logo: null, color: null }, venta))}>
+            Reenviar ticket por WhatsApp
+          </a>
+          <Boton variante="cuidado" onClick={() => { setConfirmando(true); setAviso(null) }}>Anular venta</Boton>
         </div>
       )}
-      {aviso && <p className="form-error form-error-banner" role="alert">{aviso}</p>}
-      {venta.estado === 'anulada' ? (
-        <p className="history-void-note">El comprobante queda sólo como registro interno.</p>
-      ) : (
-        <a className="mt-3 block rounded-2xl py-3 text-center text-[13px] font-semibold" style={{ background: 'var(--verde)', color: 'var(--verde-texto)' }} target="_blank" rel="noreferrer" href={enlaceWhatsApp('', mensajeTicket({ id: 'unico', nombre, logo: null, color: null }, venta))}>
-          Reenviar ticket por WhatsApp
-        </a>
-      )}
-    </div>
+      {aviso && <p className="f-aviso" role="alert">{aviso}</p>}
+    </>
   )
 }
 
@@ -99,46 +117,73 @@ export function PantallaHistorial() {
   })
 
   return (
-    <div className="page-historial px-5 pt-6">
-      <div className="page-module-head historial-head">
-        <div><Link href="/vender" className="history-back-link" style={{ color: 'var(--verde)' }}><IconoFlechaIzquierda /> Vender</Link><span className="page-kicker mt-3 block">Registro</span><h1 className="page-title">Historial de ventas</h1></div>
-        <span className="tabular text-[12px]" style={{ color: 'var(--tenue)' }}>{filtradas.length} ventas</span>
+    <div className="fh-pagina">
+      <header className="fh-cabeza">
+        <div className="fh-cabeza-texto">
+          <Link href="/vender" className="fh-volver"><IconoFlechaIzquierda /> Vender</Link>
+          <h1 className="f-titulo">Historial de ventas</h1>
+        </div>
+        <span className="f-dato fh-cuenta">{filtradas.length} {filtradas.length === 1 ? 'venta' : 'ventas'}</span>
+      </header>
+
+      <div className="fh-herramientas">
+        <CampoBusqueda etiqueta="Buscar en historial" placeholder="Buscar producto o medio de pago…" valor={busqueda} onCambiar={setBusqueda} />
+        <Chips etiqueta="Período">
+          {PERIODOS.map((opcion) => (
+            <Chip key={opcion} activo={periodo === opcion} onClick={() => setPeriodo(opcion)}>{ETIQUETA_PERIODO[opcion]}</Chip>
+          ))}
+        </Chips>
+        <Boton variante="secundario" className="fh-exportar" onClick={() => descargarCsv(`ventas-${new Date().toISOString().slice(0, 10)}.csv`, ventasACsv(filtradas))}>
+          Exportar estas ventas a CSV
+        </Boton>
       </div>
-      <input aria-label="Buscar en historial" placeholder="Buscar producto o medio de pago…" className="historial-search mt-4 w-full rounded-xl px-3 py-2.5 text-[14px]" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)', color: 'var(--tinta)' }} value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} />
-      <div className="historial-filters nb-segmentado mt-3">
-        {(['hoy', '7dias', '30dias', 'todo'] as PeriodoReporte[]).map((opcion) => (
-          <Boton key={opcion} variante={periodo === opcion ? 'principal' : 'secundario'} aria-pressed={periodo === opcion} onClick={() => setPeriodo(opcion)}>{ETIQUETA_PERIODO[opcion]}</Boton>
-        ))}
-      </div>
-      <button type="button" className="historial-export mt-2 w-full rounded-xl py-2.5 text-[12px] font-semibold" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)', color: 'var(--tinta)' }} onClick={() => descargarCsv(`ventas-${new Date().toISOString().slice(0, 10)}.csv`, ventasACsv(filtradas))}>Exportar estas ventas a CSV</button>
-      <div className={`historial-layout${seleccionada ? ' historial-layout-detail' : ''}`}>
-      {seleccionada && <DetalleVenta venta={seleccionada} onCerrar={() => setSeleccionada(null)} onAnulada={(venta) => setSeleccionada(venta)} />}
+
       {filtradas.length === 0 ? (
         ventas.length === 0 ? (
-          <section className="historial-empty-state" aria-labelledby="historial-empty-title">
-            <span className="historial-empty-icon" aria-hidden="true"><IconoHistorial /></span>
-            <span className="historial-empty-kicker">Registro en blanco</span>
-            <h2 id="historial-empty-title">Todavía no hay ventas</h2>
-            <p>Las ventas cobradas van a quedar ordenadas acá para revisarlas y exportarlas cuando lo necesites.</p>
-            <Link href="/vender" className="historial-empty-action">Ir a vender <IconoFlechaDerecha /></Link>
-          </section>
+          <Tarjeta como="section" relleno="grande" className="fh-vacio" aria-labelledby="historial-empty-title">
+            <span className="fh-vacio-icono" aria-hidden="true"><IconoHistorial /></span>
+            <h2 id="historial-empty-title" className="f-seccion">Todavía no hay ventas</h2>
+            <p className="f-texto">Las ventas cobradas van a quedar ordenadas acá para revisarlas y exportarlas cuando lo necesites.</p>
+            <Link href="/vender" className={clasesBoton('principal')}>Ir a vender <IconoFlechaDerecha /></Link>
+          </Tarjeta>
         ) : (
-          <p className="py-14 text-center text-[13px]" style={{ color: 'var(--tenue)' }}>No hay ventas en {etiquetaPeriodo(periodo).toLowerCase()}.</p>
+          <Tarjeta className="fh-vacio">
+            <p className="f-texto">No hay ventas en {etiquetaPeriodo(periodo).toLowerCase()}.</p>
+          </Tarjeta>
         )
       ) : (
-        <ul className="mt-4">
-          {filtradas.map((venta) => (
-            <li key={venta.id}>
-              <button type="button" className="historial-row flex w-full items-center gap-3 py-3 text-left active:opacity-70" style={{ borderBottom: '1px solid var(--linea)' }} onClick={() => setSeleccionada(venta)} aria-label={`Ver venta de ${ImporteLabel(venta.total)} de ${fechaVenta(venta.fecha)}`}>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[12px] font-bold" style={{ background: 'var(--chip-fondo)', color: 'var(--tenue)' }}>{venta.items.length}</span>
-                <span className="min-w-0 flex-1"><span className="block truncate text-[13px] font-medium" style={{ textDecoration: venta.estado === 'anulada' ? 'line-through' : undefined }}>{venta.items.map((item) => item.nombre).join(', ')}</span><span className="text-[12px]" style={{ color: venta.estado === 'anulada' ? 'var(--ambar)' : 'var(--tenue)' }}>{fechaVenta(venta.fecha)} · {MEDIOS[venta.medioPago]}{venta.estado === 'anulada' ? ' · Anulada' : ''}</span></span>
-                <Importe centavos={venta.total} tamaño="chico" style={{ color: venta.estado === 'anulada' ? 'var(--tenue)' : undefined, textDecoration: venta.estado === 'anulada' ? 'line-through' : undefined }} />
-              </button>
-            </li>
-          ))}
-        </ul>
+        <Tarjeta como="section" relleno="ninguno" className="fh-lista-caja" aria-label="Ventas">
+          <ul className="fh-lista">
+            {filtradas.map((venta) => {
+              const anulada = venta.estado === 'anulada'
+              return (
+                <li key={venta.id}>
+                  <button type="button" className="fh-venta" onClick={() => setSeleccionada(venta)} aria-label={`Ver venta de ${ImporteLabel(venta.total)} de ${fechaVenta(venta.fecha)}`}>
+                    <span className="fh-venta-cantidad" aria-hidden="true">{venta.items.length}</span>
+                    <span className="f-renglon-cuerpo">
+                      <span className="f-renglon-titulo" data-anulada={anulada ? 'true' : undefined}>{venta.items.map((item) => item.nombre).join(', ')}</span>
+                      <span className="f-renglon-detalle">
+                        {fechaVenta(venta.fecha)} · {MEDIOS[venta.medioPago]}
+                        {anulada && <> · <Etiqueta tono="ambar" className="fh-anulada">Anulada</Etiqueta></>}
+                      </span>
+                    </span>
+                    <span className="f-renglon-fin" data-anulada={anulada ? 'true' : undefined}>{formatearPesos(venta.total)}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </Tarjeta>
       )}
-      </div>
+
+      <Hoja
+        abierta={seleccionada !== null}
+        onCerrar={() => setSeleccionada(null)}
+        titulo="Detalle de venta"
+        ancho="angosto"
+      >
+        {seleccionada && <DetalleVenta venta={seleccionada} onAnulada={(venta) => setSeleccionada(venta)} />}
+      </Hoja>
     </div>
   )
 }

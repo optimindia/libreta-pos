@@ -117,9 +117,7 @@ textarea:disabled {
 }
 
 .page-stock,
-.page-plata,
 .page-fiados,
-.page-historial,
 .page-config,
 .page-pedidos,
 .page-clientes,
@@ -255,8 +253,6 @@ textarea:disabled {
 .pedido-card,
 .cliente-card,
 .fiado-card,
-.plata-report-card,
-.plata-operation-card,
 .stock-load-form,
 .stock-scan-panel,
 .config-profile-card,
@@ -273,7 +269,6 @@ textarea:disabled {
 
 .stock-empty-state,
 .fiados-empty-state,
-.historial-empty-state,
 .pedidos-empty,
 .clientes-empty {
   border-radius: 1.2rem;
@@ -281,14 +276,12 @@ textarea:disabled {
 }
 
 .stock-empty-icon,
-.fiados-empty-icon,
-.historial-empty-icon {
+.fiados-empty-icon {
   border-radius: 0.95rem;
   background: var(--verde-suave);
 }
 
 .catalogo-search,
-.historial-search,
 .pedidos-search,
 .clientes-search {
   min-height: 3.05rem;
@@ -334,16 +327,13 @@ textarea:disabled {
   height: 0.85rem;
 }
 
-.stock-tabs,
-.plata-periodos {
+.stock-tabs {
   padding: 0.3rem;
   border-radius: 0.95rem;
   background: var(--superficie-sutil);
 }
 
-.stock-tabs > button,
-.plata-periodos > button,
-.historial-filters > button {
+.stock-tabs > button {
   min-height: 2.7rem;
   border-radius: 0.7rem !important;
   font-size: 0.75rem !important;
@@ -353,8 +343,7 @@ textarea:disabled {
 .stock-content,
 .pedidos-list,
 .clientes-grid,
-.fiados-list,
-.historial-layout {
+.fiados-list {
   margin-top: 1.25rem;
 }
 
@@ -479,9 +468,7 @@ textarea:disabled {
 
 .pedido-card,
 .cliente-card,
-.fiado-card,
-.plata-report-card,
-.plata-operation-card {
+.fiado-card {
   padding: 1rem;
 }
 
@@ -553,8 +540,7 @@ textarea:disabled {
 }
 
 .pedidos-command-card,
-.clientes-highlight,
-.control-center {
+.clientes-highlight {
   border-radius: 1.15rem;
   box-shadow: var(--sombra-panel);
 }
@@ -572,8 +558,7 @@ textarea:disabled {
 .pedidos-empty,
 .clientes-empty,
 .stock-empty-state,
-.fiados-empty-state,
-.historial-empty-state {
+.fiados-empty-state {
   min-height: 18rem;
   padding: 2.25rem 1.5rem;
 }
@@ -581,8 +566,7 @@ textarea:disabled {
 .pedidos-empty h2,
 .clientes-empty h2,
 .stock-empty-state h2,
-.fiados-empty-state h2,
-.historial-empty-state h2 {
+.fiados-empty-state h2 {
   font-size: 1.1rem;
   font-weight: 780;
 }
@@ -590,19 +574,14 @@ textarea:disabled {
 .pedidos-empty p,
 .clientes-empty p,
 .stock-empty-state p,
-.fiados-empty-state p,
-.historial-empty-state p {
+.fiados-empty-state p {
   font-size: 0.76rem;
   line-height: 1.55;
 }
 
 .fiados-summary-grid,
 .fiados-toolbar,
-.fiados-list,
-.historial-search,
-.historial-filters,
-.historial-export,
-.historial-layout {
+.fiados-list {
   width: 100%;
   max-width: none;
 }
@@ -613,25 +592,6 @@ textarea:disabled {
 
 .fiado-card {
   box-shadow: none;
-}
-
-.page-plata .plata-report-card,
-.page-plata .plata-operation-card {
-  border-radius: 1rem;
-}
-
-.page-plata .plata-report-card > h2,
-.page-plata .plata-operation-card > h2,
-.page-plata .plata-operation-card h2 {
-  margin-top: 0;
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.13em;
-}
-
-.page-plata .plata-report-card > p,
-.page-plata .plata-operation-card > p {
-  font-size: 0.76rem;
 }
 
 .config-profile-card,
@@ -796,9 +756,7 @@ textarea:disabled {
   }
 
   .page-stock,
-  .page-plata,
   .page-fiados,
-  .page-historial,
   .page-config,
   .page-pedidos,
   .page-clientes,
@@ -806,8 +764,7 @@ textarea:disabled {
     padding: 0 !important;
   }
 
-  .page-fiados,
-  .page-historial {
+  .page-fiados {
     max-width: none;
   }
 
@@ -827,12 +784,6 @@ textarea:disabled {
     padding: 1.05rem;
   }
 
-  .page-plata .plata-report-card,
-  .page-plata .plata-operation-card {
-    padding: 1.25rem;
-  }
-
-  .historial-layout:not(.historial-layout-detail) > .historial-empty-state,
   .page-fiados > .fiados-empty-state {
     width: 100%;
   }
@@ -849,18 +800,8 @@ textarea:disabled {
     padding: 2.25rem clamp(2.25rem, 4vw, 4.5rem) 4rem;
   }
 
-  .page-fiados,
-  .page-historial {
+  .page-fiados {
     max-width: 1360px;
-  }
-
-  .plata-report-grid,
-  .plata-operations-grid {
-    gap: 1.25rem;
-  }
-
-  .plata-operations-grid {
-    grid-template-columns: minmax(18rem, 0.9fr) minmax(24rem, 1.25fr) minmax(18rem, 0.9fr);
   }
 }
 
@@ -870,9 +811,7 @@ textarea:disabled {
   }
 
   .page-stock,
-  .page-plata,
   .page-fiados,
-  .page-historial,
   .page-config,
   .page-pedidos,
   .page-clientes {
@@ -962,8 +901,6 @@ textarea:disabled {
   .pedido-card,
   .cliente-card,
   .fiado-card,
-  .plata-report-card,
-  .plata-operation-card,
   .stock-load-form,
   .stock-scan-panel,
   .form-card,
@@ -992,8 +929,7 @@ textarea:disabled {
   .pedidos-empty,
   .clientes-empty,
   .stock-empty-state,
-  .fiados-empty-state,
-  .historial-empty-state {
+  .fiados-empty-state {
     min-height: 15rem;
     padding: 1.6rem 1rem;
   }
@@ -1013,19 +949,6 @@ textarea:disabled {
 
   .form-actions > :only-child {
     grid-column: auto;
-  }
-
-  .page-plata .plata-report-card,
-  .page-plata .plata-operation-card {
-    padding: 0.95rem;
-  }
-
-  .historial-filters {
-    gap: 0.45rem;
-  }
-
-  .historial-filters > button {
-    min-width: 0;
   }
 
   .account-status-card {
@@ -2235,16 +2158,6 @@ textarea:disabled {
     padding: 1rem;
   }
 
-  .plata-report-grid,
-  .plata-operations-grid {
-    gap: 0.9rem;
-  }
-
-  .page-plata .plata-report-card,
-  .page-plata .plata-operation-card {
-    padding: 1rem;
-  }
-
   .stock-load-form,
   .stock-scan-panel {
     padding: 1rem;
@@ -2276,18 +2189,13 @@ textarea:disabled {
    * una columna larga es más clara que dos columnas comprimidas. */
 
   .stock-content-catalogo,
-  .stock-load-layout,
-  .plata-operations-grid {
+  .stock-load-layout {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .stock-content-catalogo > *,
   .stock-load-layout > * {
     width: 100%;
-  }
-
-  .plata-operation-card:nth-child(2) {
-    grid-column: auto;
   }
 
   .page-stock .stock-grid {
