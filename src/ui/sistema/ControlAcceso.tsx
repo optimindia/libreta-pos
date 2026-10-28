@@ -30,7 +30,7 @@ function AvisoVencimiento({ estado }: { estado: EstadoAcceso }) {
 
 function Marco({ children, admin = false, estado }: { children: React.ReactNode; admin?: boolean; estado?: EstadoAcceso }) {
   return (
-    <div className={`app-shell${admin ? ' app-shell-admin' : ''}`}>
+    <div className={admin ? 'app-shell app-shell-admin' : 'nb-app'}>
       {!admin && <Navegacion />}
       <main className={`app-main${admin ? ' admin-main' : ''}`}>{!admin && estado && <AvisoVencimiento estado={estado} />}{children}</main>
     </div>

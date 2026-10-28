@@ -1,18 +1,15 @@
-// Contorno firme y sombra dura: el botón se ve como botón aun en un monitor
-// que aplasta los tonos parecidos. Al apretarlo se hunde (ver mosaico.css).
-const RELIEVE = { border: '2px solid var(--contorno)', boxShadow: 'var(--sombra-pop-chica)' } as const
-
+// El aspecto de cada variante vive en nativo.css (.nb-boton-*): superficie
+// sólida, borde que se ve aun en un monitor viejo y un hundido al apretar.
 const VARIANTES = {
-  principal: { background: 'var(--verde)', color: 'var(--verde-texto)', ...RELIEVE },
-  secundario: { background: 'var(--hueso-2)', color: 'var(--tinta)', ...RELIEVE },
-  fiado: { background: 'var(--ambar-fondo)', color: 'var(--ambar)', ...RELIEVE },
+  principal: 'nb-boton-principal',
+  secundario: 'nb-boton-secundario',
+  fiado: 'nb-boton-fiado',
 } as const
 
 export function Boton({
   variante = 'principal',
   className = '',
   type = 'button',
-  style,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variante?: keyof typeof VARIANTES
@@ -21,8 +18,8 @@ export function Boton({
     <button
       type={type}
       {...props}
-      style={{ ...VARIANTES[variante], ...style }}
-      className={`libreta-button touch-manipulation rounded-2xl px-5 py-3.5 text-base font-bold focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--contorno)] disabled:pointer-events-none disabled:opacity-40 ${className}`}
+      data-variante={variante}
+      className={`libreta-button nb-boton ${VARIANTES[variante]} touch-manipulation rounded-2xl px-5 py-3.5 text-base font-bold disabled:pointer-events-none disabled:opacity-40 ${className}`}
     />
   )
 }

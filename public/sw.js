@@ -1,33 +1,58 @@
-const CACHE = 'libreta-v1'
+// Libreta offline: el armazón de la app queda guardado para abrir sin señal.
+// Los datos viven en IndexedDB, nunca en este caché.
+const CACHE = 'libreta-v2'
+const ARMAZON = ['/', '/vender', '/fiados', '/stock', '/plata', '/manifest.webmanifest', '/icon-192.png']
 
-// Sólo el armazón: los datos viven en IndexedDB, no en el caché.
 self.addEventListener('install', (evento) => {
-  evento.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(['/'])))
+  evento.waitUntil(
+    caches.open(CACHE).then((cache) => Promise.all(ARMAZON.map((ruta) => cache.add(ruta).catch(() => undefined)))),
+  )
   self.skipWaiting()
 })
 
 self.addEventListener('activate', (evento) => {
   evento.waitUntil(
-    caches.keys().then((claves) =>
-      Promise.all(claves.filter((clave) => clave !== CACHE).map((clave) => caches.delete(clave))),
-    ),
+    caches.keys().then((claves) => Promise.all(claves.filter((clave) => clave !== CACHE).map((clave) => caches.delete(clave)))),
   )
   self.clients.claim()
 })
 
-// Red primero, caché de respaldo: la app siempre abre, con o sin señal.
-// Nunca se cachea una respuesta con error, para no dejar la app rota.
 self.addEventListener('fetch', (evento) => {
-  if (evento.request.method !== 'GET') return
-  evento.respondWith(
-    fetch(evento.request)
-      .then((respuesta) => {
+  const { request } = evento
+  if (request.method !== 'GET') return
+  const url = new URL(request.url)
+  // Sólo lo propio: nada de Supabase ni de otros dominios, y nunca la API
+  // (sus respuestas dependen de quién está logueado).
+  if (url.origin !== self.location.origin) return
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/_next/webpack-hmr')) return
+
+  // Archivos con huella (no cambian nunca): primero el caché.
+  if (url.pathname.startsWith('/_next/static/')) {
+    evento.respondWith(
+      caches.match(request).then((guardada) => guardada ?? fetch(request).then((respuesta) => {
         if (respuesta.ok) {
           const copia = respuesta.clone()
-          caches.open(CACHE).then((cache) => cache.put(evento.request, copia))
+          caches.open(CACHE).then((cache) => cache.put(request, copia))
+        }
+        return respuesta
+      })),
+    )
+    return
+  }
+
+  // Todo lo demás: red primero y, sin señal, lo último guardado. Una página
+  // que nunca se abrió cae al inicio, que funciona igual sin internet.
+  evento.respondWith(
+    fetch(request)
+      .then((respuesta) => {
+        if (respuesta.ok && respuesta.type === 'basic') {
+          const copia = respuesta.clone()
+          caches.open(CACHE).then((cache) => cache.put(request, copia))
         }
         return respuesta
       })
-      .catch(() => caches.match(evento.request).then((guardada) => guardada ?? caches.match('/'))),
+      .catch(() =>
+        caches.match(request).then((guardada) => guardada ?? (request.mode === 'navigate' ? caches.match('/') : Response.error())),
+      ),
   )
 })

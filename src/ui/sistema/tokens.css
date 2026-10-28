@@ -10,16 +10,16 @@
   --ambar-fondo: #FFE3A3;
   --tinta: #0F1B2D;
   --tenue: #4B5565;
-  --hueso: #E9ECF1;
+  --hueso: #EEF1F5;
   --hueso-2: #FFFFFF;
-  --linea: #9AA5B5;
-  --chip-fondo: #DCE1E9;
+  --linea: #C3CCD8;
+  --chip-fondo: #E3E8EF;
   --verde-suave: #DDF4EC;
   --superficie-sutil: #F4F6F9;
   /* Los viejos halos suaves quedan apagados: el relieve lo da el borde. */
   --sombra: 0 0 0 0 #0F1B2D;
   --sombra-panel: 0 0 0 0 #0F1B2D;
-  --sombra-flotante: 0 4px 0 #0F1B2D;
+  --sombra-flotante: 0 12px 32px rgba(15, 27, 45, 0.16), 0 2px 6px rgba(15, 27, 45, 0.08);
   --radio-panel: 1.5rem;
   --radio-control: 1rem;
 
@@ -41,10 +41,18 @@
   --hero-barra: #B8EBDD;
   --hero-barra-fuerte: #C6F432;
 
-  /* Relieve "pop": contorno firme y sombra dura, sólo en lo que se toca. */
-  --contorno: #0F1B2D;
-  --sombra-pop: 0 4px 0 #0F1B2D;
-  --sombra-pop-chica: 0 3px 0 #0F1B2D;
+  /* Bordes y relieve de superficies: finos y sólidos, como una app nativa.
+     El relieve fuerte ("acento") queda sólo para VENDER y COBRAR. */
+  --contorno: #B9C3D0;
+  --sombra-pop: 0 1px 2px rgba(15, 27, 45, 0.06), 0 2px 8px rgba(15, 27, 45, 0.05);
+  --sombra-pop-chica: 0 1px 2px rgba(15, 27, 45, 0.08);
+  --foco: #0F1B2D;
+  --acento-borde: #0F1B2D;
+  --sombra-acento: 0 5px 0 #0F1B2D;
+  --barra-fondo: #FFFFFF;
+  --barra-borde: #D5DCE5;
+  --radio-tarjeta: 20px;
+  --radio-boton: 14px;
 }
 
 [data-tema='oscuro'] {
@@ -58,14 +66,14 @@
   --tinta: #F2F5F9;
   --tenue: #B4BFD0;
   --hueso: #0B1220;
-  --hueso-2: #141E32;
-  --linea: #5F7090;
+  --hueso-2: #151F33;
+  --linea: #34425C;
   --chip-fondo: #1E2A44;
   --verde-suave: #123D34;
   --superficie-sutil: #101A2C;
   --sombra: 0 0 0 0 #000000;
   --sombra-panel: 0 0 0 0 #000000;
-  --sombra-flotante: 0 4px 0 #000000;
+  --sombra-flotante: 0 16px 40px rgba(0, 0, 0, 0.5);
 
   --arena: #4A3B12;
   --sobre-arena: #F2F5F9;
@@ -83,9 +91,14 @@
   --hero-barra: #2FD1A6;
   --hero-barra-fuerte: #C6F432;
 
-  --contorno: #8FA3C4;
-  --sombra-pop: 0 4px 0 #000000;
-  --sombra-pop-chica: 0 3px 0 #000000;
+  --contorno: #3A4A66;
+  --sombra-pop: 0 1px 0 rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.28);
+  --sombra-pop-chica: 0 1px 0 rgba(0, 0, 0, 0.4);
+  --foco: #F2F5F9;
+  --acento-borde: #04261D;
+  --sombra-acento: 0 5px 0 #04261D;
+  --barra-fondo: #111A2B;
+  --barra-borde: #26324A;
 }
 
 /* Todo importe usa esta clase: dígitos de ancho fijo para que la
