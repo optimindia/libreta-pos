@@ -118,9 +118,9 @@ describe('El vendedor no ve acciones que la base le rechaza', () => {
     await db.cola.clear()
     ruta = '/vender'
     render(<PantallaVender />)
-    fireEvent.click(await screen.findByRole('button', { name: /^Chinchulín.*sin precio/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /^Chinchulín.*Ponerle precio/i }))
     fireEvent.change(await screen.findByLabelText('Precio de Chinchulín'), { target: { value: '3500' } })
-    fireEvent.click(screen.getByRole('button', { name: /agregar al ticket/i }))
+    fireEvent.click(screen.getByRole('button', { name: /agregar a la venta/i }))
 
     await waitFor(() => expect(screen.getAllByText('$3.500').length).toBeGreaterThan(0))
     const ficha = (await repos.productos.todos()).find((producto) => producto.nombre === 'Chinchulín')
