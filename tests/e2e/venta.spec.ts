@@ -13,9 +13,9 @@ test('cargar un producto, venderlo y ver la ganancia', async ({ page }) => {
   await page.goto('/vender')
   await page.getByRole('button', { name: /^Yerba Playadito/ }).click()
   await page.getByRole('button', { name: /^cobrar$/i }).click()
-  await page.getByRole('button', { name: /efectivo/i }).click()
+  await page.getByRole('radio', { name: /efectivo/i }).click()
   await page.getByLabel(/con cuánto pagó/i).fill('5000')
-  await expect(page.getByText('$800')).toBeVisible()
+  await expect(page.getByText('$800', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: /cobrar \$4\.200/i }).click()
   // el ticket vacío es la señal de que la venta ya se guardó
   // con el ticket vacío la barra de cobro desaparece
@@ -41,7 +41,7 @@ test('la venta funciona con el celular sin señal', async ({ page, context }) =>
 
   await page.getByRole('button', { name: /^Fideos/ }).click()
   await page.getByRole('button', { name: /^cobrar$/i }).click()
-  await page.getByRole('button', { name: /efectivo/i }).click()
+  await page.getByRole('radio', { name: /efectivo/i }).click()
   await page.getByLabel(/con cuánto pagó/i).fill('2000')
   await page.getByRole('button', { name: /cobrar \$1\.200/i }).click()
 
@@ -83,7 +83,7 @@ test('cerrar la caja cuadrada y que quede el registro', async ({ page }) => {
   await page.goto('/vender')
   await page.getByRole('button', { name: /^Azúcar/ }).click()
   await page.getByRole('button', { name: /^cobrar$/i }).click()
-  await page.getByRole('button', { name: /efectivo/i }).click()
+  await page.getByRole('radio', { name: /efectivo/i }).click()
   await page.getByLabel(/con cuánto pagó/i).fill('2000')
   await page.getByRole('button', { name: /cobrar \$1\.400/i }).click()
   // con el ticket vacío la barra de cobro desaparece
@@ -111,7 +111,7 @@ test('tras cobrar se puede mandar el ticket por WhatsApp', async ({ page }) => {
   await page.goto('/vender')
   await page.getByRole('button', { name: /^Gaseosa/ }).click()
   await page.getByRole('button', { name: /^cobrar$/i }).click()
-  await page.getByRole('button', { name: /efectivo/i }).click()
+  await page.getByRole('radio', { name: /efectivo/i }).click()
   await page.getByLabel(/con cuánto pagó/i).fill('2000')
   await page.getByRole('button', { name: /cobrar \$1\.500/i }).click()
 

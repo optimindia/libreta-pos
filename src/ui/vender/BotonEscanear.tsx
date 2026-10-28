@@ -43,8 +43,8 @@ export function BotonEscanear({ onProducto, onNoEncontrado }: { onProducto: (pro
 
   return (
     <>
-      <button type="button" className="mz-escanear mz-toque" aria-label="Escanear código con la cámara" title="Escanear código con la cámara" onClick={() => void abrir()}>
-        <IconoEscanear />
+      <button type="button" className="f-boton f-boton-secundario f-escanear" aria-label="Escanear con la cámara" title="Escanear código con la cámara" onClick={() => void abrir()}>
+        <IconoEscanear /><span className="f-escanear-texto" aria-hidden="true">Cámara</span>
       </button>
       {abierto && (
         <div className="scanner-overlay" role="dialog" aria-modal="true" aria-label="Escanear producto para vender">

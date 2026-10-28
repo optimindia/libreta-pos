@@ -1,0 +1,540 @@
+/* Sistema F · componentes base. Cada clase tiene su componente de React
+   en src/ui/sistema (Boton, Chip, Segmentado, CampoBusqueda, Tarjeta,
+   Renglon, Etiqueta, Hoja). Usá el componente; la clase sola es para
+   cuando no se puede (un <Link> con forma de botón, por ejemplo). */
+
+/* ───────────── Foco: siempre sólido ───────────── */
+
+:is(.f-boton, .f-chip, .f-segmento, .f-icono-boton, .f-hoja-cerrar, .f-nav-item, .f-barra-item, .f-barra-vender):focus-visible {
+  outline: 3px solid var(--f-foco);
+  outline-offset: 2px;
+}
+
+/* ───────────── Botón ───────────── */
+
+.f-boton {
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie);
+  box-shadow: none;
+  color: var(--f-tinta);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: filter 0.12s ease, transform 0.08s ease;
+}
+
+.f-boton svg { width: 22px; height: 22px; flex: 0 0 22px; }
+.f-boton:hover:not(:disabled) { filter: brightness(0.97); }
+.f-boton:active:not(:disabled) { transform: translateY(1px); }
+.f-boton:disabled,
+.f-boton[aria-disabled='true'] { opacity: 0.45; cursor: default; }
+
+/* El principal apagado no compite: gris, no lima desteñido. */
+.f-boton.f-boton-principal:is(:disabled, [aria-disabled='true']) {
+  background: var(--f-superficie-2);
+  color: var(--f-tinta-2);
+  opacity: 1;
+}
+
+.f-boton.f-boton-principal {
+  min-height: 56px;
+  border: 0;
+  background: var(--f-lima);
+  color: var(--f-sobre-lima);
+  font-weight: 800;
+}
+
+.f-boton.f-boton-secundario {
+  border: 1.5px solid var(--f-borde);
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+}
+
+.f-boton.f-boton-cuidado {
+  border: 0;
+  background: var(--f-coral-suave);
+  color: var(--f-coral);
+}
+
+/* Tamaños: chico para acciones de una tarjeta, caja para cobrar. */
+.f-boton[data-tamano='chico'] { min-height: 40px; padding: 0 14px; font-size: 14px; }
+.f-boton[data-tamano='grande'] { min-height: 64px; font-size: 19px; }
+.f-boton[data-tamano='caja'] { min-height: 72px; font-size: 22px; }
+.f-boton[data-ancho='true'] { width: 100%; }
+
+/* Atajo de teclado dentro de un botón o un buscador ("Ctrl+Enter", "/"). */
+.f-tecla {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--f-superficie-2);
+  color: var(--f-tinta-2);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.f-boton-principal .f-tecla {
+  background: rgba(17, 26, 23, 0.12);
+  color: var(--f-sobre-lima);
+}
+
+/* Botón cuadrado sólo con ícono (cerrar, subir, bajar). */
+.f-icono-boton {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--f-radio-control);
+  background: var(--f-fondo);
+  color: var(--f-tinta);
+  cursor: pointer;
+}
+
+.f-icono-boton:disabled { opacity: 0.35; cursor: default; }
+.f-icono-boton svg { width: 22px; height: 22px; }
+
+/* ───────────── Chip / filtro ───────────── */
+
+.f-chips {
+  display: flex;
+  gap: var(--f-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.f-chips::-webkit-scrollbar { display: none; }
+
+/* En la PC no hay dedo para deslizar: los chips bajan de renglón. */
+@media (min-width: 900px) {
+  .f-chips { flex-wrap: wrap; overflow: visible; }
+  .f-chips.overflow-x-auto { overflow: visible; }
+}
+
+.f-chip {
+  display: inline-flex;
+  min-height: 40px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: var(--f-radio-chip);
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.f-chip[aria-pressed='true'] {
+  background: var(--f-elegido);
+  color: var(--f-sobre-elegido);
+}
+
+/* ───────────── Segmentado (radiogroup) ───────────── */
+
+.f-segmentado {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: var(--f-1);
+  padding: var(--f-1);
+  border-radius: var(--f-radio-control);
+  background: var(--f-fondo);
+}
+
+.f-segmento {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--f-tinta);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.f-segmento svg { width: 18px; height: 18px; flex: 0 0 18px; }
+.f-segmento[data-tono='cuidado'] { color: var(--f-coral); }
+
+.f-segmento[aria-checked='true'] {
+  background: var(--f-elegido);
+  color: var(--f-sobre-elegido);
+  font-weight: 800;
+}
+
+/* ───────────── Campo de búsqueda ───────────── */
+
+.f-buscar {
+  display: flex;
+  min-width: 0;
+  height: 52px;
+  flex: 1;
+  align-items: center;
+  gap: var(--f-3);
+  padding: 0 14px;
+  border: 1.5px solid var(--f-linea);
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+  cursor: text;
+}
+
+.f-buscar[data-tamano='grande'] { height: 60px; padding: 0 18px; }
+.f-buscar:focus-within { border-color: var(--f-tinta); }
+.f-buscar > svg { width: 22px; height: 22px; flex: 0 0 22px; }
+
+.f-buscar input {
+  min-width: 0;
+  flex: 1;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--f-tinta);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.f-buscar[data-tamano='grande'] input { font-size: 18px; }
+.f-buscar input::placeholder { color: var(--f-tinta-2); opacity: 1; }
+
+/* ───────────── Campo de texto ───────────── */
+
+.f-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.f-campo > span {
+  color: var(--f-tinta-2);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.f-campo > span em { font-style: normal; font-weight: 600; opacity: 0.85; }
+
+.f-entrada {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 14px;
+  border: 1.5px solid var(--f-borde);
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie);
+  box-shadow: none;
+  color: var(--f-tinta);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.f-entrada:focus { border-color: var(--f-tinta); box-shadow: none; outline: 0; }
+.f-entrada:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 1px; }
+.f-entrada::placeholder { color: var(--f-tinta-2); opacity: 1; }
+
+/* ───────────── Tarjeta ───────────── */
+
+.f-tarjeta {
+  border: 0;
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-superficie);
+  box-shadow: none;
+  color: var(--f-tinta);
+}
+
+.f-tarjeta[data-relleno='normal'] { padding: var(--f-5); }
+.f-tarjeta[data-relleno='grande'] { padding: var(--f-7); }
+
+/* ───────────── Renglón de lista ───────────── */
+
+.f-renglon {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  gap: var(--f-3);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--f-superficie-2);
+}
+
+.f-renglon:last-child { border-bottom: 0; }
+
+.f-renglon-cuerpo {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.f-renglon-titulo {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+}
+
+.f-renglon-detalle {
+  color: var(--f-tinta-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.f-renglon-fin {
+  flex: 0 0 auto;
+  font-size: 17px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* ───────────── Etiqueta de estado ───────────── */
+
+.f-etiqueta {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  padding: 0 10px;
+  border-radius: var(--f-radio-chip);
+  background: var(--f-superficie-2);
+  color: var(--f-tinta-2);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.f-etiqueta[data-tono='verde'] { background: var(--f-verde-suave); color: var(--f-verde); }
+.f-etiqueta[data-tono='coral'] { background: var(--f-coral-suave); color: var(--f-coral); }
+.f-etiqueta[data-tono='ambar'] { background: var(--f-ambar-suave); color: var(--f-ambar); }
+.f-etiqueta[data-tono='blanco'] { background: var(--f-superficie); color: var(--f-tinta-2); }
+.f-etiqueta[data-tono='gris'] { background: var(--f-superficie-2); color: var(--f-tinta-2); }
+
+.f-etiqueta-punto {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+/* ───────────── Aviso (cartel que pasa) ───────────── */
+
+.f-aviso-flotante {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--f-alto-barra) + 16px + env(safe-area-inset-bottom, 0px));
+  z-index: 70;
+  width: min(calc(100% - 32px), 520px);
+  margin: 0;
+  padding: 14px 18px;
+  border-radius: var(--f-radio-control);
+  background: var(--f-aviso);
+  color: var(--f-sobre-aviso);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  transform: translateX(-50%);
+  animation: f-subir 0.18s ease;
+}
+
+.f-aviso {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--f-radio-control);
+  background: var(--f-coral-suave);
+  color: var(--f-coral);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.f-aviso[data-tono='ambar'] { background: var(--f-ambar-suave); color: var(--f-ambar); }
+.f-aviso strong { display: block; font-size: 16px; font-weight: 800; }
+.f-aviso span { display: block; margin-top: 2px; font-weight: 600; }
+
+/* ───────────── Hoja (sube desde abajo; centrada en la PC) ───────────── */
+
+.f-hoja-capa {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--f-capa);
+  animation: f-aparecer 0.16s ease;
+}
+
+.f-hoja {
+  display: flex;
+  width: 100%;
+  max-width: 560px;
+  max-height: 92vh;
+  max-height: 92dvh;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  border-radius: var(--f-radio-hoja) var(--f-radio-hoja) 0 0;
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+  outline: 0;
+  animation: f-subir 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.f-hoja[data-ancho='angosto'] { max-width: 480px; }
+
+.f-hoja-cabeza {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--f-3);
+  padding: 22px 0 14px;
+  background: var(--f-superficie);
+  touch-action: none;
+}
+
+.f-hoja-manija {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 40px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--f-linea);
+  transform: translateX(-50%);
+}
+
+.f-hoja-titulo {
+  min-width: 0;
+  flex: 1;
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.f-hoja-extra {
+  flex: 0 0 auto;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.f-hoja-cerrar {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: var(--f-fondo);
+  color: var(--f-tinta);
+  cursor: pointer;
+}
+
+.f-hoja-cerrar svg { width: 22px; height: 22px; }
+
+.f-hoja-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.f-hoja-ayuda {
+  margin: 0;
+  color: var(--f-tinta-2);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.f-hoja-ayuda b { color: var(--f-tinta); font-weight: 700; }
+
+.f-hoja-subtitulo {
+  margin: 6px 0 0;
+  color: var(--f-tinta-2);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (min-width: 900px) {
+  .f-hoja-capa { align-items: center; padding: 24px; }
+
+  .f-hoja {
+    max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
+    padding-bottom: 24px;
+    border-radius: var(--f-radio-hoja);
+    animation: f-aparecer 0.16s ease;
+  }
+
+  .f-hoja-manija { display: none; }
+  .f-hoja-cabeza { padding-top: 22px; }
+}
+
+@keyframes f-aparecer {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes f-subir {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.f-aviso-flotante { animation-name: f-aviso-subir; }
+
+@keyframes f-aviso-subir {
+  from { transform: translate(-50%, 12px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f-hoja-capa, .f-hoja, .f-aviso-flotante { animation: none; }
+  .f-boton { transition: none; }
+}

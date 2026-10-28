@@ -1,0 +1,164 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   Sistema F · "Caja final"
+   Una letra (Figtree), tres formas (chip, control, tarjeta) y un único
+   botón principal lima por pantalla. Todo lo nuevo se arma con estos
+   tokens: nada de colores sueltos en los componentes.
+
+   Reglas:
+   · Color con significado: lima = la acción, tinta = estructura,
+     verde = plata que entra, coral = te deben, ámbar = atención,
+     gris = no disponible.
+   · Sin sombras de colores ni bordes de colores: el color va de fondo.
+   · Botones y campos de 48 px o más; en la caja, de 56 a 72.
+   · Espacios de 4 en 4: 8, 12, 16, 24, 32.
+   El tema lo pone tema.ts en <html data-tema="claro|oscuro">.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Superficies */
+  --f-fondo: #F1F4F2;
+  --f-superficie: #FFFFFF;
+  --f-superficie-2: #E7ECE9;
+  --f-linea: #D5DDD9;
+  --f-borde: #C3CEC9;
+
+  /* Texto */
+  --f-tinta: #111A17;
+  --f-tinta-2: #4B5A55;
+
+  /* Color con significado */
+  --f-verde: #0B6B52;
+  --f-verde-suave: #DDF0E7;
+  --f-lima: #C6EE4A;
+  --f-sobre-lima: #111A17;
+  --f-coral: #9A3216;
+  --f-coral-suave: #FFE6DA;
+  --f-ambar: #5E4300;
+  --f-ambar-suave: #FFF1BF;
+
+  /* Lo elegido (chip, segmento, billete): tinta llena. */
+  --f-elegido: #111A17;
+  --f-sobre-elegido: #FFFFFF;
+
+  /* Un producto que ya está en la venta: borde y número. */
+  --f-en-venta: #111A17;
+  --f-en-venta-numero: #C6EE4A;
+
+  /* Navegación: barra oscura en los dos temas. */
+  --f-nav: #111A17;
+  --f-nav-borde: #111A17;
+  --f-nav-activo: #25332E;
+  --f-nav-texto: #C9D4CF;
+  --f-nav-texto-activo: #FFFFFF;
+  --f-nav-guardado: #9BE5C3;
+  --f-nav-pendiente: #F5D774;
+  --f-nav-insignia: #FF9877;
+
+  /* Capa detrás de una hoja y aviso flotante */
+  --f-capa: rgba(17, 26, 23, 0.55);
+  --f-aviso: #111A17;
+  --f-sobre-aviso: #FFFFFF;
+  --f-foco: #111A17;
+
+  /* Formas: sólo tres (y la hoja, que sube desde abajo). */
+  --f-radio-chip: 999px;
+  --f-radio-control: 12px;
+  --f-radio-tarjeta: 18px;
+  --f-radio-hoja: 24px;
+
+  /* Espacios de 4 en 4 */
+  --f-1: 4px;
+  --f-2: 8px;
+  --f-3: 12px;
+  --f-4: 16px;
+  --f-5: 20px;
+  --f-6: 24px;
+  --f-7: 28px;
+  --f-8: 32px;
+
+  /* Letra */
+  --f-letra: var(--font-figtree, 'Figtree'), system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Navegación */
+  --f-ancho-lateral: 96px;
+  --f-alto-barra: 76px;
+}
+
+[data-tema='oscuro'] {
+  --f-fondo: #0E1513;
+  --f-superficie: #17211E;
+  --f-superficie-2: #1F2B27;
+  --f-linea: #2C3A35;
+  --f-borde: #3A4A44;
+
+  --f-tinta: #EAF1EE;
+  --f-tinta-2: #A9BAB3;
+
+  --f-verde: #5FD3A6;
+  --f-verde-suave: #173A2E;
+  --f-lima: #C6EE4A;
+  --f-sobre-lima: #0E1513;
+  --f-coral: #FF9E80;
+  --f-coral-suave: #3D2018;
+  --f-ambar: #F5D774;
+  --f-ambar-suave: #3A2F0E;
+
+  --f-elegido: #EAF1EE;
+  --f-sobre-elegido: #0E1513;
+
+  --f-en-venta: #C6EE4A;
+  --f-en-venta-numero: #0E1513;
+
+  --f-nav: #0A100E;
+  --f-nav-borde: #2C3A35;
+
+  --f-capa: rgba(0, 0, 0, 0.6);
+  --f-aviso: #EAF1EE;
+  --f-sobre-aviso: #0E1513;
+  --f-foco: #C6EE4A;
+}
+
+:root[data-lateral='compacta'] { --f-ancho-lateral: 72px; }
+
+/* ───────────── Base ───────────── */
+
+html {
+  background: var(--f-fondo);
+}
+
+body {
+  background: var(--f-fondo);
+  color: var(--f-tinta);
+  font-family: var(--f-letra);
+  font-weight: 500;
+}
+
+/* Toda plata con números alineados: el total no baila al cambiar. */
+.f-plata,
+.f-plata-48,
+.f-plata-36,
+.f-plata-16 {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.f-plata-48 { font-size: 48px; line-height: 1.05; }
+.f-plata-36 { font-size: 36px; line-height: 1.1; }
+.f-plata-16 { font-size: 16px; font-weight: 700; letter-spacing: 0; }
+
+/* Escala de letra */
+.f-titulo { margin: 0; font-size: 32px; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; }
+.f-seccion { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.25; }
+.f-renglon-texto { font-size: 16px; font-weight: 700; line-height: 1.25; }
+.f-texto { font-size: 15px; font-weight: 500; line-height: 1.4; }
+.f-dato { font-size: 13px; font-weight: 600; line-height: 1.35; color: var(--f-tinta-2); }
+
+.f-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
