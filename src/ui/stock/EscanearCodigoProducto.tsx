@@ -5,6 +5,8 @@ import { Boton } from '@/ui/sistema/Boton'
 import { IconoCerrar, IconoEscanear } from '@/ui/sistema/iconos'
 import { escanear } from '@/ui/vender/escaner'
 
+/** Escáner de la carga: un botón y, al tocarlo, la cámara a pantalla
+ *  completa con un marco para apuntar al código. */
 export function EscanearCodigoProducto({ onDetectar }: { onDetectar: (codigo: string) => void }) {
   const video = useRef<HTMLVideoElement>(null)
   const detener = useRef<(() => void) | null>(null)
@@ -38,25 +40,24 @@ export function EscanearCodigoProducto({ onDetectar }: { onDetectar: (codigo: st
 
   return (
     <>
-      <button type="button" className="stock-scan-card" onClick={() => void abrir()}>
-        <span className="stock-scan-card-icon"><IconoEscanear /></span>
-        <span className="stock-scan-card-copy"><strong>Escanear para cargar</strong><small>Leé el código y completá el producto en segundos.</small></span>
-        <span className="stock-scan-card-action">Abrir cámara</span>
+      <button type="button" className="f-stock-escanear" onClick={() => void abrir()}>
+        <span className="f-stock-escanear-icono" aria-hidden="true"><IconoEscanear /></span>
+        <span className="f-stock-escanear-texto"><strong>Escanear para cargar</strong><small>Leé el código y completá el producto en segundos.</small></span>
+        <span className="f-etiqueta" data-tono="gris">Abrir cámara</span>
       </button>
 
       {abierto && (
-        <div className="scanner-overlay" role="dialog" aria-modal="true" aria-label="Escanear código de barras">
-          <div className="scanner-topbar">
-            <div><span>Alta rápida</span><strong>Escaneá el código</strong></div>
-            <button type="button" className="scanner-close" aria-label="Cerrar escáner" onClick={cerrar}><IconoCerrar /></button>
+        <div className="f-stock-camara" role="dialog" aria-modal="true" aria-label="Escanear código de barras">
+          <video ref={video} className="f-stock-camara-video" playsInline muted />
+          <div className="f-stock-camara-marco" aria-hidden="true"><span /></div>
+          <div className="f-stock-camara-cabeza">
+            <span className="f-stock-camara-titulo">Escaneá el código</span>
+            <button type="button" className="f-hoja-cerrar" aria-label="Cerrar escáner" onClick={cerrar}><IconoCerrar /></button>
           </div>
-          <video ref={video} className="scanner-video" playsInline muted />
-          <div className="scanner-reticle" aria-hidden="true"><span /></div>
-          <div className="scanner-sheet">
-            <span className="scanner-sheet-icon"><IconoEscanear /></span>
-            <div><strong>Apuntá al código de barras</strong><p>Mantenelo dentro del marco con buena luz. Se carga automáticamente al leerlo.</p></div>
-            {aviso && <p className="scanner-warning" role="status">{aviso}</p>}
-            <Boton variante="secundario" className="button-with-icon scanner-close-button" onClick={cerrar}><IconoCerrar /> Volver a la carga manual</Boton>
+          <div className="f-stock-camara-pie">
+            <p className="f-hoja-ayuda"><b>Apuntá al código de barras.</b> Mantenelo dentro del marco con buena luz; se carga solo al leerlo.</p>
+            {aviso && <p className="f-aviso" data-tono="ambar" role="status">{aviso}</p>}
+            <Boton variante="secundario" ancho onClick={cerrar}>Volver a la carga manual</Boton>
           </div>
         </div>
       )}

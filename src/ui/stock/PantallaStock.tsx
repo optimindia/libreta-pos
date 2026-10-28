@@ -4,7 +4,11 @@ import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { repos } from '@/datos/local/repos'
 import { faltantes } from '@/dominio/stock'
+import { valorStock } from '@/dominio/reportes'
+import { formatearPesos } from '@/dominio/dinero'
 import { Boton } from '@/ui/sistema/Boton'
+import { Chip, Chips } from '@/ui/sistema/Chip'
+import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { FormularioProducto } from './FormularioProducto'
 import { SubirFactura } from './SubirFactura'
 import { ActualizarPrecios } from './ActualizarPrecios'
@@ -14,6 +18,7 @@ import { EscanearCodigoProducto } from './EscanearCodigoProducto'
 import { funcionActiva } from '@/dominio/funciones'
 import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
 import { usePuede } from '@/ui/sistema/usoRol'
+import './stock.css'
 
 type Pestaña = 'catalogo' | 'cargar' | 'precios'
 
@@ -31,84 +36,78 @@ export function PantallaStock() {
   // (la base se lo rechaza).
   const editaCatalogo = usePuede('editarProductos')
   const vista: Pestaña = editaCatalogo ? pestaña : 'catalogo'
+  const inventario = valorStock(productos)
+  const cuantos = `${productos.length} ${productos.length === 1 ? 'producto' : 'productos'}`
 
   return (
-    <div className="page-stock px-5 pt-6">
-      <div className="page-module-head">
-        <div><span className="page-kicker">Operación</span><h1 className="page-title">Stock</h1><p className="page-description">Controlá existencias, costos y precios desde un solo lugar.</p></div>
-        <div className="page-head-stat"><strong>{productos.length}</strong><span>productos</span></div>
-      </div>
-      {faltan.length > 0 && (
-        <div
-          className="stock-alert mb-5 rounded-xl px-3.5 py-3 text-[13px]"
-          style={{ background: 'var(--ambar-fondo)', color: 'var(--ambar)', border: '1px solid var(--ambar)' }}
-        >
-          Te está faltando: {faltan.map((producto) => producto.nombre).join(', ')}.
+    <div className="page-stock f-stock">
+      <header className="f-stock-cabecera">
+        <div className="f-stock-titulo">
+          <h1 className="f-titulo">Stock</h1>
+          <p className="f-texto f-stock-subtitulo">
+            {cuantos}
+            {editaCatalogo && productos.length > 0 && <> · mercadería por {formatearPesos(inventario.costo)} a costo</>}
+          </p>
         </div>
+        {editaCatalogo && vista === 'catalogo' && productos.length > 0 && (
+          <Boton variante="principal" className="f-stock-llego" onClick={() => setPestaña('cargar')}>+ Llegó mercadería</Boton>
+        )}
+      </header>
+
+      {vista === 'catalogo' && faltan.length > 0 && (
+        <p className="f-aviso" data-tono="ambar">
+          Te está faltando: {faltan.map((producto) => producto.nombre).join(', ')}.
+        </p>
       )}
 
-      {editaCatalogo && <div className="stock-tabs nb-segmentado" role="group" aria-label="Qué querés hacer">
-        <Boton
-          variante={pestaña === 'catalogo' ? 'principal' : 'secundario'}
-          aria-pressed={pestaña === 'catalogo'}
-          onClick={() => setPestaña('catalogo')}
-        >
-          Catálogo ({productos.length})
-        </Boton>
-        <Boton
-          variante={pestaña === 'cargar' ? 'principal' : 'secundario'}
-          aria-pressed={pestaña === 'cargar'}
-          onClick={() => setPestaña('cargar')}
-        >
-          Cargar
-        </Boton>
-        <Boton
-          variante={pestaña === 'precios' ? 'principal' : 'secundario'}
-          aria-pressed={pestaña === 'precios'}
-          onClick={() => setPestaña('precios')}
-        >
-          Precios
-        </Boton>
-      </div>}
+      {editaCatalogo && (
+        <Chips etiqueta="Qué querés hacer" className="f-stock-pestanas">
+          <Chip activo={pestaña === 'catalogo'} onClick={() => setPestaña('catalogo')}>Catálogo ({productos.length})</Chip>
+          <Chip activo={pestaña === 'cargar'} onClick={() => setPestaña('cargar')}>Cargar</Chip>
+          <Chip activo={pestaña === 'precios'} onClick={() => setPestaña('precios')}>Precios</Chip>
+        </Chips>
+      )}
 
-      <div className={`stock-content stock-content-${vista}`}>
-      {vista === 'catalogo' && <><CatalogoStock productos={productos} onCargar={editaCatalogo ? () => setPestaña('cargar') : undefined} />{importarCatalogo && editaCatalogo && <HerramientasCatalogo productos={productos} />}</>}
+      {vista === 'catalogo' && (
+        <>
+          <CatalogoStock productos={productos} onCargar={editaCatalogo ? () => setPestaña('cargar') : undefined} />
+          {importarCatalogo && editaCatalogo && <HerramientasCatalogo productos={productos} />}
+        </>
+      )}
 
       {vista === 'cargar' && (
-        <div className="mt-4">
-          <div className="stock-load-layout">
-            <section className="stock-load-form">
-              <div className="stock-load-heading"><div><span>Nuevo artículo</span><h2>Cargar producto</h2></div>{codigoEscaneado && <span className="stock-code-chip">Código leído</span>}</div>
-              {avisoCodigo && <p className="stock-code-notice" role="status">{avisoCodigo}</p>}
+        <div className="f-stock-cargar">
+          <div className="f-stock-cargar-cuerpo">
+            <Tarjeta como="section" className="f-stock-ficha-nueva" aria-labelledby="stock-cargar-titulo">
+              <div className="f-stock-ficha-cabeza">
+                <h2 id="stock-cargar-titulo" className="f-seccion">Cargar producto</h2>
+                {codigoEscaneado && <span className="f-etiqueta" data-tono="verde">Código leído</span>}
+              </div>
+              {avisoCodigo && <p className="f-aviso" data-tono="ambar" role="status">{avisoCodigo}</p>}
               <FormularioProducto key={codigoEscaneado ?? 'manual'} codigoInicial={codigoEscaneado} onGuardado={() => setPestaña('catalogo')} />
-            </section>
-            {escanerStock && <aside className="stock-scan-panel">
+            </Tarjeta>
+            {escanerStock && (
+              <aside className="f-stock-lateral">
                 <EscanearCodigoProducto onDetectar={(codigo) => {
                   const existente = productos.find((producto) => producto.codigoBarras === codigo)
                   setCodigoEscaneado(codigo)
                   setAvisoCodigo(existente ? `Este código ya pertenece a ${existente.nombre}. Podés editarlo desde el catálogo.` : `Código ${codigo} leído. Completá los datos para guardar el producto.`)
                 }} />
-                <p className="stock-scan-help">También podés escribir o pegar el código en el formulario.</p>
-              </aside>}
+                <p className="f-dato">También podés escribir o pegar el código en el formulario.</p>
+              </aside>
+            )}
           </div>
 
-          {importarFactura && <>
-            <h2 className="mt-8 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>
-              Cargar desde una factura
-            </h2>
-            <div className="mt-2">
+          {importarFactura && (
+            <section className="f-stock-seccion" aria-labelledby="stock-factura-titulo">
+              <h2 id="stock-factura-titulo" className="f-seccion">Cargar desde una factura</h2>
               <SubirFactura />
-            </div>
-          </>}
+            </section>
+          )}
         </div>
       )}
 
-      {vista === 'precios' && (
-        <div className="mt-4">
-          <ActualizarPrecios />
-        </div>
-      )}
-      </div>
+      {vista === 'precios' && <ActualizarPrecios />}
     </div>
   )
 }

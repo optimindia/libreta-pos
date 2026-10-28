@@ -1,0 +1,315 @@
+/* Centro Pro con el sistema F (src/ui/pro). Celu: una columna de tarjetas.
+   PC (≥ 900 px): paneles de a dos y las 30 funciones en grilla.
+   Sólo tokens --f-*. Verde = en orden, ámbar = atención, coral = deuda. */
+
+.f-pro {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-6);
+}
+
+.f-pro .f-aviso.f-pro-ok { background: var(--f-verde-suave); color: var(--f-verde); }
+
+/* ───────────── Cabecera ───────────── */
+
+.f-pro-cabecera {
+  display: grid;
+  align-items: start;
+  gap: var(--f-4);
+}
+
+.f-pro-titulo { display: flex; flex-direction: column; gap: var(--f-2); }
+.f-pro-titulo .f-texto { margin: 0; color: var(--f-tinta-2); font-weight: 600; }
+
+.f-pro-acciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--f-2);
+  margin-top: var(--f-2);
+}
+
+.f-pro-score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--f-2);
+  padding: var(--f-5);
+}
+
+.f-pro-score strong small { margin-left: 2px; color: var(--f-tinta-2); font-size: 20px; font-weight: 700; }
+
+.f-pro-periodo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-2);
+}
+
+.f-pro-periodo > div:first-child { display: flex; flex-direction: column; }
+
+.f-pro-aviso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-2);
+}
+
+.f-pro-aviso .f-icono-boton { background: transparent; color: inherit; }
+
+/* ───────────── Las 30 funciones ───────────── */
+
+.f-pro-indice { display: flex; flex-direction: column; gap: var(--f-4); }
+.f-pro-indice .f-dato { margin: 2px 0 0; }
+
+.f-pro-funciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--f-2);
+}
+
+.f-pro-funcion {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-1);
+  padding: var(--f-4);
+}
+
+.f-pro-funcion .f-renglon-texto { margin: var(--f-1) 0 0; }
+.f-pro-funcion .f-dato { margin: 0; }
+
+.f-pro-funcion-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-2);
+}
+
+.f-pro-valor {
+  min-width: 0;
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.f-pro-funcion-accion { margin-top: auto; padding-top: var(--f-1); }
+
+.f-pro-enlace {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--f-tinta);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.f-pro-enlace svg { width: 18px; height: 18px; }
+.f-pro-enlace:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+
+/* ───────────── Paneles ───────────── */
+
+.f-pro-paneles { display: grid; align-items: start; gap: var(--f-4); }
+
+.f-pro-panel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-4);
+  padding: var(--f-5);
+}
+
+.f-pro-panel-cabeza {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--f-3);
+}
+
+.f-pro-panel-cabeza .f-dato { margin: 2px 0 0; }
+
+.f-pro-lista { display: flex; flex-direction: column; }
+.f-pro-lista .f-renglon { padding-block: var(--f-3); }
+.f-pro-vacio { margin: 0; }
+
+.f-pro-bien {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-verde-suave);
+  color: var(--f-verde);
+}
+
+.f-pro-bien .f-dato { color: inherit; }
+
+.f-pro-datos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--f-2);
+}
+
+.f-pro-datos > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--f-3);
+  border-radius: var(--f-radio-control);
+  background: var(--f-fondo);
+}
+
+.f-pro-datos strong { overflow-wrap: anywhere; }
+
+.f-pro-rango {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--f-superficie-2);
+  color: var(--f-tinta);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.f-pro-rango[data-tono='verde'] { background: var(--f-verde-suave); color: var(--f-verde); }
+.f-pro-rango[data-tono='ambar'] { background: var(--f-ambar-suave); color: var(--f-ambar); }
+
+/* Meta */
+.f-pro-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--f-2); }
+.f-pro-pie { display: flex; align-items: baseline; justify-content: space-between; gap: var(--f-3); }
+
+.f-pro-barra {
+  display: block;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--f-superficie-2);
+}
+
+.f-pro-barra > span { display: block; height: 100%; border-radius: 999px; background: var(--f-verde); }
+.f-pro-barra-fina { height: 8px; }
+
+.f-pro-meta-form { display: flex; flex-direction: column; gap: var(--f-3); }
+
+/* Ritmo */
+.f-pro-barras {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: end;
+  gap: var(--f-2);
+}
+
+.f-pro-columna { display: flex; min-width: 0; flex-direction: column; align-items: center; gap: var(--f-1); }
+.f-pro-columna-valor { color: var(--f-tinta-2); font-size: 12px; font-weight: 700; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
+.f-pro-columna small { color: var(--f-tinta-2); font-size: 13px; font-weight: 700; }
+
+.f-pro-columna-pista {
+  display: flex;
+  width: 100%;
+  height: 112px;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie-2);
+}
+
+.f-pro-columna-pista i { display: block; width: 100%; min-height: 4px; border-radius: 8px 8px 0 0; background: var(--f-verde); }
+
+.f-pro-destacado {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--f-3) var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-fondo);
+}
+
+.f-pro-destacado-fila {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-2) var(--f-3);
+}
+
+.f-pro-destacado-fila > span { min-width: 0; flex: 1 1 200px; }
+
+/* Cobros */
+.f-pro-cobro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--f-2) var(--f-3);
+  align-items: center;
+  padding: var(--f-3) 0;
+  border-bottom: 1px solid var(--f-superficie-2);
+}
+
+.f-pro-cobro:last-child { border-bottom: 0; }
+.f-pro-cobro .f-pro-barra { grid-column: 1 / -1; }
+.f-pro-cobro-monto { display: flex; align-items: baseline; gap: var(--f-2); }
+
+.f-pro-enlace-aviso {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-2);
+  text-decoration: none;
+}
+
+.f-pro-enlace-aviso svg { width: 20px; height: 20px; flex: 0 0 20px; }
+
+/* ───────────── Atajos ───────────── */
+
+.f-pro-atajos { display: flex; flex-direction: column; gap: var(--f-3); }
+.f-pro-atajos .f-dato { margin: 2px 0 0; }
+
+.f-pro-atajos-grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--f-2);
+}
+
+.f-pro-atajo {
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  gap: var(--f-3);
+  padding: var(--f-3) var(--f-4);
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+  text-decoration: none;
+}
+
+.f-pro-atajo:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+.f-pro-atajo > svg { width: 22px; height: 22px; flex: 0 0 22px; }
+.f-pro-atajo > span { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+.f-pro-atajo strong { font-size: 16px; font-weight: 800; }
+.f-pro-atajo small { color: var(--f-tinta-2); font-size: 13px; font-weight: 600; }
+
+.f-pro-atajo.f-boton-principal { background: var(--f-lima); color: var(--f-sobre-lima); }
+.f-pro-atajo.f-boton-principal small { color: var(--f-sobre-lima); }
+
+@media (min-width: 640px) {
+  .f-pro-periodo { flex-direction: row; align-items: center; justify-content: space-between; }
+  .f-pro-periodos { min-width: 320px; }
+}
+
+@media (min-width: 900px) {
+  .f-pro-cabecera { grid-template-columns: minmax(0, 1fr) 280px; gap: var(--f-6); }
+  .f-pro-acciones { grid-template-columns: repeat(2, max-content); }
+  .f-pro-paneles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--f-6); }
+  .f-pro-funciones { gap: var(--f-3); }
+}
