@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { db } from '@/datos/local/db'
-import { ErrorStockInsuficiente, ErrorVentaInvalida, repos } from '@/datos/local/repos'
+import { ErrorIngresoInvalido, ErrorStockInsuficiente, ErrorVentaInvalida, repos } from '@/datos/local/repos'
 import type { ItemVenta, Producto } from '@/dominio/tipos'
 
 /** Auditoría de los flujos de plata: cada caso es un error que se podía
@@ -89,5 +89,48 @@ describe('fiados: pagos', () => {
     const cliente = await repos.clientes.guardar({ nombre: 'Marta', telefono: null })
     await db.fiados.add({ id: 'f', clienteId: cliente.id, ventaId: null, monto: 30000, fecha: 1, vence: null })
     expect(await repos.fiados.pagarCliente(cliente.id, 50000)).toBe(30000)
+  })
+})
+
+describe('caja: anular una venta en efectivo', () => {
+  it('la devolución saca la plata una sola vez: el cajón esperado vuelve a quedar como antes', async () => {
+    const { esperadoEnCaja, movimientosEfectivo } = await import('@/dominio/caja')
+    const yerba = await repos.productos.guardar(base)
+    const antes = Date.now() - 1000
+    const venta = await repos.ventas.registrar({ items: [item(yerba)], medioPago: 'efectivo', clienteId: null })
+    await repos.ventas.anular(venta.id, 'Se equivocó de producto')
+
+    const ventas = await db.ventas.toArray()
+    const movimientos = await db.movimientosCaja.toArray()
+    const esperado = esperadoEnCaja(1000000, movimientosEfectivo(ventas, [], antes, Date.now() + 1000, movimientos))
+
+    // Entró $4.200, salió $4.200 de devolución: queda el fondo inicial.
+    expect(esperado).toBe(1000000)
+  })
+})
+
+describe('ingresos de mercadería', () => {
+  it('una cantidad en cero, negativa o con coma no entra', async () => {
+    const yerba = await repos.productos.guardar(base)
+    for (const cantidad of [0, -3, 2.5]) {
+      await expect(repos.ingresos.registrar({ proveedor: null, origen: 'manual', items: [{ productoId: yerba.id, cantidad, costoUnitario: 300000 }] }))
+        .rejects.toBeInstanceOf(ErrorIngresoInvalido)
+    }
+    expect((await db.productos.get(yerba.id))?.stock).toBe(5)
+    expect(await db.ingresos.count()).toBe(0)
+  })
+
+  it('un costo en $0 (factura mal leída) no borra el costo que ya tenía', async () => {
+    const yerba = await repos.productos.guardar(base)
+    await repos.ingresos.registrar({ proveedor: null, origen: 'foto', items: [{ productoId: yerba.id, cantidad: 2, costoUnitario: 0 }] })
+    const despues = await db.productos.get(yerba.id)
+    expect(despues?.stock).toBe(7)
+    expect(despues?.costo).toBe(300000)
+  })
+
+  it('un producto que ya no existe no deja un movimiento de stock trabado en la cola', async () => {
+    await repos.ingresos.registrar({ proveedor: null, origen: 'manual', items: [{ productoId: 'borrado', cantidad: 2, costoUnitario: 100 }] })
+    const cola = await db.cola.toArray()
+    expect(cola.some((item) => item.entidad === 'movimientoStock')).toBe(false)
   })
 })

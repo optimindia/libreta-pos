@@ -82,6 +82,12 @@ export function SubirFactura() {
     try {
       const productos = await repos.productos.todos()
       const ingresos: { productoId: string; cantidad: number; costoUnitario: number }[] = []
+      // Se revisa antes de crear nada: si una cantidad está mal, no queda un
+      // producto nuevo a medio cargar.
+      if (items.some((item) => !Number.isInteger(item.cantidad) || item.cantidad <= 0)) {
+        mostrarAviso('Revisá las cantidades: cada producto tiene que entrar con un número entero mayor a cero.')
+        return
+      }
       for (const item of items) {
         const existente = productos.find(
           (producto) => producto.nombre.toLowerCase() === item.nombre.toLowerCase(),

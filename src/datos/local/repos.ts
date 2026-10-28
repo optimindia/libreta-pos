@@ -1,7 +1,7 @@
 import { db } from './db'
 import { encolar } from './cola'
 import type {
-  Cierre, Cliente, Centavos, EstadoPedido, Fiado, Ingreso, ItemVenta, MedioPago, MovimientoCaja, Pedido, PreferenciasNegocio, Producto, UUID, Venta,
+  Cierre, Cliente, Centavos, EstadoPedido, Fiado, Ingreso, ItemIngreso, ItemVenta, MedioPago, MovimientoCaja, Pedido, PreferenciasNegocio, Producto, UUID, Venta,
 } from '@/dominio/tipos'
 import type { FuncionesNegocio } from '@/dominio/funciones'
 import { normalizarFunciones } from '@/dominio/funciones'
@@ -89,6 +89,14 @@ function validarVenta(items: ItemVenta[], medioPago: MedioPago, clienteId: UUID 
     }
   }
   if (medioPago === 'fiado' && !clienteId) throw new ErrorVentaInvalida('Elegí a quién se le anota el fiado.')
+}
+
+/** Una carga de mercadería con cantidades que no tienen sentido. */
+export class ErrorIngresoInvalido extends Error {
+  constructor(motivo: string) {
+    super(motivo)
+    this.name = 'ErrorIngresoInvalido'
+  }
 }
 
 export class ErrorVentaYaAnulada extends Error {
@@ -569,16 +577,26 @@ export const repos = {
 
   ingresos: {
     async registrar(datos: Omit<Ingreso, 'id' | 'fecha'>): Promise<Ingreso> {
+      if (datos.items.length === 0) throw new ErrorIngresoInvalido('No hay productos para cargar.')
+      for (const item of datos.items) {
+        if (!Number.isInteger(item.cantidad) || item.cantidad <= 0) {
+          throw new ErrorIngresoInvalido('Cada producto tiene que entrar con una cantidad entera mayor a cero.')
+        }
+      }
       const ingreso: Ingreso = { ...datos, id: nuevoId(), fecha: Date.now() }
       const tocados: Producto[] = []
+      const cargados: ItemIngreso[] = []
       await db.transaction('rw', db.ingresos, db.productos, async () => {
         await db.ingresos.add(ingreso)
         for (const item of ingreso.items) {
           const producto = await db.productos.get(item.productoId)
           if (producto) {
-            const cargado = { ...producto, stock: producto.stock + item.cantidad, costo: item.costoUnitario, actualizadoEn: Date.now() }
+            // Un costo en $0 (o ilegible en la foto) no pisa el que ya había.
+            const costo = Number.isFinite(item.costoUnitario) && item.costoUnitario > 0 ? item.costoUnitario : producto.costo
+            const cargado = { ...producto, stock: producto.stock + item.cantidad, costo, actualizadoEn: Date.now() }
             await db.productos.put(cargado)
             tocados.push(cargado)
+            cargados.push(item)
           }
         }
       })
@@ -587,7 +605,9 @@ export const repos = {
       for (const producto of tocados) {
         await encolar('producto', 'actualizar', producto)
       }
-      for (const item of ingreso.items) {
+      // Sólo los productos que existen: un movimiento de un producto borrado
+      // fallaría en el servidor para siempre y trabaría la cola.
+      for (const item of cargados) {
         await encolarMovimientoStock(item.productoId, item.cantidad, 'ingreso', ingreso.id)
       }
       await encolar('ingreso', 'crear', ingreso)

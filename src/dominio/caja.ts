@@ -9,7 +9,10 @@ export interface MovimientosEfectivo {
 }
 
 /** Lo que entró al cajón desde el último cierre. Los pagos de fiado se
- *  cuentan como efectivo: en el mostrador se cobran en efectivo. */
+ *  cuentan como efectivo: en el mostrador se cobran en efectivo.
+ *  Una venta anulada sigue contando como entrada: la plata entró al cajón y
+ *  la anulación deja su propia salida ("Devolución de venta"). Si además se
+ *  la descontara acá, la devolución se restaría dos veces. */
 export function movimientosEfectivo(
   ventas: Venta[],
   pagos: FiadoPago[],
@@ -24,7 +27,7 @@ export function movimientosEfectivo(
   return {
     ventasEfectivo: sumar(
       ...ventas
-        .filter((venta) => venta.estado !== 'anulada' && venta.medioPago === 'efectivo' && enElPeriodo(venta.fecha))
+        .filter((venta) => venta.medioPago === 'efectivo' && enElPeriodo(venta.fecha))
         .map((venta) => venta.total),
     ),
     pagosFiadoEfectivo: sumar(
