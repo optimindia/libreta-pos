@@ -7,14 +7,18 @@ const nextConfig: NextConfig = {
   images: { unoptimized: true },
   async headers() {
     const desarrollo = process.env.NODE_ENV !== 'production'
+    // Verificación humana opcional (SEG-03): sólo se abre Cloudflare si se
+    // configuró la clave del widget; sin ella la política queda igual.
+    const turnstile = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? ' https://challenges.cloudflare.com' : ''
     const politicaContenido = [
       "default-src 'self'",
-      `script-src 'self' 'unsafe-inline'${desarrollo ? " 'unsafe-eval'" : ''}`,
+      `script-src 'self' 'unsafe-inline'${desarrollo ? " 'unsafe-eval'" : ''}${turnstile}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
       "font-src 'self' data:",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
       "worker-src 'self' blob:",
+      `frame-src 'self'${turnstile}`,
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

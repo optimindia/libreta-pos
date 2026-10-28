@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { entrar } from '@/datos/nube/sesion'
 import { accesoSaasObligatorio } from '@/datos/nube/acceso'
 import { bajarTodo, traerDeSupabase } from '@/datos/nube/sincronizar'
 import { Boton } from '@/ui/sistema/Boton'
 import { IconoNube } from '@/ui/sistema/iconos'
+import { claveTurnstile, VerificacionHumana, type ControlVerificacion } from '@/ui/sistema/VerificacionHumana'
 
 /** La puerta de un aparato nuevo: o traés el negocio que ya está en la
  *  nube, o empezás uno nuevo acá. Sólo se muestra con la base vacía. */
@@ -14,15 +15,19 @@ export function Entrar({ onListo }: { onListo: () => void }) {
   const [pin, setPin] = useState('')
   const [aviso, setAviso] = useState<string | null>(null)
   const [trabajando, setTrabajando] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const verificacion = useRef<ControlVerificacion>(null)
+  const clave = claveTurnstile()
 
   async function traerMiNegocio(evento?: React.FormEvent<HTMLFormElement>) {
     evento?.preventDefault()
     setTrabajando(true)
     setAviso(null)
     try {
-      const resultado = await entrar(telefono, pin)
+      const resultado = await entrar(telefono, pin, captchaToken ? { captchaToken } : {})
       if (!resultado.ok) {
         setAviso(resultado.motivo)
+        verificacion.current?.reiniciar()
         return
       }
       await bajarTodo(traerDeSupabase)
@@ -54,11 +59,13 @@ export function Entrar({ onListo }: { onListo: () => void }) {
         <span className="form-field-help">Es el mismo PIN que elegiste al crear tu respaldo.</span>
       </label>
 
+      {clave && <VerificacionHumana ref={verificacion} clave={clave} onToken={setCaptchaToken} />}
+
       <Boton
         variante="principal"
         type="submit"
         className="w-full !py-3 !text-[13px]"
-        disabled={trabajando}
+        disabled={trabajando || (clave !== null && !captchaToken)}
       >
         {trabajando ? 'Bajando tu negocio…' : 'Traer mi negocio'}
       </Boton>

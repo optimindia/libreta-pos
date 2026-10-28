@@ -120,21 +120,77 @@ async function vincularNegocioLocal(
   return negocioId
 }
 
-/** Entrar en un aparato nuevo con el teléfono y el PIN del dueño.
- *  No crea nada: sólo trae el negocio que ya tiene en la nube. */
+export type ResultadoEntrar =
+  | { ok: true; negocioId: UUID }
+  | { ok: false; motivo: string; esperaSegundos?: number }
+
+const MOTIVO_CREDENCIALES = 'ese teléfono y PIN no coinciden con ningún negocio'
+const MOTIVO_SERVICIO = 'No se pudo validar el acceso. Probá de nuevo en un rato.'
+
+/** "Demasiados intentos. Esperá N minutos…", redondeando siempre para arriba. */
+export function motivoBloqueo(segundos: number): string {
+  const minutos = Math.max(1, Math.ceil(segundos / 60))
+  return `Demasiados intentos. Esperá ${minutos} ${minutos === 1 ? 'minuto' : 'minutos'} y probá de nuevo.`
+}
+
+/** Entrar en un aparato nuevo con el teléfono y el PIN del dueño o vendedor.
+ *  No crea nada: sólo trae el negocio que ya tiene en la nube.
+ *
+ *  El PIN no se prueba desde el navegador: va a /api/ingresar, que lo pasa a
+ *  la función `ingresar` de Supabase. Ahí se cuentan los intentos por
+ *  teléfono (5 fallos -> 15 minutos de bloqueo) y se pide la sesión a Auth.
+ *  Si esa función todavía no está desplegada (501), se entra como antes. */
 export async function entrar(
   telefono: string,
   pin: string,
-): Promise<{ ok: true; negocioId: UUID } | { ok: false; motivo: string }> {
+  opciones: { captchaToken?: string } = {},
+): Promise<ResultadoEntrar> {
   if (!cliente) return { ok: false, motivo: 'la nube no está configurada' }
 
-  const ingreso = await cliente.auth.signInWithPassword(
-    credencialesDesdeTelefono(telefono, pin),
-  )
-  if (ingreso.error) {
-    return { ok: false, motivo: 'ese teléfono y PIN no coinciden con ningún negocio' }
+  let respuesta: Response
+  try {
+    respuesta = await fetch('/api/ingresar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+      body: JSON.stringify(opciones.captchaToken ? { telefono, pin, captchaToken: opciones.captchaToken } : { telefono, pin }),
+    })
+  } catch {
+    return { ok: false, motivo: 'No se pudo validar el acceso. Revisá la señal y probá de nuevo.' }
   }
-  const usuarioId = ingreso.data.user?.id
+
+  let usuarioId: string | undefined
+  if (respuesta.status === 501 || respuesta.status === 404) {
+    // Servidor de ingreso sin desplegar: mismo camino que antes del cambio.
+    const ingreso = await cliente.auth.signInWithPassword(credencialesDesdeTelefono(telefono, pin))
+    if (ingreso.error) return { ok: false, motivo: MOTIVO_CREDENCIALES }
+    usuarioId = ingreso.data.user?.id
+  } else {
+    const cuerpo = (await respuesta.json().catch(() => null)) as {
+      ok?: boolean
+      error?: string
+      reintentarEnSegundos?: number
+      sesion?: { access_token?: string; refresh_token?: string }
+    } | null
+    if (respuesta.status === 429 || cuerpo?.error === 'bloqueado') {
+      const espera = Number(cuerpo?.reintentarEnSegundos)
+      const esperaSegundos = Number.isFinite(espera) && espera > 0 ? espera : 15 * 60
+      return { ok: false, motivo: motivoBloqueo(esperaSegundos), esperaSegundos }
+    }
+    if (cuerpo?.error === 'verificacion') {
+      return { ok: false, motivo: 'Completá la verificación de seguridad y probá de nuevo.' }
+    }
+    if (respuesta.status === 401 || cuerpo?.error === 'credenciales') {
+      return { ok: false, motivo: MOTIVO_CREDENCIALES }
+    }
+    const sesion = cuerpo?.sesion
+    if (!respuesta.ok || !cuerpo?.ok || !sesion?.access_token || !sesion.refresh_token) {
+      return { ok: false, motivo: MOTIVO_SERVICIO }
+    }
+    const guardada = await cliente.auth.setSession({ access_token: sesion.access_token, refresh_token: sesion.refresh_token })
+    if (guardada.error) return { ok: false, motivo: MOTIVO_SERVICIO }
+    usuarioId = guardada.data.user?.id
+  }
   if (!usuarioId) return { ok: false, motivo: 'no se pudo iniciar sesión' }
 
   const negocioId = await vincularNegocioLocal(usuarioId, telefono)

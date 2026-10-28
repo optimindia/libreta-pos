@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { entrar } from '@/datos/nube/sesion'
 import { bajarTodo, sincronizar, subirASupabase, traerDeSupabase } from '@/datos/nube/sincronizar'
@@ -8,12 +8,16 @@ import { notificarCambioAcceso } from '@/datos/nube/acceso'
 import { enlaceWhatsApp } from '@/dominio/mensajes'
 import { Boton } from './Boton'
 import { IconoNube } from './iconos'
+import { claveTurnstile, VerificacionHumana, type ControlVerificacion } from './VerificacionHumana'
 
 export function PantallaAcceso({ modo = 'negocio' }: { modo?: 'negocio' | 'admin' }) {
   const [telefono, setTelefono] = useState('')
   const [pin, setPin] = useState('')
   const [aviso, setAviso] = useState<string | null>(null)
   const [trabajando, setTrabajando] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const verificacion = useRef<ControlVerificacion>(null)
+  const clave = claveTurnstile()
   const esAdmin = modo === 'admin'
 
   async function iniciar(evento: React.FormEvent<HTMLFormElement>) {
@@ -21,9 +25,10 @@ export function PantallaAcceso({ modo = 'negocio' }: { modo?: 'negocio' | 'admin
     setAviso(null)
     setTrabajando(true)
     try {
-      const resultado = await entrar(telefono, pin)
+      const resultado = await entrar(telefono, pin, captchaToken ? { captchaToken } : {})
       if (!resultado.ok) {
         setAviso(resultado.motivo)
+        verificacion.current?.reiniciar()
         return
       }
       // Primero enviamos lo que este aparato pudo haber cargado antes de
@@ -71,7 +76,8 @@ export function PantallaAcceso({ modo = 'negocio' }: { modo?: 'negocio' | 'admin
             <span className="form-field-label">PIN <em>6 números</em></span>
             <input aria-label="PIN de 6 números" inputMode="numeric" type="password" autoComplete="current-password" maxLength={6} placeholder="PIN de 6 números" className="form-input tabular" value={pin} onChange={(evento) => setPin(evento.target.value.replace(/\D/g, '').slice(0, 6))} required />
           </label>
-          <Boton variante="principal" type="submit" className="w-full" disabled={trabajando}>
+          {clave && <VerificacionHumana ref={verificacion} clave={clave} onToken={setCaptchaToken} />}
+          <Boton variante="principal" type="submit" className="w-full" disabled={trabajando || (clave !== null && !captchaToken)}>
             {trabajando ? 'Verificando…' : esAdmin ? 'Entrar al panel' : 'Entrar a mi negocio'}
           </Boton>
         </form>
