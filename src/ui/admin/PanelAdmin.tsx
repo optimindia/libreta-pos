@@ -1,12 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
-import { adminAccion, type AdminCuenta, type AdminCuentaActualizada, type AdminCuentaCreada, type AdminCredencialesRegeneradas, type AdminEvento, type AdminListado, type AdminPlan, type AdminPlanGuardado, type AdminSuscripcionActualizada, type MedioPagoAdmin, type TipoPlan } from '@/datos/nube/admin'
+import { adminAccion, type AdminCuenta, type AdminCuentaActualizada, type AdminCuentaCreada, type AdminCredencialesRegeneradas, type AdminEvento, type AdminListado, type AdminPlan, type AdminPlanGuardado, type AdminSuscripcionActualizada, type AdminVendedor, type AdminVendedorAgregado, type MedioPagoAdmin, type TipoPlan } from '@/datos/nube/admin'
 import { cerrarSesion } from '@/datos/nube/sesion'
 import { enlaceWhatsApp } from '@/dominio/mensajes'
 import { formatearPesos, pesosACentavos } from '@/dominio/dinero'
 import { Boton } from '@/ui/sistema/Boton'
-import { IconoAlerta, IconoBloqueo, IconoBuscar, IconoCalendarioCuenta, IconoCerrar, IconoEditar, IconoNube, IconoNuevaVenta, IconoReintentar, IconoSincronizado } from '@/ui/sistema/iconos'
+import { IconoAlerta, IconoBloqueo, IconoBuscar, IconoCalendarioCuenta, IconoCerrar, IconoClientes, IconoEditar, IconoEliminar, IconoNube, IconoNuevaVenta, IconoReintentar, IconoSincronizado } from '@/ui/sistema/iconos'
 
 const FORMULARIO_INICIAL = { nombre: '', telefono: '', pin: '', diasPrueba: '7', planId: '', nota: '' }
 const FORMULARIO_SUSCRIPCION = { planId: '', dias: '30', modo: 'sumar' as 'sumar' | 'reiniciar', importe: '', medioPago: '' as MedioPagoAdmin | '', referenciaPago: '', nota: '' }
@@ -18,6 +18,9 @@ type ModalAdmin =
   | { tipo: 'suscripcion'; cuenta: AdminCuenta }
   | { tipo: 'cuenta'; cuenta: AdminCuenta }
   | { tipo: 'pin'; cuenta: AdminCuenta }
+  | { tipo: 'vendedores'; cuenta: AdminCuenta }
+
+const FORMULARIO_VENDEDOR = { nombre: '', telefono: '', pin: '' }
 
 const NOMBRES_ESTADO: Record<AdminCuenta['estado'], string> = {
   prueba: 'Prueba',
@@ -37,6 +40,9 @@ const NOMBRES_EVENTO: Record<string, string> = {
   suscripcion_extender: 'Suscripción extendida',
   suscripcion_suspender: 'Cuenta suspendida',
   suscripcion_reactivar: 'Cuenta reactivada',
+  vendedor_agregado: 'Vendedor agregado',
+  vendedor_pin: 'PIN de vendedor cambiado',
+  vendedor_quitado: 'Vendedor quitado',
 }
 
 function fechaCorta(fecha: string | null | undefined): string {
@@ -95,6 +101,17 @@ function ModalMarco({ titulo, subtitulo, onClose, children }: { titulo: string; 
   )
 }
 
+function TarjetaCredenciales({ credenciales, copiado, copiar }: { credenciales: { telefono: string; pin: string }; copiado: string | null; copiar: (texto: string, clave: string) => Promise<void> }) {
+  return (
+    <div className="admin-credentials" role="status">
+      <div><strong>Acceso listo para enviar</strong><p>Este PIN sólo se muestra durante esta sesión del panel.</p></div>
+      <div className="admin-credential-line"><span>Teléfono</span><strong>{credenciales.telefono}</strong><button type="button" onClick={() => void copiar(credenciales.telefono, 'telefono')}>{copiado === 'telefono' ? 'Copiado' : 'Copiar'}</button></div>
+      <div className="admin-credential-line"><span>PIN</span><strong className="tabular">{credenciales.pin}</strong><button type="button" onClick={() => void copiar(credenciales.pin, 'pin')}>{copiado === 'pin' ? 'Copiado' : 'Copiar'}</button></div>
+      <a className="admin-whatsapp-button" href={enlaceWhatsApp(credenciales.telefono, `Hola, ya está lista tu cuenta de Libreta.\n\nTeléfono: ${credenciales.telefono}\nPIN: ${credenciales.pin}\n\nIngresá en https://libreta-sepia.vercel.app`)} target="_blank" rel="noreferrer">Abrir WhatsApp con el acceso</a>
+    </div>
+  )
+}
+
 export function PanelAdmin() {
   const [cuentas, setCuentas] = useState<AdminCuenta[]>([])
   const [eventos, setEventos] = useState<AdminEvento[]>([])
@@ -104,6 +121,9 @@ export function PanelAdmin() {
   const [formCuenta, setFormCuenta] = useState({ nombre: '', telefono: '', notaInterna: '' })
   const [formPin, setFormPin] = useState('')
   const [formPlan, setFormPlan] = useState(FORMULARIO_PLAN)
+  const [formVendedor, setFormVendedor] = useState(FORMULARIO_VENDEDOR)
+  const [pinVendedor, setPinVendedor] = useState<{ usuarioId: string; pin: string } | null>(null)
+  const [quitando, setQuitando] = useState<string | null>(null)
   const [credenciales, setCredenciales] = useState<AdminCuentaCreada['credenciales'] | null>(null)
   const [modal, setModal] = useState<ModalAdmin | null>(null)
   const [planEditorAbierto, setPlanEditorAbierto] = useState(false)
@@ -288,6 +308,76 @@ export function PanelAdmin() {
     }
   }
 
+  function abrirVendedores(cuenta: AdminCuenta) {
+    setFormVendedor(FORMULARIO_VENDEDOR)
+    setPinVendedor(null)
+    setQuitando(null)
+    setCredenciales(null)
+    setAviso(null)
+    setError(null)
+    setModal({ tipo: 'vendedores', cuenta })
+  }
+
+  /** Vuelve a leer el panel y deja abierta la cuenta con sus vendedores al día. */
+  async function refrescarVendedores(negocioId: string) {
+    const respuesta = await adminAccion<AdminListado>({ accion: 'listar' })
+    setCuentas(respuesta.cuentas)
+    setEventos(respuesta.eventos)
+    setPlanes(respuesta.planes)
+    const actual = respuesta.cuentas.find((cuenta) => cuenta.id === negocioId)
+    setModal(actual ? { tipo: 'vendedores', cuenta: actual } : null)
+  }
+
+  async function operarVendedor(tarea: () => Promise<string>, falla: string) {
+    if (!modal || modal.tipo !== 'vendedores') return
+    setGuardando(true)
+    setAviso(null)
+    setError(null)
+    try {
+      setAviso(await tarea())
+      await refrescarVendedores(modal.cuenta.id)
+    } catch (problema) {
+      setError(problema instanceof Error ? problema.message : falla)
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  function agregarVendedor(evento: FormEvent<HTMLFormElement>) {
+    evento.preventDefault()
+    if (!modal || modal.tipo !== 'vendedores') return
+    const negocioId = modal.cuenta.id
+    void operarVendedor(async () => {
+      const respuesta = await adminAccion<AdminVendedorAgregado>({ accion: 'vendedor', negocioId, operacion: 'agregar', ...formVendedor })
+      setCredenciales(respuesta.credenciales)
+      setFormVendedor(FORMULARIO_VENDEDOR)
+      return `${respuesta.vendedor.nombre} ya puede entrar con su teléfono y PIN.`
+    }, 'No se pudo agregar el vendedor.')
+  }
+
+  function cambiarPinVendedor(evento: FormEvent<HTMLFormElement>, vendedor: AdminVendedor) {
+    evento.preventDefault()
+    if (!modal || modal.tipo !== 'vendedores' || !pinVendedor) return
+    const negocioId = modal.cuenta.id
+    const pin = pinVendedor.pin
+    void operarVendedor(async () => {
+      const respuesta = await adminAccion<AdminCredencialesRegeneradas>({ accion: 'vendedor', negocioId, operacion: 'pin', usuarioId: vendedor.usuarioId, pin })
+      setCredenciales(respuesta.credenciales)
+      setPinVendedor(null)
+      return `PIN nuevo para ${vendedor.nombre ?? 'el vendedor'}. El anterior ya no funciona.`
+    }, 'No se pudo cambiar el PIN.')
+  }
+
+  function quitarVendedor(vendedor: AdminVendedor) {
+    if (!modal || modal.tipo !== 'vendedores') return
+    const negocioId = modal.cuenta.id
+    void operarVendedor(async () => {
+      await adminAccion<{ ok: true }>({ accion: 'vendedor', negocioId, operacion: 'quitar', usuarioId: vendedor.usuarioId })
+      setQuitando(null)
+      return `${vendedor.nombre ?? 'El vendedor'} ya no tiene acceso. Sus ventas quedan en el negocio.`
+    }, 'No se pudo quitar el vendedor.')
+  }
+
   function abrirNuevoPlan() {
     setPlanEditando(null)
     setFormPlan(FORMULARIO_PLAN)
@@ -395,14 +485,7 @@ export function PanelAdmin() {
             <label className="form-field"><span className="form-field-label">Nota interna <em>opcional</em></span><textarea className="form-input admin-note" rows={2} placeholder="Ej. llegó por recomendación" value={formulario.nota} onChange={(evento) => setFormulario((actual) => ({ ...actual, nota: evento.target.value }))} /></label>
             <Boton type="submit" variante="principal" className="button-with-icon" disabled={guardando}><IconoNuevaVenta /> {guardando ? 'Creando cuenta…' : 'Crear cuenta y prueba'}</Boton>
           </form>
-          {credenciales && (
-            <div className="admin-credentials" role="status">
-              <div><strong>Acceso listo para enviar</strong><p>Este PIN sólo se muestra durante esta sesión del panel.</p></div>
-              <div className="admin-credential-line"><span>Teléfono</span><strong>{credenciales.telefono}</strong><button type="button" onClick={() => void copiar(credenciales.telefono, 'telefono')}>{copiado === 'telefono' ? 'Copiado' : 'Copiar'}</button></div>
-              <div className="admin-credential-line"><span>PIN</span><strong className="tabular">{credenciales.pin}</strong><button type="button" onClick={() => void copiar(credenciales.pin, 'pin')}>{copiado === 'pin' ? 'Copiado' : 'Copiar'}</button></div>
-              <a className="admin-whatsapp-button" href={enlaceWhatsApp(credenciales.telefono, `Hola, ya está lista tu cuenta de Libreta.\n\nTeléfono: ${credenciales.telefono}\nPIN: ${credenciales.pin}\n\nIngresá en https://libreta-sepia.vercel.app`)} target="_blank" rel="noreferrer">Abrir WhatsApp con el acceso</a>
-            </div>
-          )}
+          {credenciales && <TarjetaCredenciales credenciales={credenciales} copiado={copiado} copiar={copiar} />}
         </section>
 
         <section className="admin-accounts-section">
@@ -430,12 +513,14 @@ export function PanelAdmin() {
                   <div className="admin-account-meta">
                     <span><small>Estado operativo</small><strong>{textoDias(cuenta)}</strong></span>
                     <span><small>Vencimiento</small><strong>{cuenta.suscripcion ? fechaCorta(cuenta.suscripcion.venceEn) : 'Sin plan'}</strong></span>
+                    <span><small>Vendedores</small><strong>{(cuenta.vendedores?.length ?? 0) === 0 ? 'Sólo el dueño' : `${cuenta.vendedores?.length} con acceso`}</strong></span>
                     <span><small>Paquete</small><strong>{cuenta.suscripcion?.planNombre ?? (cuenta.suscripcion?.tipo === 'prueba' ? 'Prueba gratuita' : cuenta.suscripcion ? 'Activación manual' : 'Pendiente')}</strong></span>
                   </div>
                   {cuenta.notaInterna && <p className="admin-account-note"><IconoAlerta /> {cuenta.notaInterna}</p>}
                   <div className="admin-account-actions">
                     <button type="button" className="admin-action-primary" disabled={ocupado} onClick={() => abrirSuscripcion(cuenta)}><IconoCalendarioCuenta /> Gestionar suscripción</button>
                     <button type="button" className="admin-action-secondary" disabled={ocupado} onClick={() => abrirEdicion(cuenta)}><IconoEditar /> Editar</button>
+                    <button type="button" className="admin-action-secondary" disabled={ocupado} onClick={() => abrirVendedores(cuenta)}><IconoClientes /> Vendedores</button>
                     <a className="admin-action-secondary" href={enlaceWhatsApp(contacto, `Hola ${cuenta.nombre}, ¿cómo estás? Quería avisarte que tu cuenta de Libreta vence ${cuenta.suscripcion ? fechaCorta(cuenta.suscripcion.venceEn) : 'próximamente'}. Escribime si querés renovarla.`)} target="_blank" rel="noreferrer"><IconoNube /> WhatsApp</a>
                     {cuenta.estado !== 'suspendida' && <button type="button" className="admin-action-danger" disabled={ocupado} onClick={() => void suspender(cuenta)}>{ocupado ? 'Pausando…' : 'Pausar'}</button>}
                   </div>
@@ -505,6 +590,46 @@ export function PanelAdmin() {
           <label className="form-field"><span className="form-field-label">PIN nuevo <em>6 números</em></span><input className="form-input tabular admin-pin-input" inputMode="numeric" type="password" autoComplete="new-password" maxLength={6} value={formPin} onChange={(evento) => setFormPin(evento.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="123456" required /></label>
           <div className="admin-modal-actions"><button type="button" className="admin-action-secondary" onClick={() => setModal({ tipo: 'cuenta', cuenta: modal.cuenta })}>Volver</button><button type="submit" className="admin-action-primary" disabled={guardando}>{guardando ? 'Regenerando…' : 'Regenerar PIN'}</button></div>
         </form>
+      </ModalMarco>}
+
+      {modal?.tipo === 'vendedores' && <ModalMarco titulo={`Vendedores de ${modal.cuenta.nombre}`} subtitulo="Cada vendedor entra con su teléfono y PIN y comparte la misma base del negocio." onClose={() => setModal(null)}>
+        <div className="admin-modal-form">
+          {(modal.cuenta.vendedores ?? []).length === 0
+            ? <p className="admin-field-help">Todavía no hay vendedores. Sólo el dueño entra a esta cuenta.</p>
+            : <ul className="admin-vendedores" aria-label="Vendedores con acceso">
+              {(modal.cuenta.vendedores ?? []).map((vendedor) => (
+                <li className="admin-vendedor" key={vendedor.usuarioId}>
+                  <div className="admin-modal-account-strip">
+                    <span className="admin-account-avatar">{inicialDe(vendedor.nombre ?? 'V')}</span>
+                    <div><strong>{vendedor.nombre ?? 'Sin nombre'}</strong><span className="tabular">{vendedor.telefono ?? 'Sin teléfono'} · desde {fechaCorta(vendedor.creadoEn)}</span></div>
+                  </div>
+                  {pinVendedor?.usuarioId === vendedor.usuarioId
+                    ? <form className="admin-vendedor-pin" onSubmit={(evento) => cambiarPinVendedor(evento, vendedor)}>
+                      <label className="form-field"><span className="form-field-label">PIN nuevo <em>6 números</em></span><input className="form-input tabular" inputMode="numeric" type="password" autoComplete="new-password" maxLength={6} value={pinVendedor.pin} onChange={(evento) => setPinVendedor({ usuarioId: vendedor.usuarioId, pin: evento.target.value.replace(/\D/g, '').slice(0, 6) })} placeholder="123456" required autoFocus /></label>
+                      <div className="admin-modal-actions"><button type="button" className="admin-action-secondary" onClick={() => setPinVendedor(null)}>Cancelar</button><button type="submit" className="admin-action-primary" disabled={guardando}>{guardando ? 'Guardando…' : 'Guardar PIN'}</button></div>
+                    </form>
+                    : quitando === vendedor.usuarioId
+                      ? <div className="admin-pin-warning" role="alert"><IconoBloqueo /><div><strong>¿Quitar a {vendedor.nombre ?? 'este vendedor'}?</strong><p>Deja de poder entrar. Lo que vendió queda guardado.</p></div><div className="admin-modal-actions"><button type="button" className="admin-action-secondary" onClick={() => setQuitando(null)}>No</button><button type="button" className="admin-action-danger" disabled={guardando} onClick={() => quitarVendedor(vendedor)}>{guardando ? 'Quitando…' : 'Sí, quitar'}</button></div></div>
+                      : <div className="admin-account-actions">
+                        <button type="button" className="admin-action-secondary" disabled={guardando} onClick={() => { setQuitando(null); setPinVendedor({ usuarioId: vendedor.usuarioId, pin: '' }) }}><IconoBloqueo /> Nuevo PIN</button>
+                        <button type="button" className="admin-action-danger" disabled={guardando} onClick={() => { setPinVendedor(null); setQuitando(vendedor.usuarioId) }}><IconoEliminar /> Quitar</button>
+                      </div>}
+                </li>
+              ))}
+            </ul>}
+          <form className="admin-modal-form" onSubmit={agregarVendedor} aria-label="Agregar vendedor">
+            <strong>Agregar vendedor</strong>
+            <div className="admin-modal-form-row">
+              <label className="form-field"><span className="form-field-label">Nombre</span><input className="form-input" value={formVendedor.nombre} onChange={(evento) => setFormVendedor((actual) => ({ ...actual, nombre: evento.target.value }))} placeholder="Ej. Lucía" required minLength={2} maxLength={80} /></label>
+              <label className="form-field"><span className="form-field-label">Teléfono</span><input className="form-input tabular" inputMode="tel" value={formVendedor.telefono} onChange={(evento) => setFormVendedor((actual) => ({ ...actual, telefono: evento.target.value }))} placeholder="261 555 0000" required /></label>
+            </div>
+            <label className="form-field"><span className="form-field-label">PIN inicial <em>6 números</em></span><input className="form-input tabular" inputMode="numeric" type="password" autoComplete="new-password" maxLength={6} value={formVendedor.pin} onChange={(evento) => setFormVendedor((actual) => ({ ...actual, pin: evento.target.value.replace(/\D/g, '').slice(0, 6) }))} placeholder="123456" required /></label>
+            {error && <p className="admin-field-help" role="alert">{error}</p>}
+            {aviso && <p className="admin-field-help" role="status">{aviso}</p>}
+            {credenciales && <TarjetaCredenciales credenciales={credenciales} copiado={copiado} copiar={copiar} />}
+            <div className="admin-modal-actions"><button type="button" className="admin-action-secondary" onClick={() => setModal(null)}>Listo</button><button type="submit" className="admin-action-primary" disabled={guardando}>{guardando ? 'Agregando…' : 'Agregar vendedor'}</button></div>
+          </form>
+        </div>
       </ModalMarco>}
     </div>
   )

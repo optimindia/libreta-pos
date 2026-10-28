@@ -44,6 +44,21 @@ export interface AdminCuenta {
   suscripcion: AdminSuscripcion | null
   estado: EstadoAdmin
   diasRestantes: number
+  /** Personas que atienden el mismo negocio con su propio teléfono y PIN. */
+  vendedores?: AdminVendedor[]
+}
+
+export interface AdminVendedor {
+  usuarioId: string
+  nombre: string | null
+  telefono: string | null
+  creadoEn: string
+}
+
+export interface AdminVendedorAgregado {
+  ok: true
+  vendedor: { usuarioId: string; nombre: string; telefono: string }
+  credenciales: { telefono: string; pin: string }
 }
 
 export interface AdminEvento {
@@ -99,11 +114,14 @@ export type AdminSolicitud =
   | { accion: 'plan'; operacion: 'crear'; nombre: string; descripcion?: string; tipo: TipoPlan; dias: number; precioCentavos: number; activo: boolean; orden: number }
   | { accion: 'plan'; operacion: 'actualizar'; planId: string; nombre: string; descripcion?: string; tipo: TipoPlan; dias: number; precioCentavos: number; activo: boolean; orden: number }
   | { accion: 'plan'; operacion: 'archivar' | 'restaurar'; planId: string }
+  | { accion: 'vendedor'; negocioId: string; operacion: 'agregar'; nombre: string; telefono: string; pin: string }
+  | { accion: 'vendedor'; negocioId: string; operacion: 'pin'; usuarioId: string; pin: string }
+  | { accion: 'vendedor'; negocioId: string; operacion: 'quitar'; usuarioId: string }
 
 /** Puerta única del panel: pasa por el puente del mismo sitio (/api/admin) y
  *  la función Edge valida la sesión y el rol antes de ejecutar cualquier
  *  lectura o escritura administrativa. */
-export async function adminAccion<T extends AdminListado | AdminCuentaCreada | AdminSuscripcionActualizada | AdminCuentaActualizada | AdminCredencialesRegeneradas | AdminPlanGuardado>(solicitud: AdminSolicitud): Promise<T> {
+export async function adminAccion<T extends AdminListado | AdminCuentaCreada | AdminSuscripcionActualizada | AdminCuentaActualizada | AdminCredencialesRegeneradas | AdminPlanGuardado | AdminVendedorAgregado | { ok: true }>(solicitud: AdminSolicitud): Promise<T> {
   if (!cliente) throw new Error('La nube no está configurada.')
   const sesion = await cliente.auth.getSession()
   const token = sesion.data.session?.access_token
