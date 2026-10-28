@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { saldoFiado, estaSaldado, diasDeAntiguedad, deudaPorCliente } from '@/dominio/fiado'
+import { saldoFiado, estaSaldado, diasDeAntiguedad, deudaPorCliente, superaLimiteFiado } from '@/dominio/fiado'
 import type { Fiado, FiadoPago } from '@/dominio/tipos'
 
 const AHORA = new Date('2026-08-30T12:00:00').getTime()
@@ -87,5 +87,17 @@ describe('deudaPorCliente', () => {
     ]
     const deudas = deudaPorCliente(fiados, [], AHORA)
     expect(deudas[0].clienteId).toBe('c2')
+  })
+})
+
+describe('superaLimiteFiado', () => {
+  it('sin límite nunca se pasa', () => {
+    expect(superaLimiteFiado(5000000, 100000, undefined)).toBe(false)
+    expect(superaLimiteFiado(5000000, 100000, 0)).toBe(false)
+  })
+
+  it('llegar justo al límite está bien; pasarse por un peso, no', () => {
+    expect(superaLimiteFiado(1500000, 500000, 2000000)).toBe(false)
+    expect(superaLimiteFiado(1500000, 500100, 2000000)).toBe(true)
   })
 })

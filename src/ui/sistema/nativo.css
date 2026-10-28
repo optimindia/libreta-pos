@@ -1722,3 +1722,7 @@ textarea::placeholder {
 
 .nb-app .mz-mostrador { max-width: 1200px; padding: 0 0 120px; }
 @media (min-width: 900px) { .nb-app .mz-mostrador { padding-bottom: 24px; } }
+
+.mz-aviso-coral { background: var(--rojo-fondo) !important; color: var(--tinta) !important; border-color: var(--rojo) !important; }
+.mz-aviso-coral strong { color: var(--rojo); }
+.mz-aviso-coral .nb-acciones { margin-top: 12px; }
