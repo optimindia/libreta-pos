@@ -134,3 +134,33 @@ describe('ingresos de mercadería', () => {
     expect(cola.some((item) => item.entidad === 'movimientoStock')).toBe(false)
   })
 })
+
+describe('pedidos', () => {
+  const pedidoDe = (producto: Producto, cantidad: number) => ({
+    clienteId: null, items: [item(producto, { cantidad })], estado: 'pendiente' as const, reservarStock: false,
+    tipoEntrega: 'retiro' as const, fechaEntrega: null, direccion: null, nota: null,
+  })
+
+  it('no se anota un pedido con cantidades en cero, negativas o con coma', async () => {
+    const yerba = await repos.productos.guardar(base)
+    for (const cantidad of [0, -1, 1.5]) {
+      await expect(repos.pedidos.guardar(pedidoDe(yerba, cantidad))).rejects.toThrow(/cantidad/i)
+    }
+    expect(await db.pedidos.count()).toBe(0)
+  })
+
+  it('no se puede marcar entregado sin cobrarlo: la mercadería saldría sin descontar stock', async () => {
+    const yerba = await repos.productos.guardar(base)
+    const pedido = await repos.pedidos.guardar(pedidoDe(yerba, 2))
+    await expect(repos.pedidos.actualizarEstado(pedido.id, 'entregado')).rejects.toThrow(/cobr/i)
+    expect((await db.pedidos.get(pedido.id))?.estado).toBe('pendiente')
+  })
+
+  it('un pedido ya cobrado no se puede editar ni reabrir', async () => {
+    const yerba = await repos.productos.guardar(base)
+    const pedido = await repos.pedidos.guardar(pedidoDe(yerba, 1))
+    await repos.pedidos.convertirEnVenta(pedido.id, 'efectivo')
+    await expect(repos.pedidos.guardar({ ...pedidoDe(yerba, 3), id: pedido.id })).rejects.toThrow(/ya se cobró/i)
+    expect((await db.pedidos.get(pedido.id))?.items[0].cantidad).toBe(1)
+  })
+})

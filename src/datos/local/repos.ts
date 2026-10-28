@@ -621,7 +621,14 @@ export const repos = {
   pedidos: {
     async guardar(datos: Omit<Pedido, 'id' | 'fecha' | 'actualizadoEn' | 'total'> & { id?: UUID }): Promise<Pedido> {
       if (!datos.items.length) throw new Error('Un pedido necesita al menos un producto.')
+      if (datos.items.some((item) => !Number.isInteger(item.cantidad) || item.cantidad <= 0)) {
+        throw new Error('Revisá las cantidades: cada producto va con un número entero mayor a cero.')
+      }
       const existente = datos.id ? await db.pedidos.get(datos.id) : undefined
+      // Un pedido cobrado ya es una venta: cambiarlo descuadraría stock y caja.
+      if (existente && (existente.ventaId || existente.estado === 'entregado')) {
+        throw new Error('Este pedido ya se cobró y entregó: no se puede cambiar.')
+      }
       const pedido: Pedido = {
         ...datos,
         id: datos.id ?? nuevoId(),
@@ -659,6 +666,10 @@ export const repos = {
     async actualizarEstado(id: UUID, estado: EstadoPedido): Promise<Pedido | null> {
       const pedido = await db.pedidos.get(id)
       if (!pedido || pedido.estado === 'cancelado' || pedido.estado === 'entregado') return pedido ?? null
+      // Entregar es cobrar: así se descuenta el stock y queda la venta.
+      if (estado === 'entregado' && !pedido.ventaId) {
+        throw new Error('Para entregar un pedido, cobralo: así se descuenta el stock y queda registrada la venta.')
+      }
       const actualizado: Pedido = { ...pedido, estado, actualizadoEn: Date.now() }
       await db.pedidos.put(actualizado)
       await encolar('pedido', 'actualizar', actualizado)
