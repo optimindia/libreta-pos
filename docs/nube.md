@@ -39,6 +39,62 @@ conviene pasar al SMS real.
 En Vercel, las mismas dos variables se cargan en **Settings → Environment
 Variables** del proyecto.
 
+## Límite de intentos de PIN (SEG-03)
+
+El PIN tiene sólo un millón de combinaciones, así que el ingreso pasa por el
+servidor: la pantalla llama a `/api/ingresar`, que reenvía a la función Edge
+`ingresar`. Ésta cuenta los intentos por teléfono en `intentos_ingreso` (sólo
+service role) y tras **5 intentos en 15 minutos bloquea ese teléfono 15
+minutos**. La respuesta es la misma exista o no el teléfono, y el bloqueo
+también se aplica a teléfonos inexistentes. La pantalla muestra
+"Demasiados intentos. Esperá N minutos y probá de nuevo."
+
+Mientras la función no esté desplegada, `/api/ingresar` responde 501 y la app
+entra como antes (sin límite), así que se puede publicar la app primero.
+
+**Importante:** el límite sólo sirve si no se puede probar el PIN directo
+contra Supabase Auth. Con la contraseña v1 (`libreta-v1:<tel>:<pin>`) eso
+sigue siendo posible. Lo cierra el secreto `LIBRETA_PIN_PEPPER` (contraseña v2,
+HMAC que sólo conocen las funciones). Pasos, en este orden:
+
+1. Aplicar `supabase/migrations/20261028141000_intentos_ingreso.sql`.
+2. `supabase functions deploy ingresar --no-verify-jwt` y publicar la app.
+   Probar un ingreso de dueño y uno de vendedor.
+3. Crear el secreto **una sola vez y guardarlo en un lugar seguro**:
+   `supabase secrets set LIBRETA_PIN_PEPPER="$(openssl rand -base64 32)"`.
+   Si se pierde o se cambia, nadie con contraseña v2 puede entrar hasta que
+   se le regenere el PIN.
+4. `supabase functions deploy ingresar --no-verify-jwt` y
+   `supabase functions deploy admin` (las dos leen el mismo secreto).
+   Desde ahí las cuentas nuevas y los PIN regenerados ya nacen en v2, y cada
+   cuenta vieja se pasa sola a v2 la próxima vez que entra. Para cerrar ya una
+   cuenta vieja, regenerarle el PIN desde `/admin`.
+
+### Verificación humana opcional (Cloudflare Turnstile)
+
+Evita que un bot bloquee teléfonos ajenos a propósito y frena ataques masivos.
+
+1. En Cloudflare → Turnstile, crear un widget (modo *Managed*) con los
+   dominios donde está la app (y `localhost` para probar).
+2. En Vercel, cargar `NEXT_PUBLIC_TURNSTILE_SITE_KEY=<site key>` y volver a
+   publicar (la clave se incrusta al compilar; también abre la CSP a
+   `challenges.cloudflare.com`).
+3. Recién después: `supabase secrets set TURNSTILE_SECRET_KEY=<secret key>`.
+   Con ese secreto la función rechaza cualquier pedido sin token válido.
+
+Opcional y más estricto: activar también el captcha en Supabase
+(**Authentication → Attack Protection → Enable CAPTCHA protection**, Turnstile,
+mismo secret). Cierra el acceso directo a Auth incluso para las cuentas que
+todavía no pasaron a v2, y también `signUp`. La función `ingresar` pide la
+sesión con la clave de servicio, que Auth no somete al captcha: probarlo en un
+entorno de prueba antes de activarlo en producción. Con eso activo deja de
+funcionar el ingreso "como antes" (sin la función) y el respaldo por cuenta
+propia (modo sin `NEXT_PUBLIC_SAAS_REQUIRED`).
+
+Límite conocido: todos los ingresos llegan a Auth desde los servidores de
+Supabase, que limita `/auth/v1/token` por IP. Con muchos ingresos simultáneos
+Auth puede responder 429 y la pantalla dice "Probá de nuevo en un rato".
+
 ## Verificar que el aislamiento sigue sano
 
 ```bash
