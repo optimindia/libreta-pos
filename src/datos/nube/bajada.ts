@@ -1,7 +1,8 @@
 import { db } from '@/datos/local/db'
 import { cliente } from './cliente'
 import { deLaNube, preferenciasDeLaNube, type Fila } from './mapeo'
-import { DESTINO, rearmarItems } from './sincronizar'
+import { DESTINO, itemsDe, rearmarItems } from './sincronizar'
+import { todasLasFilas } from './paginar'
 
 /** El solape reprocesa lo último bajado: el merge por id es idempotente
  *  y así las transacciones que llegan apenas antes del cursor no se pierden. */
@@ -19,27 +20,25 @@ export type TraerCambiosFn = (tabla: string, desdeISO: string) => Promise<unknow
  *  servidor: actualizado_en lo marcan la base y el trigger, nunca el cliente. */
 export const traerCambiosDeSupabase: TraerCambiosFn = async (tabla, desdeISO) => {
   if (!cliente) throw new Error('nube apagada')
+  const nube = cliente
+  // Paginado y ordenado: un día con más de 1000 cambios no se corta a medias.
+  // negocio_configuracion no tiene `id`: es una fila por negocio.
+  const cambios = await todasLasFilas<Fila>((desde, hasta) => {
+    const consulta = nube.from(tabla).select('*').gte('actualizado_en', desdeISO).order('actualizado_en')
+    return (tabla === 'negocio_configuracion' ? consulta : consulta.order('id')).range(desde, hasta)
+  })
 
   if (tabla === 'ventas' || tabla === 'ingresos' || tabla === 'pedidos') {
     const tablaItems = tabla === 'ventas' ? 'venta_items' : tabla === 'ingresos' ? 'ingreso_items' : 'pedido_items'
     const claveDelPadre = tabla === 'ventas' ? 'venta_id' : tabla === 'ingresos' ? 'ingreso_id' : 'pedido_id'
-    const cabeceras = await cliente.from(tabla).select('*').gte('actualizado_en', desdeISO)
-    if (cabeceras.error) throw cabeceras.error
-    const ids = (cabeceras.data ?? []).map((fila: Fila) => fila.id)
-    if (ids.length === 0) return []
-    const items = await cliente.from(tablaItems).select('*').in(claveDelPadre, ids)
-    if (items.error) throw items.error
-    return rearmarItems(tabla, cabeceras.data ?? [], items.data ?? [])
+    if (cambios.length === 0) return []
+    const items = await itemsDe(tablaItems, claveDelPadre, cambios.map((fila) => fila.id as string))
+    return rearmarItems(tabla, cambios, items)
   }
 
-  const { data, error } = await cliente
-    .from(tabla)
-    .select('*')
-    .gte('actualizado_en', desdeISO)
-  if (error) throw error
   return tabla === 'negocio_configuracion'
-    ? (data ?? []).map((fila) => preferenciasDeLaNube(fila as Fila))
-    : (data ?? []).map((fila) => deLaNube(tabla, fila as Fila))
+    ? cambios.map((fila) => preferenciasDeLaNube(fila))
+    : cambios.map((fila) => deLaNube(tabla, fila))
 }
 
 /** El merge: en productos gana el más nuevo, para que una edición local
