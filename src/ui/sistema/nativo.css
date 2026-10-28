@@ -159,8 +159,7 @@ textarea {
 .page-module-head > a,
 .page-module-head > button,
 .page-module-head > .pedidos-new-button,
-.page-module-head > .clientes-new-button,
-.mz-boton-cabecera {
+.page-module-head > .clientes-new-button {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
@@ -247,28 +246,13 @@ textarea::placeholder {
 .form-card,
 .fiados-summary-card,
 .fiado-card,
-.plata-operation-card,
-.plata-report-card,
-.control-action-card,
 .stock-scan-card,
-.caja-difference-card,
-.invoice-total-card,
-.control-center {
+.invoice-total-card {
   border: 1px solid var(--linea) !important;
   border-radius: var(--radio-tarjeta) !important;
   background: var(--hueso-2) !important;
   background-image: none !important;
   box-shadow: var(--sombra-pop) !important;
-}
-
-.control-center .page-kicker,
-.control-center :where(h2, p, small, strong) {
-  color: var(--tinta);
-}
-
-.control-center p,
-.control-center small {
-  color: var(--tenue);
 }
 
 .fiados-summary-card,
@@ -281,16 +265,6 @@ textarea::placeholder {
 }
 
 /* ───────────── Acentos: VENDER y COBRAR conservan el relieve ───────────── */
-
-.mz-vender {
-  border: 2px solid var(--acento-borde) !important;
-  box-shadow: var(--sombra-acento) !important;
-}
-
-.mz-vender:active {
-  transform: translateY(4px);
-  box-shadow: 0 1px 0 var(--acento-borde) !important;
-}
 
 /* El armazón (.nb-app) y la navegación viven en f/navegacion.css. */
 
@@ -322,13 +296,6 @@ textarea::placeholder {
 /* ───────────── Ajustes de pantallas ───────────── */
 
 /* El armazón ya da los márgenes: las páginas del estilo Mosaico no suman otros. */
-.nb-app .mz-pagina {
-  max-width: 1200px;
-  padding: 0;
-}
-
-.mz-saludo > :first-child { min-width: 0; }
-.mz-saludo > span { flex: 0 0 auto; white-space: nowrap; }
 
 /* Títulos: el rótulo de arriba se va; el título solo dice dónde estás. */
 .page-module-head .page-kicker,
@@ -692,20 +659,7 @@ textarea::placeholder {
 .pro-section-heading { flex-wrap: wrap; }
 .pro-section-count { flex: 0 0 auto; }
 
-.plata-operation-card { min-width: 0; max-width: 100%; }
-.historial-export { min-height: 44px; font-size: 14px !important; }
-
 /* Plata en la PC: las tarjetas se acomodan al ancho, sin salirse. */
-@media (min-width: 900px) {
-  .plata-operations-grid {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)) !important;
-  }
-
-  .plata-operation-card:nth-child(2) { grid-column: auto !important; }
-}
-
-.plata-operation-card > h2:first-child { margin-top: 0 !important; }
 
 .config-file-button { min-height: 44px; padding-inline: 14px !important; }
 
@@ -767,62 +721,6 @@ textarea::placeholder {
 }
 
 /* ───────────── Plata: resumen del período ───────────── */
-
-.nb-resumen-plata {
-  display: flex;
-  flex-direction: column;
-  margin-top: 16px;
-  padding: 20px;
-  border-radius: 24px;
-  background: var(--hero-fondo);
-  color: var(--hero-texto);
-}
-
-.nb-resumen-rotulo { font-size: 14px; font-weight: 700; }
-.nb-resumen-monto { display: block; margin-top: 2px; font-size: clamp(40px, 11vw, 56px); font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; }
-.nb-resumen-detalle { margin-top: 4px; font-size: 14px; font-weight: 600; }
-
-.nb-resumen-datos {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.nb-resumen-datos > div {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  padding: 12px 14px;
-  border-radius: 16px;
-  background: var(--hueso-2);
-  color: var(--tinta);
-}
-
-.nb-resumen-datos span { color: var(--tenue); font-size: 13px; font-weight: 700; }
-.app-main .nb-resumen-plata .nb-resumen-dato { font-size: 24px; font-weight: 800; color: var(--tinta); }
-.nb-resumen-datos > div:first-child .nb-resumen-dato { color: var(--verde); }
-.nb-resumen-datos small { color: var(--tenue); font-size: 12px; font-weight: 600; }
-
-.app-main .nb-tarjeta-titulo {
-  margin: 0 0 10px !important;
-  color: var(--tinta) !important;
-  font-size: 17px !important;
-  font-weight: 800 !important;
-}
-
-.plata-report-card,
-.plata-operation-card { padding: 18px !important; }
-
-.nb-medios { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
-.nb-medios-fila { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 600; }
-.nb-medios-fila > span:last-child { display: inline-flex; align-items: baseline; gap: 8px; }
-.nb-medios-fila small { color: var(--tenue); font-size: 13px; font-weight: 700; }
-.nb-medios-barra { height: 8px; margin-top: 6px; overflow: hidden; border-radius: 999px; background: var(--chip-fondo); }
-.nb-medios-barra > div { height: 100%; border-radius: 999px; background: var(--verde); }
-
-.plata-report-grid,
-.plata-operations-grid { margin-top: 16px !important; gap: 14px !important; }
 
 /* Panel admin · vendedores de una cuenta */
 .admin-vendedores { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }

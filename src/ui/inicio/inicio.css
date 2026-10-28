@@ -1,0 +1,284 @@
+/* Inicio con el sistema F (src/ui/inicio). Celu: una columna, VENDER arriba
+   en lima. PC (≥ 900 px): tres columnas, como en el diseño aprobado. Todo
+   el color sale de los tokens --f-*. */
+
+.fi-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.fi-cabeza {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--f-4);
+  padding-top: var(--f-2);
+}
+
+.fi-cabeza-texto { min-width: 0; }
+.fi-cabeza-texto .f-dato { margin: 0; }
+.fi-cabeza-texto .f-titulo { margin-top: 2px; }
+
+.fi-grilla {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--f-3);
+}
+
+.fi-grilla > * { min-width: 0; }
+
+/* ───────────── Vender: el único lima de la pantalla ───────────── */
+
+.fi-vender {
+  grid-column: 1 / -1;
+  display: flex;
+  min-height: 132px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--f-3);
+  padding: var(--f-5);
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-lima);
+  color: var(--f-sobre-lima);
+  text-decoration: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fi-vender:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+.fi-vender:active { transform: translateY(1px); }
+
+.fi-vender-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fi-vender-texto strong {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.fi-vender-texto small { font-size: 15px; font-weight: 600; }
+
+.fi-vender-icono {
+  order: 2;
+  display: grid;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  place-items: center;
+  border-radius: var(--f-radio-control);
+  background: var(--f-sobre-lima);
+  color: var(--f-lima);
+}
+
+.fi-vender-icono svg { width: 26px; height: 26px; }
+.fi-vender-flecha { display: none; }
+
+/* ───────────── Vendiste hoy ───────────── */
+
+.fi-hoy {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--f-tinta);
+  text-decoration: none;
+}
+
+.fi-hoy-monto { display: block; }
+.fi-hoy-detalle { color: var(--f-tinta-2); font-weight: 600; }
+
+.fi-barras {
+  display: flex;
+  height: 44px;
+  align-items: flex-end;
+  gap: 6px;
+  margin: var(--f-2) 0 var(--f-3);
+}
+
+.fi-barra {
+  flex: 1;
+  min-height: 4px;
+  border-radius: 4px 4px 2px 2px;
+  background: var(--f-superficie-2);
+}
+
+.fi-barra[data-fuerte='true'] { background: var(--f-verde); }
+
+.fi-hoy .f-etiqueta { min-height: 32px; font-size: 14px; }
+
+/* ───────────── Te deben / Por reponer ───────────── */
+
+.fi-aviso {
+  display: flex;
+  min-height: 112px;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--f-4);
+  border-radius: var(--f-radio-tarjeta);
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+.fi-aviso:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+.fi-aviso[data-tono='coral'] { background: var(--f-coral-suave); color: var(--f-coral); }
+.fi-aviso[data-tono='ambar'] { background: var(--f-ambar-suave); color: var(--f-ambar); }
+.fi-aviso .f-dato { color: inherit; font-size: 14px; font-weight: 700; }
+
+.fi-aviso-monto { display: block; font-size: 26px; line-height: 1.15; }
+.fi-aviso-texto { font-size: 18px; line-height: 1.2; letter-spacing: 0; }
+.fi-aviso-nota { font-size: 14px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.fi-aviso-ir { display: none; }
+
+/* ───────────── Caja de hoy ───────────── */
+
+.fi-caja {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-3);
+}
+
+.fi-medio { display: flex; flex-direction: column; gap: 6px; }
+
+.fi-medio-fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--f-3);
+}
+
+.fi-medio .f-texto { color: var(--f-tinta-2); font-weight: 600; }
+.fi-medio-monto { font-size: 18px; }
+.fi-medio[data-tono='coral'] .fi-medio-monto { color: var(--f-coral); }
+
+.fi-medio-barra {
+  display: flex;
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--f-radio-chip);
+  background: var(--f-superficie-2);
+}
+
+.fi-medio-barra > span { display: block; height: 100%; background: var(--f-verde); }
+.fi-medio[data-tono='tinta'] .fi-medio-barra > span { background: var(--f-tinta); }
+.fi-medio[data-tono='coral'] .fi-medio-barra > span { background: var(--f-coral); }
+
+.fi-caja-boton { margin-top: var(--f-1); }
+
+/* ───────────── Últimas ventas ───────────── */
+
+.fi-ultimas { grid-column: 1 / -1; }
+
+.fi-ultimas-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-3);
+  margin-bottom: var(--f-1);
+}
+
+.fi-enlace {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--f-verde);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.fi-enlace:hover { text-decoration: underline; }
+.fi-enlace:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; border-radius: 4px; }
+
+.fi-ultimas-lista { margin: 0; padding: 0; list-style: none; }
+.fi-ultimas-lista .f-renglon { align-items: flex-start; }
+.fi-ultimas-lista .f-renglon-titulo { white-space: nowrap; }
+.fi-ultimas-lista .f-renglon-detalle[data-tono='coral'] { color: var(--f-coral); font-weight: 700; }
+.fi-ultimas-lista .f-renglon-fin { font-size: 16px; }
+
+/* ───────────── Atajos ───────────── */
+
+.fi-atajos .f-boton { padding: 0 10px; font-size: 15px; gap: 8px; }
+.fi-atajos .f-boton svg { width: 20px; height: 20px; flex-basis: 20px; }
+
+.fi-atajos {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--f-3);
+}
+
+@media (max-width: 899px) {
+  .fi-ultimas-lista .f-renglon:nth-child(n + 3) { display: none; }
+
+  /* En el celu, los dos avisos van lado a lado y después lo demás. */
+  .fi-caja { order: 2; }
+  .fi-ultimas { order: 3; }
+  .fi-atajos { order: 4; }
+}
+
+/* ───────────── PC ───────────── */
+
+@media (min-width: 900px) {
+  .fi-pagina { gap: var(--f-5); }
+  .fi-cabeza { padding-top: 0; }
+
+  .fi-grilla {
+    grid-template-columns: 1.25fr 1fr 1fr;
+    gap: var(--f-4);
+  }
+
+  .fi-vender {
+    grid-column: auto;
+    min-height: 236px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: space-between;
+    padding: var(--f-7);
+  }
+
+  .fi-vender-icono {
+    order: 0;
+    width: 56px;
+    height: 56px;
+    flex-basis: auto;
+  }
+
+  .fi-vender-icono svg { width: 28px; height: 28px; }
+  .fi-vender-texto strong { font-size: 48px; }
+  .fi-vender-texto small { font-size: 16px; }
+
+  .fi-hoy { grid-column: auto; padding: var(--f-6); }
+  .fi-hoy .f-etiqueta { margin-top: auto; }
+  .fi-barras { height: 36px; margin: var(--f-3) 0; }
+
+  .fi-deben { min-height: 0; padding: var(--f-6); }
+  .fi-aviso-monto { font-size: 36px; line-height: 1.1; }
+  .fi-aviso-texto { font-size: 24px; }
+  .fi-aviso .f-dato { font-size: 15px; }
+  .fi-aviso-nota { font-size: 15px; }
+
+  .fi-aviso-ir {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: var(--f-3);
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  .fi-aviso-ir svg { width: 18px; height: 18px; }
+
+  .fi-caja { grid-column: auto; padding: var(--f-6); }
+  .fi-caja-boton { margin-top: auto; }
+  .fi-reponer { min-height: 0; padding: var(--f-6); }
+  .fi-ultimas { grid-column: auto; padding: var(--f-6); }
+  .fi-atajos { grid-template-columns: repeat(2, minmax(0, 260px)); }
+}

@@ -1,0 +1,167 @@
+/* Historial con el sistema F (src/ui/historial). Una lista de ventas en
+   una tarjeta; el detalle se abre en una hoja. Sólo tokens --f-*. */
+
+.nb-app > .app-main > .fh-pagina {
+  max-width: 880px;
+}
+
+.fh-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.fh-cabeza {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--f-4);
+  padding-top: var(--f-2);
+}
+
+.fh-cabeza-texto { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.fh-cuenta { flex: 0 0 auto; padding-bottom: 6px; font-size: 14px; }
+
+.fh-volver {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  color: var(--f-verde);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.fh-volver svg { width: 18px; height: 18px; }
+.fh-volver:hover { text-decoration: underline; }
+.fh-volver:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; border-radius: 4px; }
+
+.fh-herramientas { display: flex; flex-direction: column; gap: var(--f-3); }
+.fh-herramientas .f-chips { margin-inline: -16px; padding-inline: 16px; }
+.fh-exportar { min-height: 48px; font-size: 15px; }
+
+/* ───────────── Lista ───────────── */
+
+.fh-lista-caja { overflow: hidden; padding: 0 var(--f-4); }
+.fh-lista { margin: 0; padding: 0; list-style: none; }
+.fh-lista li { border-bottom: 1px solid var(--f-superficie-2); }
+.fh-lista li:last-child { border-bottom: 0; }
+
+.fh-venta {
+  display: flex;
+  width: 100%;
+  min-height: 64px;
+  align-items: center;
+  gap: var(--f-3);
+  padding: 12px 0;
+  border: 0;
+  background: transparent;
+  color: var(--f-tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fh-venta:hover .f-renglon-titulo { text-decoration: underline; }
+.fh-venta:focus-visible { outline: 3px solid var(--f-foco); outline-offset: -3px; border-radius: var(--f-radio-control); }
+
+.fh-venta-cantidad {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  place-items: center;
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie-2);
+  color: var(--f-tinta-2);
+  font-size: 14px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.fh-venta .f-renglon-titulo { white-space: nowrap; }
+.fh-venta .f-renglon-detalle { display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; }
+.fh-anulada { min-height: 22px; padding: 0 8px; font-size: 12px; }
+
+.f-renglon-titulo[data-anulada='true'],
+.f-renglon-fin[data-anulada='true'] {
+  color: var(--f-tinta-2);
+  text-decoration: line-through;
+}
+
+/* ───────────── Vacío ───────────── */
+
+.fh-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--f-2);
+  text-align: center;
+}
+
+.fh-vacio .f-texto { max-width: 36ch; margin: 0 0 var(--f-2); color: var(--f-tinta-2); }
+
+.fh-vacio-icono {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-fondo);
+}
+
+/* ───────────── Detalle (dentro de la hoja) ───────────── */
+
+.fh-items { margin: 0; padding: 0; list-style: none; }
+.fh-items .f-renglon { min-height: 48px; padding: 10px 0; }
+
+.fh-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--f-3);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.fh-referencia {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--f-3) var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-fondo);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.fh-referencia span { color: var(--f-tinta-2); }
+.fh-referencia strong { font-size: 16px; overflow-wrap: anywhere; }
+
+.fh-acciones { display: flex; flex-wrap: wrap; gap: var(--f-3); }
+.fh-acciones > * { flex: 1 1 140px; }
+.fh-acciones[data-orden='columna'] { flex-direction: column; }
+.fh-acciones[data-orden='columna'] > * { flex: 0 0 auto; width: 100%; }
+
+.fh-anular { display: flex; flex-direction: column; gap: var(--f-3); }
+.fh-anular h3 { margin: 0; }
+
+@media (min-width: 900px) {
+  .fh-pagina { gap: var(--f-5); }
+  .fh-cabeza { padding-top: 0; }
+
+  .fh-herramientas {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .fh-herramientas .f-buscar { grid-column: 1 / -1; }
+  .fh-herramientas .f-chips { margin-inline: 0; padding-inline: 0; }
+  .fh-exportar { width: auto; }
+  .fh-lista-caja { padding: 0 var(--f-6); }
+}

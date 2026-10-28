@@ -9,6 +9,8 @@ import {
   IconoPorcentaje,
   IconoStock,
 } from '@/ui/sistema/iconos'
+import { Etiqueta } from '@/ui/sistema/Etiqueta'
+import { Tarjeta } from '@/ui/sistema/Tarjeta'
 
 interface Props {
   agotados: number
@@ -49,35 +51,41 @@ export function CentroAcciones({
   const bajoControl = visibles.length === 0
 
   return (
-    <section className="control-center" aria-labelledby="control-center-title">
-      <div className="control-center-heading">
+    <Tarjeta como="section" className="fp-acciones fp-ancho" aria-labelledby="control-center-title">
+      <div className="fp-acciones-cabeza">
         <div>
-          <span className="page-kicker">Centro de control</span>
-          <h2 id="control-center-title">Tu siguiente movimiento</h2>
-          <p>{bajoControl ? 'No hay alertas operativas para resolver ahora.' : 'Priorizado para que sepas qué conviene hacer primero.'}</p>
+          <h2 id="control-center-title" className="f-seccion">Tu siguiente movimiento</h2>
+          <p className="f-dato">{bajoControl ? 'No hay alertas operativas para resolver ahora.' : 'Priorizado para que sepas qué conviene hacer primero.'}</p>
         </div>
-        <span className={`control-center-status${bajoControl ? ' is-ok' : ''}`}>
-          <span className="control-center-status-dot" aria-hidden="true" />
+        <Etiqueta tono={bajoControl ? 'verde' : 'ambar'} punto>
           {bajoControl ? 'Bajo control' : `${visibles.length} ${visibles.length === 1 ? 'prioridad' : 'prioridades'}`}
-        </span>
+        </Etiqueta>
       </div>
 
       {bajoControl ? (
-        <div className="control-center-clear">
-          <span className="control-center-clear-icon" aria-hidden="true"><IconoNube /></span>
-          <div><strong>Todo tranquilo por acá</strong><span>{pendientesSync > 0 ? `${pendientesSync} cambios esperan conexión para sincronizarse.` : 'Seguí vendiendo: la operación está ordenada.'}</span></div>
+        <div className="fp-acciones-ok">
+          <span className="fp-icono" data-tono="verde" aria-hidden="true"><IconoNube /></span>
+          <div>
+            <strong className="f-renglon-texto">Todo tranquilo por acá</strong>
+            <span className="f-dato">{pendientesSync > 0 ? `${pendientesSync} cambios esperan conexión para sincronizarse.` : 'Seguí vendiendo: la operación está ordenada.'}</span>
+          </div>
         </div>
       ) : (
-        <div className="control-action-grid">
+        <ul className="fp-acciones-lista">
           {visibles.map(({ id, titulo, detalle, href, severidad, Icono }) => (
-            <Link key={id} href={href} className="control-action-card" data-severity={severidad}>
-              <span className="control-action-icon" aria-hidden="true"><Icono /></span>
-              <span className="control-action-copy"><strong>{titulo}</strong><small>{detalle}</small></span>
-              <IconoFlechaDerecha />
-            </Link>
+            <li key={id}>
+              <Link href={href} className="fp-accion">
+                <span className="fp-icono" data-tono={severidad === 'critica' ? 'coral' : severidad === 'atencion' ? 'ambar' : 'verde'} aria-hidden="true"><Icono /></span>
+                <span className="f-renglon-cuerpo">
+                  <span className="f-renglon-titulo">{titulo}</span>
+                  <span className="f-renglon-detalle">{detalle}</span>
+                </span>
+                <span className="fp-flecha" aria-hidden="true"><IconoFlechaDerecha /></span>
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-    </section>
+    </Tarjeta>
   )
 }

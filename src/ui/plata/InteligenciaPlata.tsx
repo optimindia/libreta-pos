@@ -17,14 +17,11 @@ import {
 } from '@/dominio/inteligencia'
 import { rangoReporte, type PeriodoReporte, type ResumenPeriodo } from '@/dominio/reportes'
 import { Boton } from '@/ui/sistema/Boton'
-import { Importe } from '@/ui/sistema/Importe'
-import { IconoEfectivo } from '@/ui/sistema/iconos'
+import { Etiqueta } from '@/ui/sistema/Etiqueta'
+import { Renglon } from '@/ui/sistema/Renglon'
+import { Tarjeta } from '@/ui/sistema/Tarjeta'
 
 const DIA_EN_MS = 24 * 60 * 60 * 1000
-
-function colorCambio(porcentaje: number): string {
-  return porcentaje >= 0 ? 'var(--verde)' : 'var(--ambar)'
-}
 
 /** Panel de decisiones: convierte los datos del POS en acciones concretas. */
 export function InteligenciaPlata({
@@ -61,60 +58,98 @@ export function InteligenciaPlata({
   const avance = progresoObjetivo(resumen.vendido, objetivoCentavos)
 
   return (
-    <section className="mt-8">
-      <h2 className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Lectura inteligente</h2>
+    <Tarjeta como="section" className="fp-lectura fp-ancho" aria-labelledby="lectura-titulo">
+      <h2 id="lectura-titulo" className="f-seccion">Lectura inteligente</h2>
 
-      <div className="mt-2 grid grid-cols-2 gap-2">
-        <div className="rounded-2xl px-3 py-3" style={{ background: 'var(--chip-fondo)', border: '1px solid var(--linea)' }}>
-          <div className="text-[12px]" style={{ color: 'var(--tenue)' }}>Vs. período anterior</div>
+      <div className="fp-pareja">
+        <div className="fp-dato-caja">
+          <span>Vs. período anterior</span>
           {comparacion ? (
             <>
-              <div className="mt-1 text-xl font-bold" style={{ color: colorCambio(comparacion.porcentaje) }}>{comparacion.porcentaje >= 0 ? '+' : ''}{comparacion.porcentaje}%</div>
-              <div className="text-[12px]" style={{ color: 'var(--tenue)' }}>{comparacion.ventasActuales} vs {comparacion.ventasAnteriores} ventas</div>
+              <b className="f-plata f-plata-16 fp-grande" data-tono={comparacion.porcentaje >= 0 ? 'verde' : 'ambar'}>{comparacion.porcentaje >= 0 ? '+' : ''}{comparacion.porcentaje}%</b>
+              <small>{comparacion.ventasActuales} vs {comparacion.ventasAnteriores} ventas</small>
             </>
-          ) : <div className="mt-1 text-[13px] font-semibold">Sin comparación</div>}
+          ) : <b className="fp-sin-dato">Sin comparación</b>}
         </div>
-        <div className="rounded-2xl px-3 py-3" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)' }}>
-          <div className="text-[12px]" style={{ color: 'var(--tenue)' }}>Pronóstico próximos días</div>
-          <div className="mt-1 text-[16px] font-bold">{formatearPesos(pronostico.proyectado)}</div>
-          <div className="text-[12px]" style={{ color: 'var(--tenue)' }}>confianza {pronostico.confianza} · {formatearPesos(pronostico.promedioDiario)}/día</div>
+        <div className="fp-dato-caja">
+          <span>Pronóstico próximos días</span>
+          <b className="f-plata f-plata-16 fp-grande">{formatearPesos(pronostico.proyectado)}</b>
+          <small>confianza {pronostico.confianza} · {formatearPesos(pronostico.promedioDiario)}/día</small>
         </div>
       </div>
 
-      <section className="form-section intelligence-goal-form mt-2">
-        <div className="form-section-heading">
-          <span className="form-step"><IconoEfectivo /></span>
-          <div><h3>Objetivo diario</h3><p>Definí cuánto querés vender por día. Se guarda solo en este dispositivo.</p></div>
-        </div>
-        <label className="form-field">
-          <span className="form-field-label">Meta de ventas <em>importe en pesos</em></span>
-          <div className="goal-input-row"><span aria-hidden="true">$</span><input aria-label="Objetivo del período" inputMode="decimal" className="form-input form-input-large tabular" placeholder="Ej. 50.000" value={objetivo} onChange={(evento) => { setObjetivo(evento.target.value); window.localStorage.setItem('libreta-objetivo-periodo', evento.target.value) }} /><span>/día</span></div>
-          <span className="form-field-help">Podés cambiarlo cuando quieras; el progreso se actualiza al instante.</span>
+      <section className="fp-objetivo" aria-label="Objetivo diario">
+        <h3 className="f-renglon-texto">Objetivo diario</h3>
+        <label className="f-campo">
+          <span>Meta de ventas <em>importe en pesos</em></span>
+          <span className="fp-prefijo">
+            <span aria-hidden="true">$</span>
+            <input aria-label="Objetivo del período" inputMode="decimal" className="f-entrada fp-entrada-grande tabular" placeholder="Ej. 50.000" value={objetivo} onChange={(evento) => { setObjetivo(evento.target.value); window.localStorage.setItem('libreta-objetivo-periodo', evento.target.value) }} />
+            <span className="fp-sufijo">/día</span>
+          </span>
+          <span className="f-dato">Se guarda solo en este dispositivo.</span>
         </label>
-        {objetivoCentavos > 0 && <><div className="mt-3 h-2 overflow-hidden rounded-full" style={{ background: 'var(--linea)' }}><div className="h-full rounded-full" style={{ width: `${avance.porcentaje}%`, background: avance.cumplido ? 'var(--verde)' : 'var(--ambar)' }} /></div><div className="mt-1 flex justify-between text-[12px]" style={{ color: 'var(--tenue)' }}><span>{avance.porcentaje}% cumplido</span><span>{avance.cumplido ? 'Objetivo cumplido' : `faltan ${formatearPesos(avance.restante)}`}</span></div></>}
+        {objetivoCentavos > 0 && (
+          <div className="fp-progreso" data-cumplido={avance.cumplido ? 'true' : undefined}>
+            <span className="fp-progreso-barra" aria-hidden="true"><span style={{ width: `${avance.porcentaje}%` }} /></span>
+            <span className="fp-progreso-texto"><span>{avance.porcentaje}% cumplido</span><span>{avance.cumplido ? 'Objetivo cumplido' : `faltan ${formatearPesos(avance.restante)}`}</span></span>
+          </div>
+        )}
       </section>
 
-      <div className="mt-2 rounded-2xl px-3 py-3" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)' }}>
-        <div className="flex items-baseline justify-between"><div className="text-[12px] font-semibold">Tendencia de ventas</div><span className="text-[12px]" style={{ color: 'var(--tenue)' }}>{puntos.length} días</span></div>
-        <div className="mt-3 flex h-24 items-end gap-1">
-          {puntos.map((punto) => <div key={punto.fecha} className="group flex h-full flex-1 flex-col justify-end" title={`${punto.etiqueta}: ${formatearPesos(punto.vendido)}`}><div className="min-h-[2px] rounded-t-sm" style={{ height: `${Math.max(2, (punto.vendido / maximo) * 100)}%`, background: punto.vendido > 0 ? 'var(--verde)' : 'var(--linea)' }} /></div>)}
+      <section className="fp-tendencia" aria-label="Tendencia de ventas">
+        <div className="fp-tendencia-cabeza"><h3 className="f-renglon-texto">Tendencia de ventas</h3><span className="f-dato">{puntos.length} días</span></div>
+        <div className="fp-columnas">
+          {puntos.map((punto) => (
+            <div key={punto.fecha} className="fp-columna" title={`${punto.etiqueta}: ${formatearPesos(punto.vendido)}`}>
+              <span style={{ height: `${Math.max(2, (punto.vendido / maximo) * 100)}%` }} data-vacia={punto.vendido > 0 ? undefined : 'true'} />
+            </div>
+          ))}
         </div>
-        <div className="mt-1 flex justify-between text-[12px]" style={{ color: 'var(--tenue)' }}><span>{puntos[0]?.etiqueta}</span><span>{puntos[puntos.length - 1]?.etiqueta}</span></div>
-      </div>
+        <div className="fp-tendencia-pie f-dato"><span>{puntos[0]?.etiqueta}</span><span>{puntos[puntos.length - 1]?.etiqueta}</span></div>
+      </section>
 
-      {topClientes.length > 0 && <div className="mt-2 rounded-2xl px-3 py-3" style={{ background: 'var(--chip-fondo)', border: '1px solid var(--linea)' }}>
-        <h3 className="text-[12px] font-semibold">Clientes que más compran</h3>
-        <ul className="mt-2">{topClientes.map((cliente, indice) => <li key={cliente.clienteId} className="flex items-center gap-2 py-2" style={{ borderTop: '1px solid var(--linea)' }}><span className="tabular w-4 text-[12px]" style={{ color: 'var(--tenue)' }}>{indice + 1}</span><span className="min-w-0 flex-1 truncate text-[12px]">{cliente.nombre}<span className="ml-1 text-[12px]" style={{ color: 'var(--tenue)' }}>{cliente.ventas} compras</span></span><Importe centavos={cliente.gastado} tamaño="chico" /></li>)}</ul>
-      </div>}
+      {topClientes.length > 0 && (
+        <section aria-label="Clientes que más compran">
+          <h3 className="f-renglon-texto">Clientes que más compran</h3>
+          <ul className="fp-lista">
+            {topClientes.map((cliente, indice) => (
+              <Renglon
+                key={cliente.clienteId}
+                como="li"
+                inicio={<span className="fp-puesto">{indice + 1}</span>}
+                titulo={cliente.nombre}
+                detalle={`${cliente.ventas} compras`}
+                fin={<span className="f-renglon-fin">{formatearPesos(cliente.gastado)}</span>}
+              />
+            ))}
+          </ul>
+        </section>
+      )}
 
-      {(alertas.length > 0 || dormidos.length > 0) && <div className="mt-2 rounded-2xl px-3 py-3" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)' }}>
-        <div className="flex items-baseline justify-between"><h3 className="text-[12px] font-semibold">Alertas para decidir</h3><span className="text-[12px]" style={{ color: 'var(--tenue)' }}>{alertas.length} productos con revisión</span></div>
-        {alertas.slice(0, 4).map(({ producto }) => { const rotacion = rotacionStock(producto, ventas, ahora); return <div key={producto.id} className="mt-2 rounded-xl px-2.5 py-2" style={{ background: 'var(--chip-fondo)' }}><div className="flex justify-between gap-2"><span className="truncate text-[12px] font-medium">{producto.nombre}</span><span className="shrink-0 text-[12px]" style={{ color: producto.precio < producto.costo ? 'var(--ambar)' : 'var(--tenue)' }}>{margenProducto(producto)}% margen</span></div><div className="mt-0.5 text-[12px]" style={{ color: 'var(--tenue)' }}>{alertasProducto(producto).join(' · ')}{rotacion.diasCobertura !== null ? ` · ${rotacion.diasCobertura} días de cobertura` : ''}</div></div> })}
-        {dormidos.length > 0 && <><div className="mt-3 text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Capital inmovilizado</div>{dormidos.map((producto) => <div key={producto.id} className="mt-1 flex justify-between text-[12px]"><span className="truncate">{producto.nombre}</span><span style={{ color: 'var(--ambar)' }}>{producto.stock} sin rotación</span></div>)}</>}
-        {alertas.length > 4 && <p className="mt-2 text-[12px]" style={{ color: 'var(--tenue)' }}>Hay {alertas.length - 4} alertas más para revisar en Stock.</p>}
-      </div>}
+      {(alertas.length > 0 || dormidos.length > 0) && (
+        <section className="fp-alertas" aria-label="Alertas para decidir">
+          <div className="fp-tendencia-cabeza"><h3 className="f-renglon-texto">Alertas para decidir</h3><Etiqueta tono="ambar">{alertas.length} con revisión</Etiqueta></div>
+          {alertas.slice(0, 4).map(({ producto }) => {
+            const rotacion = rotacionStock(producto, ventas, ahora)
+            return (
+              <div key={producto.id} className="fp-alerta">
+                <span className="fp-alerta-fila"><span className="f-renglon-titulo">{producto.nombre}</span><span className="fp-alerta-margen">{margenProducto(producto)}% margen</span></span>
+                <span className="f-renglon-detalle">{alertasProducto(producto).join(' · ')}{rotacion.diasCobertura !== null ? ` · ${rotacion.diasCobertura} días de cobertura` : ''}</span>
+              </div>
+            )
+          })}
+          {dormidos.length > 0 && (
+            <>
+              <h4 className="fp-subtitulo">Capital inmovilizado</h4>
+              {dormidos.map((producto) => <div key={producto.id} className="fp-alerta-fila"><span className="f-texto">{producto.nombre}</span><span className="fp-alerta-margen">{producto.stock} sin rotación</span></div>)}
+            </>
+          )}
+          {alertas.length > 4 && <p className="f-dato">Hay {alertas.length - 4} alertas más para revisar en Stock.</p>}
+        </section>
+      )}
 
-      <Boton variante="secundario" className="mt-2 w-full !py-2.5 !text-[12px]" onClick={() => window.print()}>Imprimir esta lectura</Boton>
-    </section>
+      <Boton variante="secundario" ancho onClick={() => window.print()}>Imprimir esta lectura</Boton>
+    </Tarjeta>
   )
 }
