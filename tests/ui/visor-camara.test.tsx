@@ -75,4 +75,41 @@ describe('VisorCamara', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Buscar' }))
     await waitFor(() => expect(alLeer).toHaveBeenCalledWith('7790003'))
   })
+
+  describe('alta rápida de un código desconocido', () => {
+    const desconocido = async (codigo: string) => ({ tipo: 'falta' as const, texto: `El código ${codigo} no está cargado`, codigo })
+
+    it('ofrece cargarlo ahora y suma el producto con lo que se completó', async () => {
+      const alCargar = vi.fn(async () => ({ tipo: 'ok' as const, texto: '✓ Cargado y sumado' }))
+      await abierto({ continuo: true, alLeer: desconocido, alCargar })
+      await act(async () => { alDetectar?.('779052') })
+      fireEvent.click(await screen.findByRole('button', { name: /cargarlo ahora/i }))
+
+      fireEvent.change(screen.getByPlaceholderText(/yerba playadito/i), { target: { value: ' Fideos ' } })
+      fireEvent.change(screen.getByLabelText(/precio de venta/i), { target: { value: '1500,50' } })
+      fireEvent.change(screen.getByLabelText(/cuántas tenés/i), { target: { value: '12' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar y sumar' }))
+
+      await waitFor(() => expect(alCargar).toHaveBeenCalledWith({ codigo: '779052', nombre: 'Fideos', precio: 1500.5, costo: 0, stock: 12 }))
+      await waitFor(() => expect(screen.getByRole('status').textContent).toBe('✓ Cargado y sumado'))
+      expect(screen.getByRole('button', { name: 'Listo · 1 producto' })).toBeTruthy()
+    })
+
+    it('pide lo que falta antes de guardar', async () => {
+      const alCargar = vi.fn()
+      await abierto({ continuo: true, alLeer: desconocido, alCargar })
+      await act(async () => { alDetectar?.('779052') })
+      fireEvent.click(await screen.findByRole('button', { name: /cargarlo ahora/i }))
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar y sumar' }))
+      expect((await screen.findByRole('alert')).textContent).toMatch(/cómo se llama/i)
+      expect(alCargar).not.toHaveBeenCalled()
+    })
+
+    it('sin permiso para cargar (vendedor) no ofrece el botón', async () => {
+      await abierto({ continuo: true, alLeer: desconocido })
+      await act(async () => { alDetectar?.('779052') })
+      await screen.findByText(/no está cargado/i)
+      expect(screen.queryByRole('button', { name: /cargarlo ahora/i })).toBeNull()
+    })
+  })
 })

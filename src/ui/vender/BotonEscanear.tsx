@@ -5,8 +5,10 @@ import type { Producto } from '@/dominio/tipos'
 import { formatearPesos } from '@/dominio/dinero'
 import { precioVigente } from '@/dominio/ticket'
 import { repos } from '@/datos/local/repos'
-import { VisorCamara } from '@/ui/escaner/VisorCamara'
+import { VisorCamara, type DatosProductoNuevo } from '@/ui/escaner/VisorCamara'
 import { IconoEscanear } from '@/ui/sistema/iconos'
+import { usePuede } from '@/ui/sistema/usoRol'
+import { pesosACentavos } from '@/dominio/dinero'
 
 /** El botón de la cámara de Vender. La cámara queda abierta y va sumando
  *  producto tras producto; cada lectura suena y dice qué pasó.
@@ -20,6 +22,8 @@ export function BotonEscanear({
   onNoEncontrado?: (codigo: string) => void
 }) {
   const [abierto, setAbierto] = useState(false)
+  // Cargar productos es del dueño: el vendedor sólo ve el aviso.
+  const puedeCargar = usePuede('editarProductos')
 
   return (
     <>
@@ -33,11 +37,26 @@ export function BotonEscanear({
           ayuda="Apuntá al código de barras. Cada producto se suma solo al ticket."
           textoListo="Ver la venta"
           onCerrar={() => setAbierto(false)}
+          alCargar={puedeCargar ? async (datos: DatosProductoNuevo) => {
+            const producto = await repos.productos.guardar({
+              codigoBarras: datos.codigo,
+              nombre: datos.nombre,
+              costo: pesosACentavos(datos.costo),
+              precio: pesosACentavos(datos.precio),
+              stock: datos.stock,
+              stockMinimo: 1,
+            })
+            const problema = onProducto(producto)
+            if (problema) return { tipo: 'falta', texto: problema }
+            return { tipo: 'ok', texto: `✓ Cargado y sumado: ${producto.nombre} · ${formatearPesos(precioVigente(producto))}` }
+          } : undefined}
           alLeer={async (codigo) => {
             const producto = await repos.productos.porCodigoBarras(codigo)
             if (!producto) {
               onNoEncontrado?.(codigo)
-              return { tipo: 'falta', texto: `El código ${codigo} todavía no está cargado. Cargalo desde Stock.` }
+              return puedeCargar
+                ? { tipo: 'falta', texto: `El código ${codigo} todavía no está cargado.`, codigo }
+                : { tipo: 'falta', texto: `El código ${codigo} no está cargado. Pedile al dueño que lo cargue.` }
             }
             const problema = onProducto(producto)
             if (problema) return { tipo: 'falta', texto: problema }

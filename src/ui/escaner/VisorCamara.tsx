@@ -7,7 +7,11 @@ import { Boton } from '@/ui/sistema/Boton'
 import { IconoCerrar, IconoEscanear } from '@/ui/sistema/iconos'
 import './escaner.css'
 
-export type RespuestaLectura = { tipo: 'ok' | 'falta'; texto: string }
+/** `codigo` viene cuando el código no es de ningún producto: es lo que
+ *  permite ofrecer cargarlo ahí mismo. */
+export type RespuestaLectura = { tipo: 'ok' | 'falta'; texto: string; codigo?: string }
+
+export type DatosProductoNuevo = { codigo: string; nombre: string; precio: number; costo: number; stock: number }
 
 /** La cámara a pantalla completa para leer códigos de barras.
  *
@@ -22,6 +26,7 @@ export function VisorCamara({
   continuo = false,
   textoListo = 'Listo',
   alLeer,
+  alCargar,
   onCerrar,
 }: {
   titulo: string
@@ -30,6 +35,8 @@ export function VisorCamara({
   textoListo?: string
   /** Decide qué pasó con el código; el visor lo cuenta, suena y lo muestra. */
   alLeer: (codigo: string) => Promise<RespuestaLectura> | RespuestaLectura
+  /** Si viene, un código desconocido ofrece "Cargarlo ahora" (alta rápida). */
+  alCargar?: (datos: DatosProductoNuevo) => Promise<RespuestaLectura>
   onCerrar: () => void
 }) {
   const video = useRef<HTMLVideoElement>(null)
@@ -47,6 +54,9 @@ export function VisorCamara({
   const [error, setError] = useState<string | null>(null)
   const [linterna, setLinterna] = useState<'no' | 'apagada' | 'prendida'>('no')
   const [manual, setManual] = useState('')
+  const [nuevo, setNuevo] = useState<{ codigo: string; nombre: string; precio: string; costo: string; stock: string } | null>(null)
+  const [guardando, setGuardando] = useState(false)
+  const [errorNuevo, setErrorNuevo] = useState<string | null>(null)
 
   async function procesar(codigo: string, deLaCamara: boolean) {
     const ahora = Date.now()
@@ -56,7 +66,7 @@ export function VisorCamara({
       ultimo.current.momento = ahora
       return
     }
-    if (ocupado.current) return
+    if (ocupado.current || nuevo) return
     ocupado.current = true
     ultimo.current = { codigo, momento: ahora }
     try {
@@ -113,6 +123,36 @@ export function VisorCamara({
     }
   }
 
+  async function guardarNuevo(evento: React.FormEvent) {
+    evento.preventDefault()
+    if (!nuevo || !alCargar) return
+    const nombre = nuevo.nombre.trim()
+    const precio = Number(nuevo.precio.replace(',', '.'))
+    const costo = nuevo.costo.trim() === '' ? 0 : Number(nuevo.costo.replace(',', '.'))
+    const stock = Number(nuevo.stock)
+    if (!nombre) return setErrorNuevo('Escribí cómo se llama el producto.')
+    if (!(precio > 0)) return setErrorNuevo('Poné el precio de venta (mayor a $0).')
+    if (!(costo >= 0)) return setErrorNuevo('El costo no puede ser negativo.')
+    if (!Number.isInteger(stock) || stock < 1) return setErrorNuevo('Poné cuántas unidades tenés (al menos 1).')
+    setGuardando(true)
+    setErrorNuevo(null)
+    try {
+      const respuesta = await alCargar({ codigo: nuevo.codigo, nombre, precio, costo, stock })
+      avisarLectura(respuesta.tipo)
+      if (respuesta.tipo === 'ok') setLeidos((n) => n + 1)
+      setResultado({ ...respuesta, n: Date.now() })
+      setNuevo(null)
+      if (respuesta.tipo === 'ok' && !continuo) {
+        control.current?.()
+        onCerrarRef.current()
+      }
+    } catch {
+      setErrorNuevo('No se pudo guardar el producto. Probá de nuevo.')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
   function enviarManual(evento: React.FormEvent) {
     evento.preventDefault()
     const codigo = manual.replace(/\s/g, '')
@@ -151,6 +191,42 @@ export function VisorCamara({
           {error ?? resultado?.texto ?? ayuda}
         </p>
 
+        {!nuevo && alCargar && resultado?.tipo === 'falta' && resultado.codigo && (
+          <button
+            type="button"
+            className="f-boton f-boton-secundario f-boton-ancho f-visor-cargar"
+            onClick={() => setNuevo({ codigo: resultado.codigo as string, nombre: '', precio: '', costo: '', stock: '' })}
+          >
+            Cargarlo ahora
+          </button>
+        )}
+
+        {nuevo ? (
+          <form className="f-visor-nuevo" onSubmit={(evento) => void guardarNuevo(evento)}>
+            <p className="f-visor-nuevo-titulo">Producto nuevo · código {nuevo.codigo}</p>
+            <label className="f-visor-campo f-visor-campo-ancho">
+              <span>Nombre</span>
+              <input className="f-entrada" autoFocus autoComplete="off" placeholder="Ej. Yerba Playadito 1 kg" value={nuevo.nombre} onChange={(evento) => setNuevo({ ...nuevo, nombre: evento.target.value })} />
+            </label>
+            <label className="f-visor-campo">
+              <span>Precio de venta ($)</span>
+              <input className="f-entrada" inputMode="decimal" autoComplete="off" value={nuevo.precio} onChange={(evento) => setNuevo({ ...nuevo, precio: evento.target.value })} />
+            </label>
+            <label className="f-visor-campo">
+              <span>¿Cuántas tenés?</span>
+              <input className="f-entrada" inputMode="numeric" autoComplete="off" value={nuevo.stock} onChange={(evento) => setNuevo({ ...nuevo, stock: evento.target.value.replace(/\D/g, '') })} />
+            </label>
+            <label className="f-visor-campo f-visor-campo-ancho">
+              <span>Costo ($) <em>opcional, para ver tu ganancia</em></span>
+              <input className="f-entrada" inputMode="decimal" autoComplete="off" value={nuevo.costo} onChange={(evento) => setNuevo({ ...nuevo, costo: evento.target.value })} />
+            </label>
+            {errorNuevo && <p className="f-visor-estado f-visor-campo-ancho" data-tipo="falta" role="alert">{errorNuevo}</p>}
+            <div className="f-visor-nuevo-acciones f-visor-campo-ancho">
+              <Boton variante="secundario" onClick={() => { setNuevo(null); setErrorNuevo(null) }}>Cancelar</Boton>
+              <Boton variante="principal" type="submit" disabled={guardando}>{guardando ? 'Guardando…' : continuo ? 'Guardar y sumar' : 'Guardar'}</Boton>
+            </div>
+          </form>
+        ) : (
         <form className="f-visor-manual" onSubmit={enviarManual}>
           <label className="f-sr" htmlFor="f-visor-codigo">Código de barras a mano</label>
           <input
@@ -164,14 +240,15 @@ export function VisorCamara({
           />
           <button type="submit" className="f-visor-boton" disabled={manual.trim() === ''}>Buscar</button>
         </form>
+        )}
 
-        {continuo ? (
+        {!nuevo && (continuo ? (
           <Boton variante="principal" tamano="grande" ancho onClick={onCerrar}>
             {leidos > 0 ? `${textoListo} · ${leidos} ${leidos === 1 ? 'producto' : 'productos'}` : textoListo}
           </Boton>
         ) : (
           <Boton variante="secundario" ancho onClick={onCerrar}>Cargar a mano</Boton>
-        )}
+        ))}
       </div>
       </div>
     </div>
