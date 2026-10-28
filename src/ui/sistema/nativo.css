@@ -158,8 +158,6 @@ textarea {
 .page-module-head > .libreta-button,
 .page-module-head > a,
 .page-module-head > button,
-.page-module-head > .pedidos-new-button,
-.page-module-head > .clientes-new-button,
 .mz-boton-cabecera {
   display: inline-flex;
   min-height: 44px;
@@ -245,8 +243,6 @@ textarea::placeholder {
 /* ───────────── Tarjetas ───────────── */
 
 .form-card,
-.fiados-summary-card,
-.fiado-card,
 .plata-operation-card,
 .plata-report-card,
 .control-action-card,
@@ -269,15 +265,6 @@ textarea::placeholder {
 .control-center p,
 .control-center small {
   color: var(--tenue);
-}
-
-.fiados-summary-card,
-.fiados-summary-card span {
-  color: var(--tenue);
-}
-
-.fiados-summary-card strong {
-  color: var(--tinta);
 }
 
 /* ───────────── Acentos: VENDER y COBRAR conservan el relieve ───────────── */
@@ -441,19 +428,6 @@ textarea::placeholder {
 }
 
 /* Acciones dentro de una tarjeta: dos grandes y el resto livianas. */
-.nb-acciones {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 14px;
-}
-
-.nb-acciones-sec {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 8px;
-}
 
 .nb-accion-sec {
   display: inline-flex;
@@ -474,20 +448,6 @@ textarea::placeholder {
 
 .nb-accion-sec:hover { background: var(--verde-suave); }
 .nb-accion-sec svg { width: 18px; height: 18px; }
-
-.fiado-card {
-  padding: 16px !important;
-  border-bottom: 1px solid var(--linea) !important;
-}
-
-.fiados-list {
-  display: grid;
-  gap: 12px;
-}
-
-@media (min-width: 900px) {
-  .fiados-list { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
-}
 
 /* Productos del stock */
 .nb-grilla-productos {
@@ -634,19 +594,6 @@ textarea::placeholder {
 }
 
 /* Buscadores con ícono (Pedidos, Clientes): el campo ocupa toda la caja. */
-.pedidos-search,
-.clientes-search {
-  min-height: 48px;
-  border: 1px solid var(--contorno) !important;
-  border-radius: var(--radio-boton) !important;
-  background: var(--hueso-2) !important;
-}
-
-.pedidos-search input,
-.clientes-search input {
-  min-height: 46px;
-  align-self: stretch;
-}
 
 /* Stock: los filtros en dos filas que no se aprietan. */
 .nb-filtros-stock {

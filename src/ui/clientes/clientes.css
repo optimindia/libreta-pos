@@ -1,0 +1,236 @@
+/* Clientes con el sistema F (src/ui/clientes). Celu: una columna de
+   tarjetas; PC (≥ 900 px): grilla de dos o tres. Sólo tokens --f-*. */
+
+.f-cartera {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.f-clientes-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-3);
+}
+
+.f-clientes-sub {
+  margin: var(--f-1) 0 0;
+  color: var(--f-tinta-2);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.f-clientes-cabeza .f-boton { min-height: 48px; padding: 0 var(--f-5); }
+
+/* ───────────── Resumen ───────────── */
+
+.f-clientes-resumen {
+  display: grid;
+  gap: var(--f-3);
+}
+
+.f-clientes-debe {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--f-3);
+  padding: var(--f-4) 18px;
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-coral-suave);
+  color: var(--f-coral);
+}
+
+.f-clientes-debe-texto { display: flex; flex-direction: column; }
+.f-clientes-debe-texto .f-dato { color: var(--f-coral); }
+.f-clientes-debe-rotulo { font-size: 15px; font-weight: 700; }
+.f-clientes-debe-monto { font-size: 30px; line-height: 1.1; }
+
+.f-clientes-datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--f-4);
+}
+
+.f-clientes-datos > div { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.f-clientes-datos b { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.f-clientes-datos .f-clientes-top { overflow: hidden; font-size: 17px; text-overflow: ellipsis; white-space: nowrap; }
+
+.f-clientes-aviso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-3);
+}
+
+/* ───────────── Búsqueda y filtros ───────────── */
+
+.f-clientes-filtros { display: flex; flex-direction: column; gap: var(--f-3); }
+.f-cartera .f-chip { min-height: 44px; }
+
+/* ───────────── Tarjetas ───────────── */
+
+.f-clientes-grilla {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--f-3);
+  list-style: none;
+}
+
+.f-clientes-tarjeta { overflow: hidden; }
+
+.f-clientes-principal {
+  display: flex;
+  width: 100%;
+  min-height: 72px;
+  align-items: flex-start;
+  gap: var(--f-3);
+  padding: var(--f-4) var(--f-4) var(--f-3);
+  border: 0;
+  background: transparent;
+  color: var(--f-tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.f-clientes-principal:focus-visible { outline: 3px solid var(--f-foco); outline-offset: -3px; }
+
+.f-clientes-avatar {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--f-verde-suave);
+  color: var(--f-verde);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.f-clientes-avatar[data-debe='true'] { background: var(--f-coral-suave); color: var(--f-coral); }
+
+.f-clientes-principal .f-renglon-titulo { overflow: hidden; white-space: nowrap; }
+.f-clientes-favoritos { overflow-wrap: anywhere; }
+
+.f-clientes-total {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.f-clientes-total b { font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.f-clientes-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-3);
+  padding: var(--f-3) var(--f-4) var(--f-4);
+  border-top: 1px solid var(--f-superficie-2);
+}
+
+.f-clientes-acciones { display: flex; flex-wrap: wrap; gap: var(--f-2); }
+
+.f-clientes-acciones .f-boton[data-tamano],
+.f-clientes-ficha-acciones .f-boton[data-tamano] {
+  min-height: 44px;
+  padding: 0 var(--f-4);
+  font-size: 14px;
+}
+
+.f-clientes-acciones .f-boton svg { width: 18px; height: 18px; flex-basis: 18px; }
+
+.f-clientes-vacia { display: flex; flex-direction: column; align-items: flex-start; gap: var(--f-3); }
+.f-clientes-vacia p { margin: 0; color: var(--f-tinta-2); }
+.f-clientes-vacio { margin: 0; color: var(--f-tinta-2); }
+
+/* ───────────── Atajos ───────────── */
+
+.f-clientes-atajos { display: grid; gap: var(--f-3); }
+
+.f-clientes-atajo {
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  gap: var(--f-3);
+  padding: var(--f-3) var(--f-4);
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+  text-decoration: none;
+}
+
+.f-clientes-atajo:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+.f-clientes-atajo > svg { width: 22px; height: 22px; flex: 0 0 22px; }
+.f-clientes-atajo > span { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+.f-clientes-atajo b { font-size: 16px; font-weight: 700; }
+
+/* ───────────── Ficha y formularios en hoja ───────────── */
+
+.f-clientes-ficha-datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--f-3);
+}
+
+.f-clientes-ficha-datos > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--f-3) var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-fondo);
+}
+
+.f-clientes-ficha-datos b { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.f-clientes-ficha-datos b[data-tono='coral'] { color: var(--f-coral); }
+
+.f-clientes-ficha-bloque { display: flex; flex-direction: column; gap: var(--f-2); }
+.f-clientes-ficha-bloque .f-hoja-subtitulo { margin: 0; }
+.f-clientes-favs { display: flex; flex-wrap: wrap; gap: var(--f-2); }
+.f-clientes-favs .f-etiqueta { min-height: 30px; white-space: normal; }
+.f-clientes-compras { margin: 0; padding: 0; list-style: none; }
+.f-clientes-compras .f-renglon-titulo { overflow-wrap: anywhere; }
+
+.f-clientes-ficha-acciones,
+.f-clientes-confirmar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--f-2);
+}
+
+.f-clientes-confirmar .f-boton { flex: 1 1 140px; }
+
+.f-clientes-form { display: flex; flex-direction: column; gap: var(--f-4); }
+
+.f-clientes-pesos {
+  display: flex;
+  align-items: center;
+  gap: var(--f-2);
+}
+
+.f-campo > .f-clientes-pesos { color: var(--f-tinta); font-size: 17px; font-weight: 800; }
+
+/* ───────────── PC ───────────── */
+
+@media (min-width: 900px) {
+  .f-clientes-resumen { grid-template-columns: minmax(280px, 1fr) minmax(0, 2fr); }
+  .f-clientes-datos { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .f-clientes-filtros .f-buscar { flex: 0 0 auto; max-width: 520px; }
+  .f-clientes-grilla { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .f-clientes-atajos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1280px) {
+  .f-clientes-grilla { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.f-cartera .f-buscar { flex: 0 0 auto; }
