@@ -44,28 +44,24 @@ import {
 } from '@/dominio/operacionPro'
 import { resumenPeriodo } from '@/dominio/reportes'
 import { enlaceWhatsApp } from '@/dominio/mensajes'
-import { Importe } from '@/ui/sistema/Importe'
+import { Boton } from '@/ui/sistema/Boton'
+import { Tarjeta } from '@/ui/sistema/Tarjeta'
+import { Segmentado } from '@/ui/sistema/Segmentado'
+import { Etiqueta, type TonoEtiqueta } from '@/ui/sistema/Etiqueta'
 import { CargandoPagina } from '@/ui/sistema/CargandoPagina'
 import {
-  IconoAlerta,
-  IconoClientes,
-  IconoCobrar,
+  IconoCerrar,
   IconoConfig,
-  IconoCuenta,
   IconoDescargar,
   IconoEscanear,
   IconoFlechaDerecha,
   IconoFiados,
   IconoHistorial,
   IconoMovimiento,
-  IconoNube,
-  IconoPedidos,
-  IconoPlata,
-  IconoPorcentaje,
-  IconoReintentar,
   IconoStock,
   IconoWhatsApp,
 } from '@/ui/sistema/iconos'
+import './pro.css'
 
 const PERIODOS: Array<{ id: PeriodoOperacion; label: string }> = [
   { id: 'hoy', label: 'Hoy' },
@@ -101,6 +97,17 @@ function porcentajeBarra(valor: number, maximo: number): number {
   return Math.min(100, Math.max(0, Math.round((valor / maximo) * 100)))
 }
 
+type TonoPro = 'good' | 'warning' | 'danger' | 'neutral'
+
+/** Verde = en orden, ámbar = atención, gris = sin más. El coral queda para
+ *  lo que se debe (fiados): un margen flojo es atención, no deuda. */
+function tonoEtiqueta(tono: TonoPro, deuda: boolean): TonoEtiqueta {
+  if (tono === 'good') return 'verde'
+  if (tono === 'danger') return deuda ? 'coral' : 'ambar'
+  if (tono === 'warning') return 'ambar'
+  return 'gris'
+}
+
 function ProFeatureCard({
   numero,
   titulo,
@@ -109,6 +116,7 @@ function ProFeatureCard({
   href,
   accion,
   tono = 'neutral',
+  deuda = false,
 }: {
   numero: string
   titulo: string
@@ -116,20 +124,46 @@ function ProFeatureCard({
   valor: string
   href?: string
   accion?: { label: string; onClick: () => void }
-  tono?: 'good' | 'warning' | 'danger' | 'neutral'
+  tono?: TonoPro
+  deuda?: boolean
 }) {
   return (
-    <article className={`pro-feature-card is-${tono}`}>
-      <div className="pro-feature-card-top"><span className="pro-feature-number">{numero}</span><span className="pro-feature-value">{valor}</span></div>
-      <h3>{titulo}</h3>
-      <p>{descripcion}</p>
-      {(href || accion) && <div className="pro-feature-action">{href && <Link href={href}>Abrir <IconoFlechaDerecha /></Link>}{accion && <button type="button" onClick={accion.onClick}>{accion.label} <IconoFlechaDerecha /></button>}</div>}
-    </article>
+    <Tarjeta como="article" className="f-pro-funcion">
+      <div className="f-pro-funcion-top"><span className="f-dato">{numero}</span><span className="f-etiqueta f-pro-valor" data-tono={tonoEtiqueta(tono, deuda)}>{valor}</span></div>
+      <h3 className="f-renglon-texto">{titulo}</h3>
+      <p className="f-dato">{descripcion}</p>
+      {(href || accion) && <div className="f-pro-funcion-accion">{href && <Link href={href} className="f-pro-enlace">Abrir <IconoFlechaDerecha /></Link>}{accion && <button type="button" className="f-pro-enlace" onClick={accion.onClick}>{accion.label} <IconoFlechaDerecha /></button>}</div>}
+    </Tarjeta>
   )
 }
 
 function Vacio({ texto }: { texto: string }) {
-  return <p className="pro-empty-copy">{texto}</p>
+  return <p className="f-dato f-pro-vacio">{texto}</p>
+}
+
+function Plata({ centavos, className = 'f-plata-16' }: { centavos: number; className?: string }) {
+  return <span className={className}>{formatearPesos(centavos)}</span>
+}
+
+function Panel({ id, className = '', titulo, detalle, fin, children }: { id?: string; className?: string; titulo: string; detalle: string; fin?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <Tarjeta como="section" id={id} className={`f-pro-panel ${className}`.trim()} aria-labelledby={`pro-${id ?? titulo}`}>
+      <div className="f-pro-panel-cabeza"><div><h2 id={`pro-${id ?? titulo}`} className="f-seccion">{titulo}</h2><p className="f-dato">{detalle}</p></div>{fin}</div>
+      {children}
+    </Tarjeta>
+  )
+}
+
+function estadoEtiqueta(estado: string): TonoEtiqueta {
+  if (estado === 'estable') return 'verde'
+  if (estado === 'critico' || estado === 'vigilar') return 'ambar'
+  return 'gris'
+}
+
+function nivelEtiqueta(nivel: NivelOperacion): TonoEtiqueta {
+  if (nivel === 'bien') return 'verde'
+  if (nivel === 'critico' || nivel === 'atencion') return 'ambar'
+  return 'gris'
 }
 
 export function CentroPro() {
@@ -265,8 +299,8 @@ export function CentroPro() {
     { numero: '19', titulo: 'Clientes inactivos', descripcion: 'Personas que dejaron de comprar y merecen un mensaje.', valor: String(calculos.inactivos.length), href: '#clientes-pro' },
     { numero: '20', titulo: 'Recurrencia', descripcion: 'Qué parte de tu cartera ya volvió a comprar.', valor: `${calculos.recurrencia.porcentaje}%`, href: '#clientes-pro' },
     { numero: '21', titulo: 'Oportunidades', descripcion: 'Compradores de una vez o con señales de regreso.', valor: String(calculos.oportunidades.length), href: '#clientes-pro' },
-    { numero: '22', titulo: 'Riesgo de cartera', descripcion: 'Saldo, antigüedad y uso del límite por cliente.', valor: String(calculos.riesgo.filter((item) => item.riesgo === 'alto').length), href: '/fiados', tono: calculos.riesgo.some((item) => item.riesgo === 'alto') ? 'danger' : 'good' },
-    { numero: '23', titulo: 'Vencimientos', descripcion: 'Fiados vencidos y próximos a vencer, sin perder fechas.', valor: String(calculos.vencimientos.filter((item) => item.estado === 'vencido' || item.estado === 'pronto').length), href: '/fiados', tono: calculos.vencimientos.some((item) => item.estado === 'vencido') ? 'danger' : 'neutral' },
+    { numero: '22', titulo: 'Riesgo de cartera', descripcion: 'Saldo, antigüedad y uso del límite por cliente.', valor: String(calculos.riesgo.filter((item) => item.riesgo === 'alto').length), href: '/fiados', deuda: true, tono: calculos.riesgo.some((item) => item.riesgo === 'alto') ? 'danger' : 'good' },
+    { numero: '23', titulo: 'Vencimientos', descripcion: 'Fiados vencidos y próximos a vencer, sin perder fechas.', valor: String(calculos.vencimientos.filter((item) => item.estado === 'vencido' || item.estado === 'pronto').length), href: '/fiados', deuda: true, tono: calculos.vencimientos.some((item) => item.estado === 'vencido') ? 'danger' : 'neutral' },
     { numero: '24', titulo: 'Fichas incompletas', descripcion: 'Clientes con compras pero sin teléfono para contactar.', valor: String(calculos.sinTelefono.length), href: '/clientes' },
     { numero: '25', titulo: 'Pedidos para hoy', descripcion: 'Agenda de entregas que pide atención durante el día.', valor: String(calculos.pedidosHoy.length), href: '/pedidos' },
     { numero: '26', titulo: 'Pedidos atrasados', descripcion: 'Entregas pasadas que siguen abiertas.', valor: String(calculos.pedidosAtrasados.length), href: '/pedidos', tono: calculos.pedidosAtrasados.length === 0 ? 'good' : 'danger' },
@@ -276,89 +310,175 @@ export function CentroPro() {
     { numero: '30', titulo: 'Resumen compartible', descripcion: 'Mandá el estado del negocio por WhatsApp en un toque.', valor: 'WhatsApp', accion: { label: 'Compartir', onClick: compartirResumen } },
   ] as const
 
+  const tonoScore: TonoEtiqueta = calculos.score >= 80 ? 'verde' : 'ambar'
+
   return (
-    <div className="page-pro">
-      <header className="pro-head">
-        <div className="pro-head-copy"><span className="page-kicker">Inteligencia para tu negocio</span><h1>Centro Pro</h1><p>Treinta herramientas para decidir más rápido, cuidar tu margen y no perder ventas.</p></div>
-        <div className={`pro-score pro-score-${calculos.score >= 80 ? 'good' : calculos.score >= 55 ? 'warning' : 'danger'}`}><span>Salud operativa</span><strong>{calculos.score}<small>/100</small></strong><em>{calculos.score >= 80 ? 'Todo en orden' : calculos.score >= 55 ? 'Hay cosas para mirar' : 'Necesita atención'}</em></div>
-        <div className="pro-head-actions"><button type="button" onClick={compartirResumen}><IconoWhatsApp /> Compartir resumen</button><button type="button" onClick={descargarInforme}><IconoDescargar /> Descargar informe</button></div>
+    <div className="page-pro f-pro">
+      <header className="f-pro-cabecera">
+        <div className="f-pro-titulo">
+          <h1 className="f-titulo">Centro Pro</h1>
+          <p className="f-texto">Treinta herramientas para decidir más rápido, cuidar tu margen y no perder ventas.</p>
+          <div className="f-pro-acciones">
+            <Boton variante="secundario" onClick={compartirResumen}><IconoWhatsApp /> Compartir resumen</Boton>
+            <Boton variante="secundario" onClick={descargarInforme}><IconoDescargar /> Descargar informe</Boton>
+          </div>
+        </div>
+        <Tarjeta className="f-pro-score" aria-label="Salud operativa">
+          <span className="f-dato">Salud operativa</span>
+          <strong className="f-plata-48">{calculos.score}<small>/100</small></strong>
+          <Etiqueta tono={tonoScore} punto>{calculos.score >= 80 ? 'Todo en orden' : calculos.score >= 55 ? 'Hay cosas para mirar' : 'Necesita atención'}</Etiqueta>
+        </Tarjeta>
       </header>
 
-      <div className="pro-toolbar">
-        <div><span className="pro-toolbar-kicker">Ventana de análisis</span><strong>{periodoLabel(periodo)}</strong><small>Las métricas se recalculan con tus datos locales.</small></div>
-        <div className="pro-periods nb-segmentado" role="group" aria-label="Período de análisis">{PERIODOS.map((opcion) => <button key={opcion.id} type="button" className={periodo === opcion.id ? 'is-selected' : ''} aria-pressed={periodo === opcion.id} onClick={() => setPeriodo(opcion.id)}>{opcion.label}</button>)}</div>
+      <div className="f-pro-periodo">
+        <div><span className="f-dato">Ventana de análisis</span><strong className="f-seccion">{periodoLabel(periodo)}</strong></div>
+        <Segmentado
+          etiqueta="Período de análisis"
+          className="f-pro-periodos"
+          valor={periodo}
+          onCambiar={setPeriodo}
+          opciones={PERIODOS.map((opcion) => ({ valor: opcion.id, texto: opcion.label }))}
+        />
       </div>
 
-      {aviso && <div className="pro-toast" role="status"><IconoReintentar /><span>{aviso}</span><button type="button" onClick={() => setAviso(null)} aria-label="Cerrar aviso">×</button></div>}
+      {aviso && <div className="f-aviso f-pro-aviso f-pro-ok" role="status"><span>{aviso}</span><button type="button" className="f-icono-boton" onClick={() => setAviso(null)} aria-label="Cerrar aviso"><IconoCerrar /></button></div>}
 
-      <section className="pro-feature-index" aria-labelledby="pro-feature-title">
-        <div className="pro-section-heading"><div><span className="page-kicker">Mapa de capacidades</span><h2 id="pro-feature-title">30 nuevas funciones activas</h2><p>Todo está conectado con las secciones que ya usás. Abrí una tarjeta para resolverlo desde el lugar correcto.</p></div><span className="pro-section-count">30 <small>herramientas</small></span></div>
-        <div className="pro-feature-grid">{features.map((feature) => <ProFeatureCard key={feature.numero} {...feature} />)}</div>
+      <section className="f-pro-indice" aria-labelledby="pro-feature-title">
+        <div>
+          <h2 id="pro-feature-title" className="f-seccion">30 nuevas funciones activas</h2>
+          <p className="f-dato">Todo está conectado con las secciones que ya usás. Abrí una tarjeta para resolverlo desde el lugar correcto.</p>
+        </div>
+        <div className="f-pro-funciones">{features.map((feature) => <ProFeatureCard key={feature.numero} {...feature} />)}</div>
       </section>
 
-      <div className="pro-dashboard-grid">
-        <section id="alertas" className="pro-panel pro-panel-alerts">
-          <div className="pro-panel-heading"><div><span className="page-kicker">Atención inmediata</span><h2>Lo que pide acción</h2><p>Una sola bandeja para no dejar problemas escondidos.</p></div><span className={`pro-count-badge${totalAlertas > 0 ? ' is-warning' : ' is-good'}`}>{totalAlertas}</span></div>
-          {calculos.alertas.length === 0 ? <div className="pro-good-state"><IconoReintentar /><strong>Todo tranquilo por acá</strong><span>No hay alertas urgentes en este momento.</span></div> : <div className="pro-alert-list">{calculos.alertas.map((alerta) => <div className={`pro-alert-row is-${alerta.nivel}`} key={alerta.id}><span className="pro-alert-icon"><IconoAlerta /></span><div><strong>{alerta.titulo}</strong><p>{alerta.detalle}</p></div><span className="pro-alert-count">{alerta.cantidad}</span><Link href={alerta.ruta} aria-label={`Resolver ${alerta.titulo}`}><IconoFlechaDerecha /></Link></div>)}</div>}
-        </section>
+      <div className="f-pro-paneles">
+        <Panel id="alertas" titulo="Lo que pide acción" detalle="Una sola bandeja para no dejar problemas escondidos." fin={<Etiqueta tono={totalAlertas > 0 ? 'ambar' : 'verde'}>{totalAlertas}</Etiqueta>}>
+          {calculos.alertas.length === 0
+            ? <div className="f-pro-bien"><strong>Todo tranquilo por acá</strong><span className="f-dato">No hay alertas urgentes en este momento.</span></div>
+            : <div className="f-pro-lista">{calculos.alertas.map((alerta) => (
+              <div className="f-renglon" key={alerta.id}>
+                <span className="f-renglon-cuerpo"><span className="f-renglon-titulo">{alerta.titulo}</span><span className="f-renglon-detalle">{alerta.detalle}</span></span>
+                <Etiqueta tono={alerta.nivel === 'bien' ? 'verde' : 'ambar'}>{alerta.cantidad}</Etiqueta>
+                <Link href={alerta.ruta} className="f-icono-boton" aria-label={`Resolver ${alerta.titulo}`}><IconoFlechaDerecha /></Link>
+              </div>
+            ))}</div>}
+        </Panel>
 
-        <section id="meta" className="pro-panel pro-panel-goal">
-          <div className="pro-panel-heading"><div><span className="page-kicker">Ritmo de venta</span><h2>Tu objetivo de hoy</h2><p>Guardalo en este aparato y usalo como norte.</p></div><span className="pro-goal-icon"><IconoPorcentaje /></span></div>
-          <div className="pro-goal-value"><Importe centavos={calculos.resumen.vendido} tamaño="grande" /><span>de <Importe centavos={objetivoCentavos} tamaño="chico" /></span></div>
-          <div className="pro-progress-track"><span style={{ width: `${meta.porcentaje}%` }} /></div><div className="pro-goal-foot"><span>{meta.cumplido ? 'Meta cumplida' : `Faltan ${formatearPesos(meta.restante)}`}</span><strong>{meta.porcentaje}%</strong></div>
-          <form className="pro-goal-form" onSubmit={(evento) => { evento.preventDefault(); guardarMeta() }}><label><span>Meta diaria en pesos</span><input inputMode="decimal" value={metaPesos} onChange={(evento) => setMetaPesos(evento.target.value)} aria-label="Meta diaria en pesos" /></label><button type="submit">Guardar meta</button></form>
-        </section>
+        <Panel id="meta" titulo="Tu objetivo de hoy" detalle="Guardalo en este aparato y usalo como norte.">
+          <div className="f-pro-meta"><strong className="f-plata-36">{formatearPesos(calculos.resumen.vendido)}</strong><span className="f-dato">de {formatearPesos(objetivoCentavos)}</span></div>
+          <div className="f-pro-barra" role="progressbar" aria-label="Avance de la meta" aria-valuemin={0} aria-valuemax={100} aria-valuenow={meta.porcentaje}><span style={{ width: `${meta.porcentaje}%` }} /></div>
+          <div className="f-pro-pie"><span className="f-dato">{meta.cumplido ? 'Meta cumplida' : `Faltan ${formatearPesos(meta.restante)}`}</span><strong className="f-plata-16">{meta.porcentaje}%</strong></div>
+          <form className="f-pro-meta-form" onSubmit={(evento) => { evento.preventDefault(); guardarMeta() }}>
+            <label className="f-campo"><span>Meta diaria en pesos</span><input className="f-entrada" inputMode="decimal" value={metaPesos} onChange={(evento) => setMetaPesos(evento.target.value)} aria-label="Meta diaria en pesos" /></label>
+            <Boton type="submit" variante="secundario">Guardar meta</Boton>
+          </form>
+        </Panel>
 
-        <section id="ritmo" className="pro-panel pro-panel-trend">
-          <div className="pro-panel-heading"><div><span className="page-kicker">Lectura comercial</span><h2>Ritmo y horas fuertes</h2><p>{calculos.comparativa.porcentaje >= 0 ? 'Vas por encima del período comparable.' : 'El período comparable venía más fuerte.'}</p></div><span className={`pro-delta ${calculos.comparativa.porcentaje >= 0 ? 'is-positive' : 'is-negative'}`}>{calculos.comparativa.porcentaje >= 0 ? '+' : ''}{calculos.comparativa.porcentaje}%</span></div>
-          <div className="pro-bars" aria-label="Ventas de los últimos siete días">{calculos.ritmo.map((punto) => <div className="pro-bar-column" key={punto.fecha}><span className="pro-bar-value">{punto.vendido > 0 ? formatearPesos(punto.vendido) : '—'}</span><span className="pro-bar-track"><i style={{ height: `${porcentajeBarra(punto.vendido, maxRitmo)}%` }} /></span><small>{punto.etiqueta}</small></div>)}</div>
-          {calculos.horarios.length > 0 && <div className="pro-best-hour"><span><IconoPlata /> Mejor hora</span><strong>{calculos.horarios[0].etiqueta}</strong><small>{formatearPesos(calculos.horarios[0].vendido)} vendidos · {calculos.horarios[0].ventas} ventas</small></div>}
-        </section>
+        <Panel id="ritmo" titulo="Ritmo y horas fuertes" detalle={calculos.comparativa.porcentaje >= 0 ? 'Vas por encima del período comparable.' : 'El período comparable venía más fuerte.'} fin={<Etiqueta tono={calculos.comparativa.porcentaje >= 0 ? 'verde' : 'ambar'}>{calculos.comparativa.porcentaje >= 0 ? '+' : ''}{calculos.comparativa.porcentaje}%</Etiqueta>}>
+          <div className="f-pro-barras" role="img" aria-label="Ventas de los últimos siete días">{calculos.ritmo.map((punto) => (
+            <div className="f-pro-columna" key={punto.fecha}>
+              <span className="f-pro-columna-valor">{punto.vendido > 0 ? formatearPesos(punto.vendido) : '—'}</span>
+              <span className="f-pro-columna-pista"><i style={{ height: `${porcentajeBarra(punto.vendido, maxRitmo)}%` }} /></span>
+              <small>{punto.etiqueta}</small>
+            </div>
+          ))}</div>
+          {calculos.horarios.length > 0 && <div className="f-pro-destacado"><span className="f-dato">Mejor hora</span><strong className="f-seccion">{calculos.horarios[0].etiqueta}</strong><span className="f-dato">{formatearPesos(calculos.horarios[0].vendido)} vendidos · {calculos.horarios[0].ventas} ventas</span></div>}
+        </Panel>
 
-        <section id="cobros" className="pro-panel pro-panel-payments">
-          <div className="pro-panel-heading"><div><span className="page-kicker">Cobros</span><h2>Cómo entró la plata</h2><p>Distribución del período seleccionado.</p></div><span className="pro-panel-icon"><IconoCobrar /></span></div>
-          {calculos.mix.length === 0 ? <Vacio texto="Todavía no hay cobros en este período." /> : <div className="pro-payment-list">{calculos.mix.map((medio) => <div key={medio.medio} className="pro-payment-row"><div><strong>{MEDIOS[medio.medio]}</strong><small>{medio.ventas} {medio.ventas === 1 ? 'venta' : 'ventas'}</small></div><div className="pro-payment-amount"><span>{medio.porcentaje}%</span><Importe centavos={medio.monto} tamaño="chico" /></div><span className="pro-mini-progress"><i style={{ width: `${medio.porcentaje}%` }} /></span></div>)}</div>}
-          {calculos.digitalesSinReferencia.length > 0 && <Link href="/historial" className="pro-inline-warning"><IconoAlerta /> {calculos.digitalesSinReferencia.length} cobros digitales sin referencia <IconoFlechaDerecha /></Link>}
-        </section>
+        <Panel id="cobros" titulo="Cómo entró la plata" detalle="Distribución del período seleccionado.">
+          {calculos.mix.length === 0 ? <Vacio texto="Todavía no hay cobros en este período." /> : <div className="f-pro-lista">{calculos.mix.map((medio) => (
+            <div key={medio.medio} className="f-pro-cobro">
+              <div className="f-renglon-cuerpo"><span className="f-renglon-titulo">{MEDIOS[medio.medio]}</span><span className="f-renglon-detalle">{medio.ventas} {medio.ventas === 1 ? 'venta' : 'ventas'}</span></div>
+              <div className="f-pro-cobro-monto"><span className="f-dato">{medio.porcentaje}%</span><Plata centavos={medio.monto} /></div>
+              <span className="f-pro-barra f-pro-barra-fina"><span style={{ width: `${medio.porcentaje}%` }} /></span>
+            </div>
+          ))}</div>}
+          {calculos.digitalesSinReferencia.length > 0 && <Link href="/historial" className="f-aviso f-pro-enlace-aviso" data-tono="ambar"><span>{calculos.digitalesSinReferencia.length} cobros digitales sin referencia</span><IconoFlechaDerecha /></Link>}
+        </Panel>
 
-        <section id="stock-pro" className="pro-panel pro-panel-stock">
-          <div className="pro-panel-heading"><div><span className="page-kicker">Inventario inteligente</span><h2>Radar de stock</h2><p>Lo que se agota, lo que rota y lo que inmoviliza plata.</p></div><span className="pro-panel-icon"><IconoStock /></span></div>
-          <div className="pro-stock-summary"><div><span>Inventario a costo</span><strong>{formatearPesos(calculos.inventario.aCosto)}</strong></div><div><span>Margen potencial</span><strong>{formatearPesos(calculos.inventario.margenPotencial)}</strong></div><div><span>Para reponer</span><strong>{calculos.reposicion.length}</strong></div></div>
-          <div className="pro-list">{calculos.radar.slice(0, 5).map((item) => <div className="pro-list-row" key={item.producto.id}><div><strong>{item.producto.nombre}</strong><small>{item.unidadesVendidas} u. en 14 días · {item.diasCobertura === null ? 'sin rotación' : `${item.diasCobertura} días de cobertura`}</small></div><span className={`pro-status-dot is-${item.estado}`}>{item.estado === 'agotado' ? 'Agotado' : item.estado === 'critico' ? 'Crítico' : item.estado === 'vigilar' ? 'Vigilar' : item.estado === 'sin-rotacion' ? 'Dormido' : 'Estable'}</span></div>)}{calculos.radar.length === 0 && <Vacio texto="Cargá productos para activar el radar." />}</div>
-          <Link href="/stock" className="pro-panel-link">Abrir stock completo <IconoFlechaDerecha /></Link>
-        </section>
+        <Panel id="stock-pro" titulo="Radar de stock" detalle="Lo que se agota, lo que rota y lo que inmoviliza plata.">
+          <div className="f-pro-datos">
+            <div><span className="f-dato">Inventario a costo</span><strong className="f-plata-16">{formatearPesos(calculos.inventario.aCosto)}</strong></div>
+            <div><span className="f-dato">Margen potencial</span><strong className="f-plata-16">{formatearPesos(calculos.inventario.margenPotencial)}</strong></div>
+            <div><span className="f-dato">Para reponer</span><strong className="f-plata-16">{calculos.reposicion.length}</strong></div>
+          </div>
+          <div className="f-pro-lista">{calculos.radar.slice(0, 5).map((item) => (
+            <div className="f-renglon" key={item.producto.id}>
+              <span className="f-renglon-cuerpo"><span className="f-renglon-titulo">{item.producto.nombre}</span><span className="f-renglon-detalle">{item.unidadesVendidas} u. en 14 días · {item.diasCobertura === null ? 'sin rotación' : `${item.diasCobertura} días de cobertura`}</span></span>
+              <Etiqueta tono={estadoEtiqueta(item.estado)}>{item.estado === 'agotado' ? 'Agotado' : item.estado === 'critico' ? 'Crítico' : item.estado === 'vigilar' ? 'Vigilar' : item.estado === 'sin-rotacion' ? 'Dormido' : 'Estable'}</Etiqueta>
+            </div>
+          ))}{calculos.radar.length === 0 && <Vacio texto="Cargá productos para activar el radar." />}</div>
+          <Link href="/stock" className="f-pro-enlace">Abrir stock completo <IconoFlechaDerecha /></Link>
+        </Panel>
 
-        <section id="clientes-pro" className="pro-panel pro-panel-clients">
-          <div className="pro-panel-heading"><div><span className="page-kicker">Relación comercial</span><h2>Clientes que mueven el negocio</h2><p>Premiá la recurrencia y recuperá a quien se alejó.</p></div><span className="pro-panel-icon"><IconoClientes /></span></div>
-          <div className="pro-client-metrics"><div><span>Recurrencia</span><strong>{calculos.recurrencia.porcentaje}%</strong><small>{calculos.recurrencia.recurrentes} clientes volvieron</small></div><div><span>Oportunidades</span><strong>{calculos.oportunidades.length}</strong><small>para contactar</small></div><div><span>Sin teléfono</span><strong>{calculos.sinTelefono.length}</strong><small>fichas incompletas</small></div></div>
-          <div className="pro-list">{calculos.topClientes.slice(0, 4).map((cliente, indice) => <div className="pro-list-row" key={cliente.cliente.id}><span className="pro-rank">{indice + 1}</span><div><strong>{cliente.cliente.nombre}</strong><small>{cliente.ventas} compras · última {fechaCorta(cliente.ultimaCompra)}</small></div><Importe centavos={cliente.gastado} tamaño="chico" /></div>)}{calculos.topClientes.length === 0 && <Vacio texto="Vinculá una venta a un cliente para construir tu ranking." />}</div>
-          <div className="pro-client-callout"><IconoWhatsApp /><span><strong>{calculos.inactivos.length} clientes para reactivar</strong><small>Usá la cartera para volver a abrir la conversación.</small></span><Link href="/clientes">Ver cartera <IconoFlechaDerecha /></Link></div>
-        </section>
+        <Panel id="clientes-pro" titulo="Clientes que mueven el negocio" detalle="Premiá la recurrencia y recuperá a quien se alejó.">
+          <div className="f-pro-datos">
+            <div><span className="f-dato">Recurrencia</span><strong className="f-plata-16">{calculos.recurrencia.porcentaje}%</strong><small className="f-dato">{calculos.recurrencia.recurrentes} volvieron</small></div>
+            <div><span className="f-dato">Oportunidades</span><strong className="f-plata-16">{calculos.oportunidades.length}</strong><small className="f-dato">para contactar</small></div>
+            <div><span className="f-dato">Sin teléfono</span><strong className="f-plata-16">{calculos.sinTelefono.length}</strong><small className="f-dato">fichas incompletas</small></div>
+          </div>
+          <div className="f-pro-lista">{calculos.topClientes.slice(0, 4).map((cliente, indice) => (
+            <div className="f-renglon" key={cliente.cliente.id}>
+              <span className="f-pro-rango" aria-hidden="true">{indice + 1}</span>
+              <span className="f-renglon-cuerpo"><span className="f-renglon-titulo">{cliente.cliente.nombre}</span><span className="f-renglon-detalle">{cliente.ventas} compras · última {fechaCorta(cliente.ultimaCompra)}</span></span>
+              <Plata centavos={cliente.gastado} />
+            </div>
+          ))}{calculos.topClientes.length === 0 && <Vacio texto="Vinculá una venta a un cliente para construir tu ranking." />}</div>
+          <div className="f-pro-destacado f-pro-destacado-fila"><span><strong className="f-renglon-texto">{calculos.inactivos.length} clientes para reactivar</strong><span className="f-dato"> Usá la cartera para volver a abrir la conversación.</span></span><Link href="/clientes" className="f-pro-enlace">Ver cartera <IconoFlechaDerecha /></Link></div>
+        </Panel>
 
-        <section className="pro-panel pro-panel-credit">
-          <div className="pro-panel-heading"><div><span className="page-kicker">Fiado bajo control</span><h2>Riesgo y vencimientos</h2><p>Priorizá a quién escribir antes de que la deuda se enfríe.</p></div><span className="pro-panel-icon"><IconoFiados /></span></div>
-          <div className="pro-credit-summary"><div><span>Saldo abierto</span><strong>{formatearPesos(calculos.vencimientos.reduce((total, item) => total + item.saldo, 0))}</strong></div><div><span>Riesgo alto</span><strong>{calculos.riesgo.filter((item) => item.riesgo === 'alto').length}</strong></div><div><span>Próximos</span><strong>{calculos.vencimientos.filter((item) => item.estado === 'pronto').length}</strong></div></div>
-          <div className="pro-list">{calculos.vencimientos.slice(0, 4).map((item) => <div className="pro-list-row" key={item.fiado.id}><div><strong>{item.cliente?.nombre || 'Cliente sin ficha'}</strong><small>{item.dias === null ? 'Sin fecha' : etiquetaVencimiento(item.fiado.vence, datos.ahora)}</small></div><span className={`pro-status-dot is-${item.estado}`}>{formatearPesos(item.saldo)}</span></div>)}{calculos.vencimientos.length === 0 && <Vacio texto="No hay deuda abierta para seguir." />}</div>
-          <Link href="/fiados" className="pro-panel-link">Abrir fiados <IconoFlechaDerecha /></Link>
-        </section>
+        <Panel id="credito" titulo="Riesgo y vencimientos" detalle="Priorizá a quién escribir antes de que la deuda se enfríe.">
+          <div className="f-pro-datos">
+            <div><span className="f-dato">Saldo abierto</span><strong className="f-plata-16">{formatearPesos(calculos.vencimientos.reduce((total, item) => total + item.saldo, 0))}</strong></div>
+            <div><span className="f-dato">Riesgo alto</span><strong className="f-plata-16">{calculos.riesgo.filter((item) => item.riesgo === 'alto').length}</strong></div>
+            <div><span className="f-dato">Próximos</span><strong className="f-plata-16">{calculos.vencimientos.filter((item) => item.estado === 'pronto').length}</strong></div>
+          </div>
+          <div className="f-pro-lista">{calculos.vencimientos.slice(0, 4).map((item) => (
+            <div className="f-renglon" key={item.fiado.id}>
+              <span className="f-renglon-cuerpo"><span className="f-renglon-titulo">{item.cliente?.nombre || 'Cliente sin ficha'}</span><span className="f-renglon-detalle">{item.dias === null ? 'Sin fecha' : etiquetaVencimiento(item.fiado.vence, datos.ahora)}</span></span>
+              <Etiqueta tono={item.estado === 'vencido' ? 'coral' : item.estado === 'pronto' ? 'ambar' : 'gris'}>{formatearPesos(item.saldo)}</Etiqueta>
+            </div>
+          ))}{calculos.vencimientos.length === 0 && <Vacio texto="No hay deuda abierta para seguir." />}</div>
+          <Link href="/fiados" className="f-pro-enlace">Abrir fiados <IconoFlechaDerecha /></Link>
+        </Panel>
 
-        <section className="pro-panel pro-panel-agenda">
-          <div className="pro-panel-heading"><div><span className="page-kicker">Agenda de entregas</span><h2>Pedidos en movimiento</h2><p>Lo urgente arriba, sin perder reservas.</p></div><span className="pro-panel-icon"><IconoPedidos /></span></div>
-          <div className="pro-agenda-summary"><div className="is-today"><span>Para hoy</span><strong>{calculos.pedidosHoy.length}</strong></div><div className="is-late"><span>Atrasados</span><strong>{calculos.pedidosAtrasados.length}</strong></div><div><span>Stock reservado</span><strong>{calculos.stockComprometido.unidades} u.</strong></div></div>
-          <div className="pro-list">{[...calculos.pedidosAtrasados, ...calculos.pedidosHoy].slice(0, 4).map((item) => <div className="pro-list-row" key={item.pedido.id}><div><strong>Pedido #{item.pedido.id.slice(0, 6)}</strong><small>{item.cliente?.nombre || 'Sin cliente'} · {item.dias === null ? 'Sin fecha' : item.dias === 0 ? 'Hoy' : `Hace ${item.dias} días`}</small></div><Importe centavos={item.valor} tamaño="chico" /></div>)}{calculos.pedidosHoy.length === 0 && calculos.pedidosAtrasados.length === 0 && <Vacio texto="La agenda está limpia por ahora." />}</div>
-          <Link href="/pedidos" className="pro-panel-link">Abrir pedidos <IconoFlechaDerecha /></Link>
-        </section>
+        <Panel id="agenda" titulo="Pedidos en movimiento" detalle="Lo urgente arriba, sin perder reservas.">
+          <div className="f-pro-datos">
+            <div><span className="f-dato">Para hoy</span><strong className="f-plata-16">{calculos.pedidosHoy.length}</strong></div>
+            <div><span className="f-dato">Atrasados</span><strong className="f-plata-16">{calculos.pedidosAtrasados.length}</strong></div>
+            <div><span className="f-dato">Stock reservado</span><strong className="f-plata-16">{calculos.stockComprometido.unidades} u.</strong></div>
+          </div>
+          <div className="f-pro-lista">{[...calculos.pedidosAtrasados, ...calculos.pedidosHoy].slice(0, 4).map((item) => (
+            <div className="f-renglon" key={item.pedido.id}>
+              <span className="f-renglon-cuerpo"><span className="f-renglon-titulo">Pedido #{item.pedido.id.slice(0, 6)}</span><span className="f-renglon-detalle">{item.cliente?.nombre || 'Sin cliente'} · {item.dias === null ? 'Sin fecha' : item.dias === 0 ? 'Hoy' : `Hace ${item.dias} días`}</span></span>
+              <Plata centavos={item.valor} />
+            </div>
+          ))}{calculos.pedidosHoy.length === 0 && calculos.pedidosAtrasados.length === 0 && <Vacio texto="La agenda está limpia por ahora." />}</div>
+          <Link href="/pedidos" className="f-pro-enlace">Abrir pedidos <IconoFlechaDerecha /></Link>
+        </Panel>
 
-        <section id="integridad" className="pro-panel pro-panel-integrity">
-          <div className="pro-panel-heading"><div><span className="page-kicker">Confianza en los datos</span><h2>Control de integridad</h2><p>Una revisión antes de compartir o cerrar el día.</p></div><span className="pro-panel-icon"><IconoCuenta /></span></div>
-          <div className="pro-integrity-list">{calculos.integridad.map((item) => <div className={`pro-integrity-row is-${item.nivel}`} key={`${item.titulo}-${item.cantidad}`}><span>{item.nivel === 'bien' ? '✓' : item.cantidad}</span><div><strong>{item.titulo}</strong><small>{item.detalle}</small></div><em>{nivelLabel(item.nivel)}</em></div>)}</div>
-          <div className="pro-integrity-footer"><IconoNube /><span>{nubeActiva() ? `${datos.pendientes} operaciones esperando sincronización.` : 'Modo local: todo queda guardado en este aparato.'}</span><Link href="/config">Revisar <IconoFlechaDerecha /></Link></div>
-        </section>
+        <Panel id="integridad" titulo="Control de integridad" detalle="Una revisión antes de compartir o cerrar el día.">
+          <div className="f-pro-lista">{calculos.integridad.map((item) => (
+            <div className="f-renglon" key={`${item.titulo}-${item.cantidad}`}>
+              <span className="f-pro-rango" data-tono={nivelEtiqueta(item.nivel)} aria-hidden="true">{item.nivel === 'bien' ? '✓' : item.cantidad}</span>
+              <span className="f-renglon-cuerpo"><span className="f-renglon-titulo">{item.titulo}</span><span className="f-renglon-detalle">{item.detalle}</span></span>
+              <Etiqueta tono={nivelEtiqueta(item.nivel)}>{nivelLabel(item.nivel)}</Etiqueta>
+            </div>
+          ))}</div>
+          <div className="f-pro-destacado f-pro-destacado-fila"><span className="f-dato">{nubeActiva() ? `${datos.pendientes} operaciones esperando sincronización.` : 'Modo local: todo queda guardado en este aparato.'}</span><Link href="/config" className="f-pro-enlace">Revisar <IconoFlechaDerecha /></Link></div>
+        </Panel>
       </div>
 
-      <section className="pro-quick-actions">
-        <div><span className="page-kicker">Atajos de operación</span><h2>Resolver en dos toques</h2><p>Las acciones más usadas, siempre a mano.</p></div>
-        <div className="pro-quick-grid"><Link href="/vender" className="is-primary"><IconoEscanear /><span><strong>Nueva venta</strong><small>Escanear o buscar</small></span><IconoFlechaDerecha /></Link><Link href="/stock"><IconoStock /><span><strong>Cargar stock</strong><small>Producto o factura</small></span><IconoFlechaDerecha /></Link><Link href="/fiados"><IconoFiados /><span><strong>Cobrar fiados</strong><small>Ver vencimientos</small></span><IconoFlechaDerecha /></Link><Link href="/plata"><IconoMovimiento /><span><strong>Revisar caja</strong><small>Ver movimientos</small></span><IconoFlechaDerecha /></Link><Link href="/historial"><IconoHistorial /><span><strong>Auditar ventas</strong><small>Buscar comprobantes</small></span><IconoFlechaDerecha /></Link><Link href="/config"><IconoConfig /><span><strong>Configurar</strong><small>Preferencias y backup</small></span><IconoFlechaDerecha /></Link></div>
+      <section className="f-pro-atajos" aria-labelledby="pro-atajos-titulo">
+        <div><h2 id="pro-atajos-titulo" className="f-seccion">Resolver en dos toques</h2><p className="f-dato">Las acciones más usadas, siempre a mano.</p></div>
+        <div className="f-pro-atajos-grilla">
+          <Link href="/vender" className="f-pro-atajo f-boton-principal"><IconoEscanear /><span><strong>Nueva venta</strong><small>Escanear o buscar</small></span><IconoFlechaDerecha /></Link>
+          <Link href="/stock" className="f-pro-atajo"><IconoStock /><span><strong>Cargar stock</strong><small>Producto o factura</small></span><IconoFlechaDerecha /></Link>
+          <Link href="/fiados" className="f-pro-atajo"><IconoFiados /><span><strong>Cobrar fiados</strong><small>Ver vencimientos</small></span><IconoFlechaDerecha /></Link>
+          <Link href="/plata" className="f-pro-atajo"><IconoMovimiento /><span><strong>Revisar caja</strong><small>Ver movimientos</small></span><IconoFlechaDerecha /></Link>
+          <Link href="/historial" className="f-pro-atajo"><IconoHistorial /><span><strong>Auditar ventas</strong><small>Buscar comprobantes</small></span><IconoFlechaDerecha /></Link>
+          <Link href="/config" className="f-pro-atajo"><IconoConfig /><span><strong>Configurar</strong><small>Preferencias y backup</small></span><IconoFlechaDerecha /></Link>
+        </div>
       </section>
     </div>
   )

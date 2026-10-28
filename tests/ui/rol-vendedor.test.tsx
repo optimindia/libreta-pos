@@ -72,7 +72,7 @@ describe('El vendedor no ve acciones que la base le rechaza', () => {
     expect(screen.queryByRole('button', { name: 'Eliminar Yerba' })).toBeNull()
     expect(screen.queryByRole('button', { name: /^Cargar$/ })).toBeNull()
     expect(screen.queryByRole('button', { name: /^Precios$/ })).toBeNull()
-    expect(screen.queryByText('Valor del inventario')).toBeNull()
+    expect(screen.queryByText(/a costo/)).toBeNull()
   })
 
   it('Stock: el dueño sigue teniendo todas las acciones', async () => {

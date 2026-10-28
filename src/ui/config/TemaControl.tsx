@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { aplicarTema, guardarPreferenciaTema, leerPreferenciaTema, type PreferenciaTema } from '@/ui/sistema/tema'
-import { Boton } from '@/ui/sistema/Boton'
+import { Segmentado } from '@/ui/sistema/Segmentado'
+import { Tarjeta } from '@/ui/sistema/Tarjeta'
 
 const OPCIONES: { valor: PreferenciaTema; texto: string }[] = [
   { valor: 'auto', texto: 'Automático' },
@@ -24,15 +25,9 @@ export function TemaControl() {
   }
 
   return (
-    <div className="mt-6">
-      <h2 className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Apariencia</h2>
-      <div className="mt-2 grid grid-cols-3 gap-1.5">
-        {OPCIONES.map((opcion) => (
-          <Boton key={opcion.valor} variante={preferencia === opcion.valor ? 'principal' : 'secundario'} className="!rounded-xl !px-1 !py-2.5 !text-[12px]" aria-pressed={preferencia === opcion.valor} onClick={() => cambiar(opcion.valor)}>
-            {opcion.texto}
-          </Boton>
-        ))}
-      </div>
-    </div>
+    <Tarjeta como="section" className="f-config-bloque" aria-labelledby="config-apariencia">
+      <h2 id="config-apariencia" className="f-seccion">Apariencia</h2>
+      <Segmentado etiqueta="Apariencia" opciones={OPCIONES} valor={preferencia} onCambiar={cambiar} />
+    </Tarjeta>
   )
 }

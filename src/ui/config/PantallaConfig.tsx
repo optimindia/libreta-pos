@@ -5,16 +5,18 @@ import { db } from '@/datos/local/db'
 import { repos } from '@/datos/local/repos'
 import { cerrarSesion } from '@/datos/nube/sesion'
 import { Boton } from '@/ui/sistema/Boton'
+import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { Respaldo } from './Respaldo'
 import { RespaldoLocal } from './RespaldoLocal'
 import { TemaControl } from './TemaControl'
 import { InstalarApp } from './InstalarApp'
 import { EstadoSincronizacion } from './EstadoSincronizacion'
 import { EstadoCuenta } from '@/ui/cuenta/EstadoCuenta'
-import { IconoConfig, IconoSubir } from '@/ui/sistema/iconos'
+import { IconoSubir } from '@/ui/sistema/iconos'
 import { funcionActiva } from '@/dominio/funciones'
 import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
 import { FuncionesControl } from './FuncionesControl'
+import './config.css'
 
 export function PantallaConfig() {
   const archivoLogo = useRef<HTMLInputElement>(null)
@@ -64,86 +66,95 @@ export function PantallaConfig() {
   }
 
   return (
-    <div className="page-config px-5 pt-6">
-      <div className="page-module-head config-head"><div><span className="page-kicker">Preferencias</span><h1 className="page-title">Tu negocio</h1><p className="page-description">Personalizá tu operación y protegé tus datos.</p></div></div>
+    <div className="page-config f-config">
+      <header>
+        <h1 className="f-titulo">Tu negocio</h1>
+        <p className="f-texto f-config-subtitulo">Personalizá tu operación y protegé tus datos.</p>
+      </header>
 
-      <EstadoCuenta />
+      <div className="f-config-cuerpo">
+        <div className="f-config-col">
+          <EstadoCuenta />
 
-      <form className="config-profile-card form-shell form-card mt-3" onSubmit={(evento) => void guardar(evento)}>
-        <div className="form-intro">
-          <span className="form-intro-icon" aria-hidden="true"><IconoConfig /></span>
-          <div><strong>Identidad del negocio</strong><p>Estos datos aparecen en tu encabezado y en los tickets.</p></div>
+          <Tarjeta como="section" className="f-config-bloque" aria-labelledby="config-identidad">
+            <form className="f-config-form" onSubmit={(evento) => void guardar(evento)}>
+              <div>
+                <h2 id="config-identidad" className="f-seccion">Identidad del negocio</h2>
+                <p className="f-dato">Estos datos aparecen en tu encabezado y en los tickets.</p>
+              </div>
+              <label className="f-campo">
+                <span>Nombre del negocio <em>visible para tus clientes</em></span>
+                <input
+                  aria-label="Nombre del negocio"
+                  placeholder="Ej. Almacén Don José"
+                  className="f-entrada"
+                  value={nombre}
+                  onChange={(evento) => { setNombre(evento.target.value); setGuardado(false); setAviso(null) }}
+                />
+                <small className="f-config-ayuda">Si lo dejás vacío, vamos a mostrar “Tu almacén”.</small>
+              </label>
+
+              <label className="f-campo">
+                <span>Color <em>identidad visual</em></span>
+                <input
+                  aria-label="Color" type="color"
+                  className="f-config-color"
+                  value={color}
+                  onChange={(evento) => { setColor(evento.target.value); setGuardado(false); setAviso(null) }}
+                />
+                <small className="f-config-ayuda">Se usa para destacar tu negocio en la app y los comprobantes.</small>
+              </label>
+
+              <div className="f-campo">
+                <span>Logo <em>opcional</em></span>
+                <div className="f-config-logo">
+                  <Boton variante="secundario" onClick={() => archivoLogo.current?.click()}>
+                    <IconoSubir />
+                    {logo ? 'Cambiar logo' : 'Elegir logo'}
+                  </Boton>
+                  <span className="f-dato">{logo ? 'Logo listo para guardar' : 'PNG o JPG · opcional'}</span>
+                  <input
+                    ref={archivoLogo}
+                    aria-label="Logo" type="file" accept="image/*"
+                    className="f-sr"
+                    onChange={(evento) => {
+                      const archivo = evento.target.files?.[0]
+                      if (archivo) { leerLogo(archivo); setGuardado(false) }
+                      evento.currentTarget.value = ''
+                    }}
+                  />
+                </div>
+                <small className="f-config-ayuda">Una imagen cuadrada en PNG o JPG se ve mejor en el ticket.</small>
+              </div>
+
+              {guardado && <p role="status" className="f-aviso f-config-ok">Cambios guardados.</p>}
+              {aviso && <p className="f-aviso" data-tono="ambar" role="alert">{aviso}</p>}
+              <Boton type="submit" variante="principal" ancho disabled={guardando}>
+                {guardando ? 'Guardando…' : 'Guardar cambios'}
+              </Boton>
+            </form>
+          </Tarjeta>
+
+          <TemaControl />
+          <InstalarApp />
         </div>
-        <label className="form-field">
-          <span className="form-field-label">Nombre del negocio <em>visible para tus clientes</em></span>
-          <input
-            aria-label="Nombre del negocio"
-            placeholder="Ej. Almacén Don José"
-            className="form-input"
-            value={nombre}
-            onChange={(evento) => { setNombre(evento.target.value); setGuardado(false); setAviso(null) }}
-          />
-          <span className="form-field-help">Si lo dejás vacío, vamos a mostrar “Tu almacén”.</span>
-        </label>
 
-        <label className="form-field config-color-field">
-          <span className="form-field-label">Color <em>identidad visual</em></span>
-          <input
-            aria-label="Color" type="color"
-            className="config-color-control"
-            value={color}
-            onChange={(evento) => { setColor(evento.target.value); setGuardado(false); setAviso(null) }}
-          />
-          <span className="form-field-help">Se usa para destacar tu negocio en la app y los comprobantes.</span>
-        </label>
-
-        <div className="form-field">
-          <span className="form-field-label">Logo <em>opcional</em></span>
-          <span className="config-file-picker mt-1">
-            <button type="button" className="button-with-icon config-file-button" onClick={(evento) => { evento.preventDefault(); archivoLogo.current?.click() }}>
-              <IconoSubir />
-              {logo ? 'Cambiar logo' : 'Elegir logo'}
-            </button>
-            <span className="config-file-meta">{logo ? 'Logo listo para guardar' : 'PNG o JPG · opcional'}</span>
-            <input
-              ref={archivoLogo}
-              aria-label="Logo" type="file" accept="image/*"
-              className="sr-only"
-              onChange={(evento) => {
-                const archivo = evento.target.files?.[0]
-                if (archivo) { leerLogo(archivo); setGuardado(false) }
-                evento.currentTarget.value = ''
-              }}
-            />
-          </span>
-          <span className="form-field-help">Una imagen cuadrada en PNG o JPG se ve mejor en el ticket.</span>
+        <div className="f-config-col">
+          <FuncionesControl />
+          {funcionActiva(funciones, 'respaldoLocal') && <><Respaldo /><RespaldoLocal /></>}
+          <EstadoSincronizacion />
         </div>
+      </div>
 
-        <Boton type="submit" variante="principal" disabled={guardando}>
-          {guardando ? 'Guardando…' : 'Guardar cambios'}
-        </Boton>
-        {guardado && (
-          <p role="status" className="text-[12px]" style={{ color: 'var(--verde)' }}>
-            Cambios guardados.
-          </p>
-        )}
-        {aviso && <p className="form-error form-error-banner" role="alert">{aviso}</p>}
-      </form>
-
-      <FuncionesControl />
-      {funcionActiva(funciones, 'respaldoLocal') && <><Respaldo /><RespaldoLocal /></>}
-      <TemaControl />
-      <InstalarApp />
-      <EstadoSincronizacion />
-      <section className="config-session-card">
+      <Tarjeta como="section" className="f-config-sesion" aria-labelledby="config-sesion">
         <div>
-          <h2>Sesión de este aparato</h2>
-          <p>Cerrá sesión si vas a cambiar de negocio o entregar el dispositivo.</p>
+          <h2 id="config-sesion" className="f-seccion">Sesión de este aparato</h2>
+          <p className="f-dato">Cerrá sesión si vas a cambiar de negocio o entregar el dispositivo.</p>
         </div>
         <Boton variante="secundario" disabled={saliendo} onClick={() => void salir()}>
           {saliendo ? 'Cerrando…' : 'Cerrar sesión'}
         </Boton>
-      </section>
+      </Tarjeta>
     </div>
   )
 }

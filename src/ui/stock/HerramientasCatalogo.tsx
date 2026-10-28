@@ -6,6 +6,7 @@ import { normalizarTexto } from '@/dominio/validaciones'
 import { descargarCsv, productosACsv, productosDesdeCsv } from '@/datos/local/csv'
 import { repos } from '@/datos/local/repos'
 import { Boton } from '@/ui/sistema/Boton'
+import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { IconoDescargar, IconoSubir } from '@/ui/sistema/iconos'
 
 export function HerramientasCatalogo({ productos }: { productos: Producto[] }) {
@@ -45,15 +46,15 @@ export function HerramientasCatalogo({ productos }: { productos: Producto[] }) {
   }
 
   return (
-    <section className="mt-6 rounded-2xl px-3.5 py-3" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)' }}>
-      <h2 className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: 'var(--tenue)' }}>Herramientas del catálogo</h2>
-      <p className="mt-1 text-[12px]" style={{ color: 'var(--tenue)' }}>Mové tus productos entre dispositivos con un CSV. Los duplicados no se pisan.</p>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <Boton variante="secundario" className="button-with-icon !py-2.5 !text-[12px]" onClick={exportar}><IconoDescargar /> Exportar CSV</Boton>
-        <Boton variante="principal" className="button-with-icon !py-2.5 !text-[12px]" disabled={importando} onClick={() => archivo.current?.click()}>{importando ? 'Importando…' : <><IconoSubir /> Importar CSV</>}</Boton>
+    <Tarjeta como="section" className="f-stock-herramientas" aria-labelledby="stock-herramientas-titulo">
+      <h2 id="stock-herramientas-titulo" className="f-seccion">Herramientas del catálogo</h2>
+      <p className="f-dato">Mové tus productos entre dispositivos con un CSV. Los duplicados no se pisan.</p>
+      <div className="f-stock-botones">
+        <Boton variante="secundario" onClick={exportar}><IconoDescargar /> Exportar CSV</Boton>
+        <Boton variante="secundario" disabled={importando} onClick={() => archivo.current?.click()}>{importando ? 'Importando…' : <><IconoSubir /> Importar CSV</>}</Boton>
       </div>
-      <input ref={archivo} type="file" accept=".csv,text/csv" className="sr-only" aria-label="Archivo CSV del catálogo" onChange={(evento) => { const file = evento.target.files?.[0]; if (file) void importar(file) }} />
-      {aviso && <p role="status" className="mt-2 text-[12px]" style={{ color: 'var(--verde)' }}>{aviso}</p>}
-    </section>
+      <input ref={archivo} type="file" accept=".csv,text/csv" className="f-sr" aria-label="Archivo CSV del catálogo" onChange={(evento) => { const file = evento.target.files?.[0]; if (file) void importar(file) }} />
+      {aviso && <p role="status" className="f-aviso f-stock-ok">{aviso}</p>}
+    </Tarjeta>
   )
 }
