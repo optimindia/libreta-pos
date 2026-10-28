@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import type { MedioPago, UUID } from '@/dominio/tipos'
+import type { Cliente, MedioPago, UUID } from '@/dominio/tipos'
+import { superaLimiteFiado } from '@/dominio/fiado'
 import { formatearPesos, pesosACentavos, vuelto } from '@/dominio/dinero'
 import { conPuntos, soloDigitos, sugerenciasDePago, teclear, type TeclaCobro } from '@/dominio/cobro'
 import { repos } from '@/datos/local/repos'
@@ -132,11 +133,20 @@ function normalizar(texto: string): string {
 }
 
 function Fiado({
+  total,
   onCobrar,
 }: {
+  total: number
   onCobrar: (clienteId: UUID, vence: number | null) => void
 }) {
   const clientes = useLiveQuery(() => repos.clientes.todos(), [], [])
+  // Lo que ya debe cada cliente, para mostrarlo y cuidar su límite.
+  const deudas = useLiveQuery(async () => {
+    const porCliente = new Map<UUID, number>()
+    for (const fiado of await repos.fiados.abiertos()) porCliente.set(fiado.clienteId, (porCliente.get(fiado.clienteId) ?? 0) + fiado.saldo)
+    return porCliente
+  }, [], new Map<UUID, number>())
+  const [pasado, setPasado] = useState<Cliente | null>(null)
   const [busqueda, setBusqueda] = useState('')
   const [nuevo, setNuevo] = useState(false)
   const [nombre, setNombre] = useState('')
@@ -189,7 +199,21 @@ function Fiado({
         <input aria-label="Vencimiento del fiado" type="date" className="mz-entrada" value={vence} onChange={(evento) => setVence(evento.target.value)} />
       </label>
 
-      {!mostrarNuevo && (
+      {pasado && (
+        <div className="mz-aviso-grande mz-aviso-coral" role="alertdialog" aria-label="Se pasa del límite de fiado">
+          <strong>{pasado.nombre} se pasa de su límite</strong>
+          <span>
+            Debe {formatearPesos(deudas.get(pasado.id) ?? 0)} y su límite es {formatearPesos(pasado.limiteFiado ?? 0)}.
+            Con esta venta quedaría en {formatearPesos((deudas.get(pasado.id) ?? 0) + total)}.
+          </span>
+          <div className="nb-acciones">
+            <button type="button" className="libreta-button nb-boton nb-boton-secundario" onClick={() => setPasado(null)}>Elegir otro</button>
+            <button type="button" className="libreta-button nb-boton nb-boton-principal" onClick={() => onCobrar(pasado.id, fechaVencimiento())}>Anotar igual</button>
+          </div>
+        </div>
+      )}
+
+      {!mostrarNuevo && !pasado && (
         <section aria-label="Elegir cliente">
           <label className="mz-campo">
             <span>Buscar cliente</span>
@@ -211,12 +235,17 @@ function Fiado({
                   key={cliente.id}
                   type="button"
                   className="mz-cliente mz-toque"
-                  onClick={() => onCobrar(cliente.id, fechaVencimiento())}
+                  onClick={() => {
+                    if (superaLimiteFiado(deudas.get(cliente.id) ?? 0, total, cliente.limiteFiado)) setPasado(cliente)
+                    else onCobrar(cliente.id, fechaVencimiento())
+                  }}
                   aria-label={`Anotar fiado a ${cliente.nombre}`}
                 >
                   <span className="mz-cliente-iniciales" aria-hidden="true">{cliente.nombre.trim().slice(0, 2).toUpperCase()}</span>
                   <span className="mz-cliente-nombre">{cliente.nombre}</span>
-                  {cliente.telefono && <span className="mz-cliente-telefono">{cliente.telefono}</span>}
+                  {(deudas.get(cliente.id) ?? 0) > 0
+                    ? <span className="mz-cliente-telefono">Debe {formatearPesos(deudas.get(cliente.id) ?? 0)}</span>
+                    : cliente.telefono && <span className="mz-cliente-telefono">{cliente.telefono}</span>}
                 </button>
               ))
             )}
@@ -306,7 +335,7 @@ export function Cobro({
       </div>
 
       {pantalla === 'efectivo' && <Efectivo total={total} onCobrar={() => onCobrar('efectivo')} />}
-      {pantalla === 'fiado' && <Fiado onCobrar={(clienteId, vence) => onCobrar('fiado', clienteId, vence)} />}
+      {pantalla === 'fiado' && <Fiado total={total} onCobrar={(clienteId, vence) => onCobrar('fiado', clienteId, vence)} />}
       {(pantalla === 'transferencia' || pantalla === 'qr') && (
         <CobroDigital key={pantalla} medio={pantalla} total={total} onCobrar={(referencia) => onCobrar(pantalla, undefined, undefined, referencia)} />
       )}

@@ -213,4 +213,24 @@ describe('PantallaVender', () => {
 
     expect(await screen.findByLabelText('2 en el ticket')).toBeDefined()
   })
+
+  it('fiar por encima del límite del cliente pide confirmación', async () => {
+    const raul = await repos.clientes.guardar({ nombre: 'Raúl', telefono: null, limiteFiado: 500000 })
+    await db.fiados.add({ id: 'f1', clienteId: raul.id, ventaId: null, monto: 300000, fecha: Date.now(), vence: null })
+    render(<PantallaVender />)
+    fireEvent.click(await screen.findByText('Yerba Playadito'))
+    fireEvent.click(await screen.findByRole('button', { name: /^cobrar$/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /^fiado$/i }))
+
+    expect(await screen.findByText('Debe $3.000')).toBeTruthy()
+    fireEvent.click(await screen.findByRole('button', { name: /anotar fiado a raúl/i }))
+
+    // $3.000 + $4.200 pasa el límite de $5.000: no se anota sin confirmar
+    const aviso = await screen.findByRole('alertdialog', { name: /límite de fiado/i })
+    expect(aviso.textContent).toContain('$7.200')
+    expect(await db.ventas.count()).toBe(0)
+
+    fireEvent.click(screen.getByRole('button', { name: /anotar igual/i }))
+    await waitFor(async () => expect(await db.ventas.count()).toBe(1))
+  })
 })

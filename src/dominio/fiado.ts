@@ -52,3 +52,11 @@ export function deudaPorCliente(
 
   return [...porCliente.values()].sort((a, b) => b.saldo - a.saldo)
 }
+
+/** ¿Anotar este fiado pasa el límite que el almacenero le puso al cliente?
+ *  Sin límite (o en cero) nunca se pasa. No bloquea: la app avisa y el
+ *  almacenero decide, porque conoce al cliente mejor que nadie. */
+export function superaLimiteFiado(saldoActual: Centavos, nuevo: Centavos, limite: Centavos | undefined): boolean {
+  if (!limite || limite <= 0) return false
+  return saldoActual + nuevo > limite
+}
