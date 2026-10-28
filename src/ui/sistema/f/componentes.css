@@ -377,6 +377,8 @@
   animation: f-subir 0.18s ease;
 }
 
+.f-aviso-flotante[data-tono='ok'] { background: var(--f-verde); color: #fff; }
+
 .f-aviso {
   margin: 0;
   padding: 12px 14px;

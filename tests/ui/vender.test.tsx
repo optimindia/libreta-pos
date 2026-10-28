@@ -233,4 +233,28 @@ describe('PantallaVender', () => {
     fireEvent.click(screen.getByRole('button', { name: /anotar igual/i }))
     await waitFor(async () => expect(await db.ventas.count()).toBe(1))
   })
+
+  it('el lector físico funciona aunque el código caiga en el buscador', async () => {
+    await repos.productos.guardar({ codigoBarras: '7791234', nombre: 'Galletitas', costo: 10000, precio: 250000, stock: 4, stockMinimo: 1 })
+    render(<PantallaVender />)
+    const buscador = await screen.findByLabelText('Buscar producto')
+    await screen.findByText('Galletitas')
+    buscador.focus()
+    // el lector tipea todo de golpe y cierra con Enter
+    for (const tecla of '7791234') fireEvent.keyDown(buscador, { key: tecla })
+    fireEvent.change(buscador, { target: { value: '7791234' } })
+    fireEvent.keyDown(buscador, { key: 'Enter' })
+    await waitFor(() => expect(screen.getAllByText('$2.500').length).toBeGreaterThan(1))
+    await waitFor(() => expect((buscador as HTMLInputElement).value).toBe(''))
+  })
+
+  it('un código que no es de ningún producto queda como búsqueda común en el buscador', async () => {
+    render(<PantallaVender />)
+    const buscador = await screen.findByLabelText('Buscar producto')
+    for (const tecla of '999888') fireEvent.keyDown(buscador, { key: tecla })
+    fireEvent.change(buscador, { target: { value: '999888' } })
+    fireEvent.keyDown(buscador, { key: 'Enter' })
+    await new Promise((seguir) => setTimeout(seguir, 50))
+    expect((buscador as HTMLInputElement).value).toBe('999888')
+  })
 })
