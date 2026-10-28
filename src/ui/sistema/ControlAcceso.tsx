@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { cliente } from '@/datos/nube/cliente'
 import { accesoSaasObligatorio, cargarEstadoAcceso, EVENTO_ACCESO, type EstadoAcceso } from '@/datos/nube/acceso'
-import { accesoPermitido, diasRestantes, estadoSuscripcion, fechaSuscripcion } from '@/dominio/suscripcion'
+import { accesoPermitido, diasRestantes, estadoSuscripcion, fechaSuscripcion, puedeOperarSinVerificar } from '@/dominio/suscripcion'
 import { enlaceWhatsApp } from '@/dominio/mensajes'
 import { Navegacion } from './Navegacion'
 import { PantallaAcceso } from './PantallaAcceso'
@@ -136,8 +136,14 @@ export function ControlAcceso({ children }: { children: React.ReactNode }) {
     return <Marco>{children}</Marco>
   }
 
-  const permitido = estado.suscripcion ? accesoPermitido(estado.suscripcion) : false
-  if (!estado.verificadoRemoto || !estado.negocio || !estado.suscripcion || !permitido) {
+  // Sin señal (o con la red fallando) la caja sigue con la última
+  // confirmación del servidor, dentro de su vencimiento y por un máximo.
+  // El vencimiento detectado en el aparato bloquea igual.
+  const sinRed = estado.motivoVerificacion === 'sin_red' || estado.motivoVerificacion === 'error_red'
+  const permitido = estado.verificadoRemoto
+    ? accesoPermitido(estado.suscripcion)
+    : sinRed && puedeOperarSinVerificar(estado.suscripcion, estado.negocio?.verificadoEn)
+  if (!estado.negocio || !estado.suscripcion || !permitido) {
     return <PantallaEstadoAcceso estado={estado} />
   }
   return <Marco estado={estado}><GuardiaFuncion>{children}</GuardiaFuncion></Marco>

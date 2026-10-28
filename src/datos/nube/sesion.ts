@@ -83,6 +83,7 @@ async function guardarNegocioLocal(
     usuarioId,
     rol: rolDe(vinculo.rol),
     nombreUsuario: typeof vinculo.nombre === 'string' ? vinculo.nombre : null,
+    verificadoEn: base?.verificadoEn,
     suscripcionEstado: base?.suscripcionEstado,
     suscripcionTipo: base?.suscripcionTipo,
     suscripcionVenceEn: base?.suscripcionVenceEn,

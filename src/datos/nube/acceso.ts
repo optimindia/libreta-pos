@@ -112,6 +112,7 @@ async function guardarAccesoLocal(
     usuarioId,
     rol: rolDe(vinculo.rol),
     nombreUsuario: typeof vinculo.nombre === 'string' ? vinculo.nombre : null,
+    verificadoEn: Date.now(),
     ultimaBajada: base?.ultimaBajada,
     suscripcionEstado: suscripcion?.estado,
     suscripcionTipo: suscripcion?.tipo,
@@ -158,9 +159,16 @@ export async function cargarEstadoAcceso(): Promise<EstadoAcceso> {
     return { autenticado: false, usuarioId: null, negocio: null, suscripcion: null, online, verificadoRemoto: false, motivoVerificacion: 'error_red' }
   }
   const usuarioId = sesion.data.session?.user?.id as UUID | undefined
-  if (!usuarioId) return { autenticado: false, usuarioId: null, negocio: null, suscripcion: null, online, verificadoRemoto: online }
-
   const cache = await db.negocio.get('unico')
+  if (!usuarioId) {
+    // Con el token vencido y sin red, Supabase no puede renovarlo y no
+    // devuelve sesión: no es un cierre de sesión. Se sigue con el usuario
+    // de este aparato hasta que vuelva la señal.
+    if ((!online || sesion.error?.name === 'AuthRetryableFetchError') && cache?.usuarioId && cache.negocioId) {
+      return estadoSinVerificar(cache.usuarioId, cache, online, online ? 'error_red' : 'sin_red')
+    }
+    return { autenticado: false, usuarioId: null, negocio: null, suscripcion: null, online, verificadoRemoto: online }
+  }
 
   // La copia local sirve para pintar el motivo del bloqueo, nunca para
   // conceder acceso comercial sin una comprobación fresca del servidor.

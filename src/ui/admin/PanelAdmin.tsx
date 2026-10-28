@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { adminAccion, type AdminCuenta, type AdminCuentaActualizada, type AdminCuentaCreada, type AdminCredencialesRegeneradas, type AdminEvento, type AdminListado, type AdminPlan, type AdminPlanGuardado, type AdminSuscripcionActualizada, type AdminVendedor, type AdminVendedorAgregado, type MedioPagoAdmin, type TipoPlan } from '@/datos/nube/admin'
 import { cerrarSesion } from '@/datos/nube/sesion'
-import { enlaceWhatsApp } from '@/dominio/mensajes'
+import { enlaceWhatsApp, mensajeAcceso } from '@/dominio/mensajes'
 import { formatearPesos, pesosACentavos } from '@/dominio/dinero'
 import { Boton } from '@/ui/sistema/Boton'
 import { IconoAlerta, IconoBloqueo, IconoBuscar, IconoCalendarioCuenta, IconoCerrar, IconoClientes, IconoEditar, IconoEliminar, IconoNube, IconoNuevaVenta, IconoReintentar, IconoSincronizado } from '@/ui/sistema/iconos'
@@ -107,7 +107,7 @@ function TarjetaCredenciales({ credenciales, copiado, copiar }: { credenciales: 
       <div><strong>Acceso listo para enviar</strong><p>Este PIN sólo se muestra durante esta sesión del panel.</p></div>
       <div className="admin-credential-line"><span>Teléfono</span><strong>{credenciales.telefono}</strong><button type="button" onClick={() => void copiar(credenciales.telefono, 'telefono')}>{copiado === 'telefono' ? 'Copiado' : 'Copiar'}</button></div>
       <div className="admin-credential-line"><span>PIN</span><strong className="tabular">{credenciales.pin}</strong><button type="button" onClick={() => void copiar(credenciales.pin, 'pin')}>{copiado === 'pin' ? 'Copiado' : 'Copiar'}</button></div>
-      <a className="admin-whatsapp-button" href={enlaceWhatsApp(credenciales.telefono, `Hola, ya está lista tu cuenta de Libreta.\n\nTeléfono: ${credenciales.telefono}\nPIN: ${credenciales.pin}\n\nIngresá en https://libreta-sepia.vercel.app`)} target="_blank" rel="noreferrer">Abrir WhatsApp con el acceso</a>
+      <a className="admin-whatsapp-button" href={enlaceWhatsApp(credenciales.telefono, mensajeAcceso(credenciales.telefono, credenciales.pin, window.location.origin))} target="_blank" rel="noreferrer">Abrir WhatsApp con el acceso</a>
     </div>
   )
 }

@@ -129,3 +129,14 @@ describe('mensajeTicket', () => {
     expect(mensajeTicket(negocio, fiado)).toContain('Quedó en la libreta: $6.200')
   })
 })
+
+describe('mensajeAcceso', () => {
+  it('manda a la dirección donde está publicada la app, no a una fija', async () => {
+    const { mensajeAcceso } = await import('@/dominio/mensajes')
+    const texto = mensajeAcceso('5492615550000', '482913', 'https://libreta-drab.vercel.app')
+    expect(texto).toContain('Teléfono: 5492615550000')
+    expect(texto).toContain('PIN: 482913')
+    expect(texto).toContain('https://libreta-drab.vercel.app')
+    expect(texto).not.toContain('libreta-sepia')
+  })
+})
