@@ -1071,3 +1071,464 @@ textarea::placeholder {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* ───────────── Ajustes de pantallas ───────────── */
+
+/* El armazón ya da los márgenes: las páginas del estilo Mosaico no suman otros. */
+.nb-app .mz-pagina {
+  max-width: 1200px;
+  padding: 0;
+}
+
+.mz-saludo > :first-child { min-width: 0; }
+.mz-saludo > span { flex: 0 0 auto; white-space: nowrap; }
+
+/* Títulos: el rótulo de arriba se va; el título solo dice dónde estás. */
+.page-module-head .page-kicker,
+.pro-head .page-kicker {
+  display: none;
+}
+
+.page-module-head {
+  min-height: 0 !important;
+  margin-top: 0 !important;
+  flex-direction: row !important;
+  align-items: flex-end !important;
+}
+
+.page-module-head > span:not(.page-head-stat) {
+  color: var(--tenue) !important;
+  font-size: 14px !important;
+  font-weight: 600;
+}
+
+.page-module-head > div:first-child > a {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  color: var(--verde) !important;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Centro Pro usa su propio encabezado: mismo idioma que el resto. */
+.pro-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+  margin: 0 0 16px;
+  padding: 8px 0 4px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--tinta) !important;
+}
+
+.pro-head::before,
+.pro-head::after { display: none !important; }
+.pro-head-copy { flex: 1 1 16rem; min-width: 0; }
+.pro-head-copy h1 { margin: 2px 0 0; color: var(--tinta) !important; font-size: clamp(30px, 7vw, 40px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.05; }
+.pro-head-copy p { margin-top: 6px; color: var(--tenue) !important; font-size: 15px; font-weight: 500; }
+.pro-head :where(span, strong, small, b) { color: inherit; }
+
+.pro-head > :not(.pro-head-copy):not(.pro-head-actions) {
+  border: 1px solid var(--linea) !important;
+  background: var(--hueso-2) !important;
+  color: var(--tinta) !important;
+  box-shadow: none !important;
+}
+
+.pro-head > :not(.pro-head-copy):not(.pro-head-actions) * { color: var(--tinta) !important; }
+
+.pro-head-actions { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+
+.pro-head-actions button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px !important;
+  border: 1px solid var(--linea) !important;
+  border-radius: 999px !important;
+  background: var(--hueso-2) !important;
+  color: var(--tinta) !important;
+  box-shadow: none !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+}
+
+/* Control segmentado (períodos): un solo bloque, la opción elegida se levanta. */
+.nb-segmentado {
+  display: grid !important;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 4px !important;
+  padding: 4px !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  background: var(--chip-fondo) !important;
+  box-shadow: none !important;
+}
+
+.nb-segmentado > :is(button, .nb-boton) {
+  min-height: 44px !important;
+  padding: 0 6px !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--tenue) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+.nb-segmentado > :is(button, .nb-boton):is([aria-pressed='true'], .is-selected) {
+  background: var(--hueso-2) !important;
+  box-shadow: var(--sombra-pop-chica) !important;
+  color: var(--tinta) !important;
+}
+
+/* Acciones dentro de una tarjeta: dos grandes y el resto livianas. */
+.nb-acciones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.nb-acciones > .nb-boton { padding: 10px 12px; font-size: 15px; }
+
+.nb-acciones-sec {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.nb-accion-sec {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--verde);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.nb-accion-sec:hover { background: var(--verde-suave); }
+.nb-accion-sec svg { width: 18px; height: 18px; }
+
+.fiado-card {
+  padding: 16px !important;
+  border-bottom: 1px solid var(--linea) !important;
+}
+
+.fiados-list {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 900px) {
+  .fiados-list { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+}
+
+/* Productos del stock */
+.nb-grilla-productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+@media (min-width: 900px) {
+  .nb-grilla-productos { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+}
+
+.nb-producto-stock {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 14px;
+  border: 1px solid var(--linea);
+  border-radius: 18px;
+  background: var(--hueso-2);
+  box-shadow: var(--sombra-pop);
+}
+
+.nb-producto-cabeza { display: flex; align-items: flex-start; gap: 4px; }
+
+.nb-producto-nombre {
+  display: -webkit-box;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--tinta);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.nb-producto-cabeza .nb-icono-boton { width: 36px; height: 36px; flex-basis: 36px; margin: -6px -6px 0 0; }
+.nb-producto-cabeza .nb-icono-boton[data-active='true'] { color: var(--ambar); }
+.nb-producto-cabeza .nb-icono-boton[data-active='true'] svg { fill: currentColor; }
+
+.nb-producto-categoria { margin-top: 2px; color: var(--tenue); font-size: 13px; font-weight: 500; }
+
+.nb-producto-precio {
+  display: block;
+  margin-top: 8px;
+  color: var(--tinta);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.nb-producto-nivel {
+  height: 6px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--chip-fondo);
+}
+
+.nb-producto-nivel > div { height: 100%; border-radius: 999px; }
+
+.nb-producto-datos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 8px;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.nb-producto-acciones {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px !important;
+  margin-top: 12px !important;
+}
+
+.nb-producto-acciones .stock-product-action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 6px !important;
+  border: 1px solid var(--linea) !important;
+  border-radius: 12px !important;
+  background: var(--hueso-2) !important;
+  color: var(--tinta) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+.nb-producto-acciones .stock-product-action svg { width: 18px; height: 18px; }
+
+.nb-producto-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.nb-producto-pie .nb-accion-sec { padding-left: 2px; }
+.nb-eliminar { color: var(--rojo); }
+.nb-eliminar:hover:not(:disabled) { background: var(--rojo-fondo); color: var(--rojo); }
+
+/* Filas de filtros que se deslizan de costado, como en una app. */
+[data-scroll-x] {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+  margin-inline: -16px;
+  padding: 2px 16px 6px !important;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+[data-scroll-x]::-webkit-scrollbar { display: none; }
+
+[data-scroll-x] > button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 16px !important;
+  border: 1px solid var(--linea) !important;
+  border-radius: 999px !important;
+  background: var(--hueso-2) !important;
+  box-shadow: none !important;
+  color: var(--tinta) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  white-space: nowrap;
+}
+
+[data-scroll-x] > button.is-selected {
+  border-color: var(--tinta) !important;
+  background: var(--tinta) !important;
+  color: var(--hueso-2) !important;
+}
+
+@media (min-width: 900px) {
+  [data-scroll-x] { flex-wrap: wrap !important; margin-inline: 0; padding-inline: 0 !important; }
+}
+
+/* Buscadores con ícono (Pedidos, Clientes): el campo ocupa toda la caja. */
+.pedidos-search,
+.clientes-search {
+  min-height: 48px;
+  border: 1px solid var(--contorno) !important;
+  border-radius: var(--radio-boton) !important;
+  background: var(--hueso-2) !important;
+}
+
+.pedidos-search input,
+.clientes-search input {
+  min-height: 46px;
+  align-self: stretch;
+}
+
+/* Stock: los filtros en dos filas que no se aprietan. */
+.nb-filtros-stock {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.nb-filtros-stock > select { grid-column: 1 / -1; min-height: 48px; font-size: 15px !important; }
+.nb-filtros-stock > .nb-boton { min-height: 44px; padding: 0 10px !important; font-size: 15px !important; }
+
+@media (min-width: 900px) {
+  .nb-filtros-stock { grid-template-columns: auto auto minmax(12rem, 18rem); justify-content: start; }
+  .nb-filtros-stock > select { grid-column: auto; }
+}
+
+.nb-producto-cabeza .nb-icono-boton { width: 40px; height: 40px; flex-basis: 40px; }
+
+/* Centro Pro: todo lo que se toca llega a 44px. */
+.pro-feature-action :is(a, button),
+.pro-panel-link,
+.pro-client-callout a,
+.pro-integrity-footer a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px !important;
+  border-radius: 12px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+.pro-alert-row > a {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.pro-inline-warning { min-height: 44px; }
+
+.pro-section-heading { flex-wrap: wrap; }
+.pro-section-count { flex: 0 0 auto; }
+
+.plata-operation-card { min-width: 0; max-width: 100%; }
+.historial-export { min-height: 44px; font-size: 14px !important; }
+
+/* Plata en la PC: las tarjetas se acomodan al ancho, sin salirse. */
+@media (min-width: 900px) {
+  .plata-operations-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)) !important;
+  }
+
+  .plata-operation-card:nth-child(2) { grid-column: auto !important; }
+}
+
+.plata-operation-card > h2:first-child { margin-top: 0 !important; }
+
+.config-file-button { min-height: 44px; padding-inline: 14px !important; }
+
+.nb-boton.nb-chip-filtro {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px !important;
+  font-size: 15px;
+}
+
+/* Mientras el formulario está abierto, el botón que lo abre sobra. */
+.page-module-head > .nb-boton:disabled { display: none; }
+
+/* Opciones grandes con título y explicación (Precios): la elegida se marca
+   con borde y fondo verde suave, y los dos textos se leen siempre. */
+.price-mode-button {
+  display: flex !important;
+  min-height: 64px;
+  flex-direction: column;
+  align-items: flex-start !important;
+  justify-content: center;
+  gap: 2px;
+  padding: 10px 14px !important;
+  border: 1px solid var(--linea) !important;
+  background: var(--hueso-2) !important;
+  box-shadow: none !important;
+  color: var(--tinta) !important;
+  text-align: left;
+}
+
+.price-mode-button strong { font-size: 15px; font-weight: 800; color: var(--tinta); }
+.price-mode-button small { font-size: 13px; font-weight: 600; color: var(--tenue); }
+
+.price-mode-button[aria-pressed='true'] {
+  border: 2px solid var(--verde) !important;
+  background: var(--verde-suave) !important;
+}
+
+/* ───────────── Marca y pantalla de acceso ───────────── */
+
+/* El mismo ícono que se instala en el celu, en vez de una "L" suelta. */
+.nb-logo,
+.access-brand-mark {
+  background: #0A6F5A url('/icon-192.png') center / cover no-repeat !important;
+  color: transparent !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 599px) {
+  /* En el celu el acceso ocupa la pantalla entera, como el login de una app. */
+  .access-page {
+    align-items: stretch !important;
+    padding: 0 !important;
+    background: var(--hueso-2) !important;
+  }
+
+  .access-card {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0 !important;
+    padding: calc(28px + env(safe-area-inset-top, 0px)) 20px calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    align-content: start !important;
+    justify-content: stretch;
+  }
+}

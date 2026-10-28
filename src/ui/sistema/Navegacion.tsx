@@ -221,7 +221,7 @@ export function Navegacion() {
         </div>
 
         {hayVender && (
-          <Link href="/vender" className="nb-lateral-vender" aria-current={esActiva(ruta, '/vender') ? 'page' : undefined} data-tip="Vender">
+          <Link href="/vender" className="nb-lateral-vender" aria-current={esActiva(ruta, '/vender') ? 'page' : undefined} aria-label={compacta ? 'Vender' : undefined} data-tip="Vender">
             <IconoVender /><span className="nb-lateral-texto">Vender</span>
           </Link>
         )}
@@ -230,7 +230,7 @@ export function Navegacion() {
           {visibles.filter((id) => id !== 'vender').map((id) => {
             const { href, texto, Icono } = SECCIONES[id]
             return (
-              <Link key={id} href={href} className="nb-lateral-enlace" aria-current={esActiva(ruta, href) ? 'page' : undefined} data-tip={texto}>
+              <Link key={id} href={href} className="nb-lateral-enlace" aria-current={esActiva(ruta, href) ? 'page' : undefined} aria-label={compacta ? texto : undefined} data-tip={texto}>
                 <Icono /><span className="nb-lateral-texto">{texto}</span>{insignia(id)}
               </Link>
             )

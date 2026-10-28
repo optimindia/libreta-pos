@@ -220,7 +220,7 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
         value={busqueda}
         onChange={(evento) => setBusqueda(evento.target.value)}
       />
-      <div className="mt-2 flex gap-2">
+      <div className="nb-filtros-stock mt-2">
         <Boton
           variante={soloFaltantes ? 'fiado' : 'secundario'}
           className="flex-1 !py-2.5 !text-[12px]"
@@ -257,24 +257,23 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
       {visibles.length === 0 ? (
         <p className="mt-4 text-[13px]" style={{ color: 'var(--tenue)' }}>No encontramos productos con esos filtros.</p>
       ) : (
-        <ul className="stock-grid mt-3 grid grid-cols-2 gap-2">
+        <ul className="stock-grid nb-grilla-productos mt-3">
           {visibles.map((producto) => (
-            <li
-              key={producto.id}
-              className="stock-producto rounded-2xl px-3.5 py-3"
-              style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)', boxShadow: 'var(--sombra)' }}
-            >
-              <div className="flex items-start gap-1"><div className="min-w-0 flex-1 truncate text-[13px] font-medium">{producto.nombre}</div><button type="button" aria-label={producto.favorito ? 'Quitar favorito' : 'Agregar favorito'} title={producto.nombre} className="product-favorite-button" data-active={producto.favorito ? 'true' : 'false'} onClick={() => void repos.productos.marcarFavorito(producto.id, !producto.favorito)}><IconoFavorito /></button></div>
-              {producto.categoria && <div className="mt-0.5 truncate text-[12px]" style={{ color: 'var(--tenue)' }}>{producto.categoria}</div>}
-              <Importe centavos={producto.precio} tamaño="chico" className="mt-0.5" />
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full" style={{ background: 'var(--linea)' }}>
-                <div className="h-full rounded-full" style={{ width: `${nivel(producto) * 100}%`, background: colorNivel(producto) }} />
+            <li key={producto.id} className="stock-producto nb-producto-stock">
+              <div className="nb-producto-cabeza">
+                <div className="nb-producto-nombre">{producto.nombre}</div>
+                <button type="button" aria-label={producto.favorito ? 'Quitar favorito' : 'Agregar favorito'} title={producto.nombre} className="product-favorite-button nb-icono-boton" data-active={producto.favorito ? 'true' : 'false'} onClick={() => void repos.productos.marcarFavorito(producto.id, !producto.favorito)}><IconoFavorito /></button>
               </div>
-              <div className="tabular mt-1 text-[12px]" style={{ color: colorNivel(producto) }}>
-                {producto.stock <= 0 ? 'sin stock' : `quedan ${producto.stock}`}
+              {producto.categoria && <div className="nb-producto-categoria">{producto.categoria}</div>}
+              <Importe centavos={producto.precio} className="nb-producto-precio" />
+              <div className="nb-producto-nivel" aria-hidden="true">
+                <div style={{ width: `${nivel(producto) * 100}%`, background: colorNivel(producto) }} />
               </div>
-              <div className="mt-1 text-[12px]" style={{ color: producto.precio < producto.costo ? 'var(--ambar)' : 'var(--tenue)' }}>{margenProducto(producto)}% margen</div>
-              <div className="stock-product-actions">
+              <div className="nb-producto-datos">
+                <span className="tabular" style={{ color: colorNivel(producto) }}>{producto.stock <= 0 ? 'Sin stock' : `Quedan ${producto.stock}`}</span>
+                <span style={{ color: producto.precio < producto.costo ? 'var(--ambar)' : 'var(--tenue)' }}>{margenProducto(producto)}% margen</span>
+              </div>
+              <div className="stock-product-actions nb-producto-acciones">
                 <button
                   type="button"
                   className="stock-product-action"
@@ -292,8 +291,10 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
                   <IconoMovimiento /> <span>Ajustar</span>
                 </button>
               </div>
-              <button type="button" className="stock-product-delete" aria-label={`Eliminar ${producto.nombre}`} onClick={() => solicitarEliminacion(producto)}><IconoEliminar /> <span>Eliminar producto</span></button>
-              <button type="button" className="mt-1.5 w-full rounded-lg py-1.5 text-[12px] font-semibold active:opacity-70" style={{ color: 'var(--tinta)', border: '1px solid var(--linea)' }} onClick={() => setDetalle(producto)}>Ver rendimiento</button>
+              <div className="nb-producto-pie">
+                <button type="button" className="nb-accion-sec" aria-label={`Ver rendimiento de ${producto.nombre}`} onClick={() => setDetalle(producto)}>Rendimiento</button>
+                <button type="button" className="nb-icono-boton nb-eliminar" aria-label={`Eliminar ${producto.nombre}`} title="Eliminar producto" onClick={() => solicitarEliminacion(producto)}><IconoEliminar /></button>
+              </div>
               {ajustando === producto.id && (
                 <AjustarStock producto={producto} onTerminado={() => setAjustando(null)} />
               )}

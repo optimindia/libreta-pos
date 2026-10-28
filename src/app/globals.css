@@ -105,8 +105,7 @@ body {
 .clientes-highlight-debt span {
   color: var(--tenue);
   font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
 }
 
 .pedidos-command-total strong,
@@ -3035,8 +3034,7 @@ textarea:focus {
   color: var(--tenue);
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .sidebar-secondary-label {
@@ -3318,8 +3316,7 @@ textarea:focus {
   color: var(--tenue);
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .vender-item-count,
@@ -3510,9 +3507,8 @@ textarea:focus {
   color: var(--tenue);
   font-size: 0.75rem;
   font-weight: 750;
-  letter-spacing: 0.14em;
+  letter-spacing: 0;
   line-height: 1;
-  text-transform: uppercase;
 }
 
 .page-title {
@@ -3544,8 +3540,7 @@ textarea:focus {
   box-shadow: var(--sombra);
   color: var(--tenue);
   font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
 }
 
 .page-head-stat strong {
@@ -4213,8 +4208,7 @@ textarea:focus {
   color: var(--tenue);
   font-size: 0.75rem;
   font-weight: 750;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .stock-load-heading h2 {
@@ -4697,8 +4691,7 @@ textarea:focus {
   color: var(--tenue);
   font-size: 0.75rem;
   font-weight: 750;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .vender-payment-heading strong {
@@ -4791,8 +4784,7 @@ textarea:focus {
   color: var(--verde);
   font-size: 0.75rem;
   font-weight: 750;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .stock-empty-state h2 {
@@ -4858,8 +4850,7 @@ textarea:focus {
   color: var(--verde);
   font-size: 0.75rem;
   font-weight: 750;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .fiados-empty-state h2,
@@ -6161,8 +6152,7 @@ select.form-input {
   color: var(--tenue);
   font-size: 0.75rem;
   font-weight: 750;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .invoice-item-row {
@@ -6442,8 +6432,7 @@ select.form-input {
   color: var(--ambar);
   font-size: 0.75rem;
   font-weight: 780;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .access-title {
@@ -7363,8 +7352,7 @@ select.form-input {
   color: var(--tenue);
   font-size: 0.75rem;
   font-weight: 750;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .account-status-main-copy strong {

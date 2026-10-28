@@ -14,6 +14,8 @@ import { Importe } from '@/ui/sistema/Importe'
 import { Boton } from '@/ui/sistema/Boton'
 import { IconoFlechaDerecha, IconoFlechaIzquierda, IconoHistorial } from '@/ui/sistema/iconos'
 
+const ETIQUETA_PERIODO: Record<PeriodoReporte, string> = { hoy: 'Hoy', '7dias': '7 días', '30dias': '30 días', todo: 'Todo' }
+
 const MEDIOS: Record<string, string> = {
   efectivo: 'Efectivo', transferencia: 'Transferencia', qr: 'QR', fiado: 'Fiado',
 }
@@ -103,9 +105,9 @@ export function PantallaHistorial() {
         <span className="tabular text-[12px]" style={{ color: 'var(--tenue)' }}>{filtradas.length} ventas</span>
       </div>
       <input aria-label="Buscar en historial" placeholder="Buscar producto o medio de pago…" className="historial-search mt-4 w-full rounded-xl px-3 py-2.5 text-[14px]" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)', color: 'var(--tinta)' }} value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} />
-      <div className="historial-filters mt-2 grid grid-cols-4 gap-1.5">
+      <div className="historial-filters nb-segmentado mt-3">
         {(['hoy', '7dias', '30dias', 'todo'] as PeriodoReporte[]).map((opcion) => (
-          <Boton key={opcion} variante={periodo === opcion ? 'principal' : 'secundario'} className="!rounded-xl !px-1 !py-2 !text-[12px]" onClick={() => setPeriodo(opcion)}>{opcion === 'todo' ? 'Todo' : opcion === 'hoy' ? 'Hoy' : opcion}</Boton>
+          <Boton key={opcion} variante={periodo === opcion ? 'principal' : 'secundario'} aria-pressed={periodo === opcion} onClick={() => setPeriodo(opcion)}>{ETIQUETA_PERIODO[opcion]}</Boton>
         ))}
       </div>
       <button type="button" className="historial-export mt-2 w-full rounded-xl py-2.5 text-[12px] font-semibold" style={{ background: 'var(--hueso-2)', border: '1px solid var(--linea)', color: 'var(--tinta)' }} onClick={() => descargarCsv(`ventas-${new Date().toISOString().slice(0, 10)}.csv`, ventasACsv(filtradas))}>Exportar estas ventas a CSV</button>

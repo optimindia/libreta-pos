@@ -18,6 +18,8 @@ import { CentroAcciones } from './CentroAcciones'
 import { estadoVencimiento } from '@/dominio/inteligencia'
 import { CargandoPagina } from '@/ui/sistema/CargandoPagina'
 
+const ETIQUETA_PERIODO: Record<PeriodoReporte, string> = { hoy: 'Hoy', '7dias': '7 días', '30dias': '30 días', todo: 'Todo' }
+
 const NOMBRE_MEDIO: Record<string, string> = {
   efectivo: 'Efectivo', transferencia: 'Transferencia', qr: 'QR', fiado: 'Fiado',
 }
@@ -79,16 +81,15 @@ export function PantallaPlata() {
 
       <CentroAcciones agotados={agotados} reposiciones={datos.compras.length} vencidos={vencidos} alertasMargen={alertasMargen} cierrePendiente={cierrePendiente} pendientesSync={nubeActiva() ? pendientesSync : 0} />
 
-      <div className="plata-periodos mt-3 grid grid-cols-4 gap-1.5">
+      <div className="plata-periodos nb-segmentado mt-3">
         {PERIODOS.map((opcion) => (
           <Boton
             key={opcion}
             variante={periodo === opcion ? 'principal' : 'secundario'}
-            className="!rounded-xl !px-1 !py-2 !text-[12px]"
             aria-pressed={periodo === opcion}
             onClick={() => setPeriodo(opcion)}
           >
-            {opcion === 'todo' ? 'Todo' : opcion === 'hoy' ? 'Hoy' : opcion}
+            {ETIQUETA_PERIODO[opcion]}
           </Boton>
         ))}
       </div>

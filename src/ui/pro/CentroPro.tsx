@@ -286,7 +286,7 @@ export function CentroPro() {
 
       <div className="pro-toolbar">
         <div><span className="pro-toolbar-kicker">Ventana de análisis</span><strong>{periodoLabel(periodo)}</strong><small>Las métricas se recalculan con tus datos locales.</small></div>
-        <div className="pro-periods" role="group" aria-label="Período de análisis">{PERIODOS.map((opcion) => <button key={opcion.id} type="button" className={periodo === opcion.id ? 'is-selected' : ''} aria-pressed={periodo === opcion.id} onClick={() => setPeriodo(opcion.id)}>{opcion.label}</button>)}</div>
+        <div className="pro-periods nb-segmentado" role="group" aria-label="Período de análisis">{PERIODOS.map((opcion) => <button key={opcion.id} type="button" className={periodo === opcion.id ? 'is-selected' : ''} aria-pressed={periodo === opcion.id} onClick={() => setPeriodo(opcion.id)}>{opcion.label}</button>)}</div>
       </div>
 
       {aviso && <div className="pro-toast" role="status"><IconoReintentar /><span>{aviso}</span><button type="button" onClick={() => setAviso(null)} aria-label="Cerrar aviso">×</button></div>}
