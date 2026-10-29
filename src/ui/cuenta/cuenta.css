@@ -1,0 +1,242 @@
+/* Cuenta con el sistema F: la pantalla "Tu suscripción" y la tarjeta
+   EstadoCuenta (que también se ve en Ajustes). Celu: una columna. PC
+   (≥ 900 px): estado a la izquierda, nota y legales a la derecha.
+   Sólo tokens --f-*. */
+
+.f-cuenta {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.f-cuenta-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--f-3);
+}
+
+.f-cuenta-encabezado > div > * { margin: 0; }
+.f-cuenta-subtitulo { margin-top: 2px !important; color: var(--f-tinta-2); font-weight: 600; }
+
+.f-cuenta-cuerpo {
+  display: grid;
+  align-items: start;
+  gap: var(--f-4);
+}
+
+.f-cuenta-lateral {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+/* ───────────── Tarjeta de estado ───────────── */
+
+.f-cuenta-estado {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.f-cuenta-estado > * { margin: 0; }
+
+.f-cuenta-simple {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.f-cuenta-simple p { margin: 2px 0 0; }
+
+.f-cuenta-cabeza {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--f-3);
+}
+
+.f-cuenta-cabeza .f-etiqueta { margin-left: auto; }
+
+.f-cuenta-titulo { min-width: 0; flex: 1 1 auto; }
+.f-cuenta-titulo > * { margin: 0; }
+.f-cuenta-titulo .f-seccion { overflow-wrap: anywhere; }
+.f-cuenta-titulo p { margin-top: 2px; }
+
+.f-cuenta-icono {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie-2);
+  color: var(--f-tinta-2);
+}
+
+.f-cuenta-icono svg { width: 24px; height: 24px; }
+.f-cuenta-icono[data-tono='ok'] { background: var(--f-verde-suave); color: var(--f-verde); }
+.f-cuenta-icono[data-tono='cuidado'] { background: var(--f-coral-suave); color: var(--f-coral); }
+.f-cuenta-gira svg { animation: f-cuenta-gira 1s linear infinite; }
+
+@keyframes f-cuenta-gira {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f-cuenta-gira svg { animation: none; }
+}
+
+.f-cuenta-bloque { display: flex; flex-direction: column; gap: var(--f-1); }
+.f-cuenta-bloque p { margin: 0; color: var(--f-tinta-2); }
+
+.f-cuenta-principal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-4);
+  padding: var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-verde-suave);
+  color: var(--f-verde);
+}
+
+.f-cuenta-estado[data-estado='aviso'] .f-cuenta-principal { background: var(--f-ambar-suave); color: var(--f-ambar); }
+.f-cuenta-estado[data-estado='bloqueado'] .f-cuenta-principal { background: var(--f-coral-suave); color: var(--f-coral); }
+
+.f-cuenta-copia { display: flex; min-width: 0; flex-direction: column; gap: var(--f-1); }
+.f-cuenta-copia > * { margin: 0; }
+.f-cuenta-copia .f-dato { color: inherit; }
+.f-cuenta-copia strong { font-size: 18px; font-weight: 800; line-height: 1.25; }
+.f-cuenta-copia p { color: inherit; font-weight: 600; }
+
+.f-cuenta-dias {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--f-2) var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+  text-align: center;
+}
+
+.f-cuenta-dias span { color: var(--f-tinta-2); font-size: 13px; font-weight: 700; }
+
+.f-cuenta-datos {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.f-cuenta-datos > div {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-3);
+  border-bottom: 1px solid var(--f-superficie-2);
+}
+
+.f-cuenta-datos > div:last-child { border-bottom: 0; }
+
+.f-cuenta-datos dt {
+  display: flex;
+  align-items: center;
+  gap: var(--f-2);
+  color: var(--f-tinta-2);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.f-cuenta-datos dt svg { width: 20px; height: 20px; flex: 0 0 20px; }
+.f-cuenta-datos dd { margin: 0; font-size: 16px; font-weight: 700; text-align: right; }
+
+.f-cuenta-alerta { display: flex; align-items: flex-start; gap: var(--f-3); }
+.f-cuenta-alerta svg { width: 22px; height: 22px; flex: 0 0 22px; }
+
+.f-cuenta-pie {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-4);
+  padding-top: var(--f-4);
+  border-top: 1px solid var(--f-superficie-2);
+}
+
+.f-cuenta-seguro {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--f-3);
+  color: var(--f-verde);
+}
+
+.f-cuenta-seguro svg { width: 22px; height: 22px; flex: 0 0 22px; }
+.f-cuenta-seguro span { display: flex; flex-direction: column; gap: 2px; color: var(--f-tinta); }
+.f-cuenta-seguro strong { font-size: 15px; font-weight: 700; }
+.f-cuenta-seguro small { color: var(--f-tinta-2); font-size: 13px; font-weight: 600; line-height: 1.4; }
+
+.f-cuenta-acciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--f-2);
+}
+
+/* ───────────── Nota y legales ───────────── */
+
+.f-cuenta-nota {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--f-3);
+}
+
+.f-cuenta-nota p { margin: 2px 0 0; color: var(--f-tinta-2); }
+
+.f-cuenta-nota-icono {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border-radius: var(--f-radio-chip);
+  background: var(--f-verde-suave);
+  color: var(--f-verde);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.f-cuenta-legal { display: flex; flex-direction: column; gap: var(--f-1); }
+.f-cuenta-legal > * { margin: 0; }
+
+.f-cuenta-legal ul {
+  display: flex;
+  flex-direction: column;
+  margin: var(--f-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.f-cuenta-legal li { border-bottom: 1px solid var(--f-superficie-2); }
+.f-cuenta-legal li:last-child { border-bottom: 0; }
+
+.f-cuenta-legal a {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  color: var(--f-tinta);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (min-width: 900px) {
+  .f-cuenta-cuerpo { grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr); }
+  .f-cuenta-pie { flex-direction: row; align-items: center; justify-content: space-between; }
+  .f-cuenta-pie .f-cuenta-seguro { max-width: 46%; }
+  .f-cuenta-acciones { flex: 0 0 auto; grid-template-columns: repeat(2, auto); }
+}
