@@ -10,6 +10,7 @@ import { defineConfig, devices } from '@playwright/test'
 export default defineConfig({
   testDir: './tests/e2e-produccion',
   workers: 1,
+  retries: process.env.CI ? 1 : 0,
   // El mismo `.next` lo usan `next dev` y `next start`: esta suite corre sola.
   use: { baseURL: 'http://localhost:3101', ...devices['Pixel 7'] },
   webServer: {

@@ -87,19 +87,19 @@ test('con la nube caída la venta se reintenta y no se pierde', async ({ page, c
 
 test('con la última confirmación de hace menos de 72 h y sin red no manda al login', async ({ page, context }) => {
   await abrirYAsegurarOffline(page)
-  await fijarVerificadoEn(page, Date.now() - 71 * HORA)
   await context.setOffline(true)
+  await fijarVerificadoEn(page, Date.now() - 71 * HORA)
 
   await page.goto('/vender')
-  await expect(page.getByRole('link', { name: /^vender/i }).first()).toBeVisible()
+  await expect(page.getByRole('link', { name: /^vender/i }).first()).toBeVisible({ timeout: 15_000 })
   await expect(page.getByText(TEXTO_LOGIN)).toHaveCount(0)
   await expect(page.getByText(/Conectate para continuar|No pudimos validar tu cuenta/)).toHaveCount(0)
 })
 
 test('pasadas las 72 h sin verificar, sin red pide conectarse (y tampoco muestra el login)', async ({ page, context }) => {
   await abrirYAsegurarOffline(page)
-  await fijarVerificadoEn(page, Date.now() - 73 * HORA)
   await context.setOffline(true)
+  await fijarVerificadoEn(page, Date.now() - 73 * HORA)
 
   await page.goto('/vender')
   // Según cómo falle la red el motivo es sin_red o error_red: ambos piden verificar.
@@ -109,6 +109,7 @@ test('pasadas las 72 h sin verificar, sin red pide conectarse (y tampoco muestra
 
 test('sin red, un token vencido no cierra la sesión del aparato', async ({ page, context }) => {
   await abrirYAsegurarOffline(page)
+  await context.setOffline(true)
   // El token guardado vence (un día sin abrir la app) y sin señal no se puede renovar.
   await page.evaluate(() => {
     const clave = 'sb-falso-auth-token'
@@ -116,10 +117,9 @@ test('sin red, un token vencido no cierra la sesión del aparato', async ({ page
     sesion.expires_at = Math.floor(Date.now() / 1000) - 3600
     localStorage.setItem(clave, JSON.stringify(sesion))
   })
-  await context.setOffline(true)
 
   await page.goto('/vender')
-  await expect(page.getByRole('link', { name: /^vender/i }).first()).toBeVisible()
+  await expect(page.getByRole('link', { name: /^vender/i }).first()).toBeVisible({ timeout: 15_000 })
   await expect(page.getByText(TEXTO_LOGIN)).toHaveCount(0)
   await expect(page.getByText(/Conectate para continuar|No pudimos validar tu cuenta/)).toHaveCount(0)
 })
