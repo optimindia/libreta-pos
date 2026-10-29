@@ -4,7 +4,10 @@ import { cerrarSesion } from '@/datos/nube/sesion'
 import type { EstadoAcceso } from '@/datos/nube/acceso'
 import { estadoSuscripcion, fechaSuscripcion } from '@/dominio/suscripcion'
 import { enlaceWhatsApp } from '@/dominio/mensajes'
-import { Boton } from './Boton'
+import { Boton, clasesBoton } from './Boton'
+import { Etiqueta } from './Etiqueta'
+import { Tarjeta } from './Tarjeta'
+import './acceso.css'
 import { IconoBloqueo, IconoCerrar, IconoCuentaSegura } from './iconos'
 
 function copyEstado(estado: ReturnType<typeof estadoSuscripcion>, verificadoRemoto: boolean, motivo?: 'sin_red' | 'error_red' | 'vencimiento_local') {
@@ -35,39 +38,43 @@ export function PantallaEstadoAcceso({ estado }: { estado: EstadoAcceso }) {
     await cerrarSesion()
   }
 
+  const seguro = estado.verificadoRemoto && efectivo !== 'vencida' && efectivo !== 'suspendida' && efectivo !== 'sin_suscripcion'
+
   return (
-    <div className="access-page">
-      <div className="access-card access-status-card form-shell form-card" role="alertdialog" aria-modal="true" aria-labelledby="access-status-title">
-        <div className="access-brand">
-          <span className="access-brand-mark">L</span>
+    <div className="f-acceso">
+      <Tarjeta como="section" relleno="grande" className="f-acceso-tarjeta" role="alertdialog" aria-modal="true" aria-labelledby="access-status-title">
+        <div className="f-acceso-marca-fila">
+          <span className="f-acceso-marca" aria-hidden="true">L</span>
           <div><strong>Libreta</strong><span>Acceso protegido</span></div>
         </div>
-        <div className={`access-status-icon${estado.verificadoRemoto && efectivo !== 'vencida' && efectivo !== 'suspendida' && efectivo !== 'sin_suscripcion' ? ' is-safe' : ''}`} aria-hidden="true"><IconoBloqueo /></div>
-        <div>
-          <span className="page-kicker">{estado.negocio?.nombre ?? 'Tu negocio'}</span>
-          <div className="access-status-label">{etiqueta}</div>
-          <h1 id="access-status-title" className="access-title">{copy.titulo}</h1>
-          <p className="access-description">{copy.texto}</p>
+        <div className="f-acceso-estado">
+          <span className="f-acceso-icono f-acceso-icono-grande" data-tono={seguro ? 'ok' : 'cuidado'} aria-hidden="true"><IconoBloqueo /></span>
+          <div>
+            <span className="f-dato">{estado.negocio?.nombre ?? 'Tu negocio'}</span>
+            <div className="f-acceso-etiqueta"><Etiqueta tono={seguro ? 'verde' : 'coral'} punto>{etiqueta}</Etiqueta></div>
+            <h1 id="access-status-title" className="f-seccion">{copy.titulo}</h1>
+            <p className="f-texto">{copy.texto}</p>
+          </div>
         </div>
         {fecha && (
-          <div className="access-expiry">
+          <div className="f-acceso-vence">
             <span>{efectivo === 'vencida' ? 'Venció el' : 'Fecha de vencimiento'}</span>
             <strong>{fecha}</strong>
           </div>
         )}
-        <div className="access-security-note">
+        <div className="f-acceso-nota f-acceso-seguro">
           <IconoCuentaSegura />
           <span><strong>Control de acceso activo</strong><small>La suscripción se verifica contra el servidor antes de habilitar el POS.</small></span>
         </div>
-        <a className="access-contact-button" href={enlaceWhatsApp('', `Hola, necesito revisar el acceso de mi negocio${estado.negocio?.nombre ? ` ${estado.negocio.nombre}` : ''}.`)} target="_blank" rel="noreferrer">
+        <a className={clasesBoton('principal')} href={enlaceWhatsApp('', `Hola, necesito revisar el acceso de mi negocio${estado.negocio?.nombre ? ` ${estado.negocio.nombre}` : ''}.`)} target="_blank" rel="noreferrer">
           Hablar por WhatsApp
         </a>
-        <a className="access-account-link" href="/cuenta">Ver detalle de mi cuenta</a>
-        <Boton variante="secundario" className="button-with-icon w-full" onClick={() => void salir()}>
+        <a className={clasesBoton('secundario')} href="/cuenta">Ver detalle de mi cuenta</a>
+        <Boton variante="secundario" ancho onClick={() => void salir()}>
           <IconoCerrar /> Cerrar sesión en este aparato
         </Boton>
-        <p className="form-field-help">Tus datos no se borran por vencer o cerrar sesión.</p>
-      </div>
+        <p className="f-acceso-ayuda">Tus datos no se borran por vencer o cerrar sesión.</p>
+      </Tarjeta>
     </div>
   )
 }

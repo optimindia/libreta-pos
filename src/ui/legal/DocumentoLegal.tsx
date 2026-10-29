@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
+import '@/ui/sistema/acceso.css'
 
 /** Fecha desde la que rigen los términos y la política de privacidad. */
 export const VIGENCIA_LEGAL = '28 de octubre de 2026'
@@ -25,7 +26,7 @@ export function DocumentoLegal({ titulo, bajada, otro, children }: {
     <div className="legal-page">
       <header className="legal-top">
         <Link href="/" className="legal-brand" aria-label="Ir a Libreta">
-          <span className="access-brand-mark" aria-hidden="true">L</span>
+          <span className="f-acceso-marca" aria-hidden="true">L</span>
           <strong>Libreta</strong>
         </Link>
         <Link href="/" className="legal-back">Volver a Libreta</Link>
