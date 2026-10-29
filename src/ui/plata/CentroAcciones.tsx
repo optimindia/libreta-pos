@@ -55,7 +55,7 @@ export function CentroAcciones({
       <div className="fp-acciones-cabeza">
         <div>
           <h2 id="control-center-title" className="f-seccion">Tu siguiente movimiento</h2>
-          <p className="f-dato">{bajoControl ? 'No hay alertas operativas para resolver ahora.' : 'Priorizado para que sepas qué conviene hacer primero.'}</p>
+          <p className="f-dato">{bajoControl ? 'No tenés nada urgente para resolver ahora.' : 'Priorizado para que sepas qué conviene hacer primero.'}</p>
         </div>
         <Etiqueta tono={bajoControl ? 'verde' : 'ambar'} punto>
           {bajoControl ? 'Bajo control' : `${visibles.length} ${visibles.length === 1 ? 'prioridad' : 'prioridades'}`}
@@ -67,7 +67,7 @@ export function CentroAcciones({
           <span className="fp-icono" data-tono="verde" aria-hidden="true"><IconoNube /></span>
           <div>
             <strong className="f-renglon-texto">Todo tranquilo por acá</strong>
-            <span className="f-dato">{pendientesSync > 0 ? `${pendientesSync} cambios esperan conexión para sincronizarse.` : 'Seguí vendiendo: la operación está ordenada.'}</span>
+            <span className="f-dato">{pendientesSync > 0 ? `${pendientesSync} cambios esperan conexión para enviarse.` : 'Seguí vendiendo: la operación está ordenada.'}</span>
           </div>
         </div>
       ) : (

@@ -11,6 +11,7 @@ import { IconoBorrar, IconoNuevoCliente } from '@/ui/sistema/iconos'
 import { Hoja } from '@/ui/sistema/Hoja'
 import { Boton } from '@/ui/sistema/Boton'
 import { Segmentado, type OpcionSegmentado } from '@/ui/sistema/Segmentado'
+import { noSePudo } from '@/ui/sistema/textos'
 
 export type MedioCobro = 'efectivo' | 'transferencia' | 'qr' | 'fiado'
 
@@ -189,7 +190,7 @@ function Fiado({
       })
       onCobrar(cliente.id, fechaVencimiento())
     } catch {
-      setAviso('No se pudo guardar el cliente. Probá de nuevo.')
+      setAviso(noSePudo('guardar', 'el cliente'))
       setGuardando(false)
     }
   }
@@ -263,7 +264,7 @@ function Fiado({
             )}
           </div>
           <Boton variante="secundario" ancho onClick={() => setNuevo(true)}>
-            <IconoNuevoCliente /> Nuevo cliente
+            <IconoNuevoCliente /> Agregar cliente
           </Boton>
         </section>
       )}

@@ -12,6 +12,7 @@ import { PantallaEstadoAcceso } from './PantallaEstadoAcceso'
 import { IconoAlerta, IconoCuenta } from './iconos'
 import { GuardiaFuncion } from './GuardiaFuncion'
 import './acceso.css'
+import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
 
 /** Páginas que cualquiera puede leer sin cuenta: los términos y la política
  *  de privacidad tienen que poder consultarse antes de aceptarlos. */
@@ -49,9 +50,9 @@ function Marco({ children, admin = false, estado }: { children: React.ReactNode;
 function CargandoAcceso() {
   return (
     <Marco admin>
-      <div className="f-acceso-cargando" role="status" aria-live="polite">
+      <div className="f-acceso-cargando">
         <span className="f-acceso-marca" aria-hidden="true">L</span>
-        <span>Preparando tu acceso…</span>
+        <EstadoCarga texto="Preparando tu acceso…" filas={2} />
       </div>
     </Marco>
   )

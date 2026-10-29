@@ -7,6 +7,7 @@ import { pesosACentavos, pesosDeTexto } from '@/dominio/dinero'
 import { hayErroresProducto, validarProducto, type ErroresProducto } from '@/dominio/validaciones'
 import { repos } from '@/datos/local/repos'
 import { Boton } from '@/ui/sistema/Boton'
+import { noSePudo } from '@/ui/sistema/textos'
 
 const CATEGORIAS_SUGERIDAS = ['Almacén', 'Bebidas', 'Lácteos', 'Limpieza', 'Golosinas', 'Congelados', 'Panificados', 'Perfumería', 'Mascotas']
 
@@ -91,7 +92,7 @@ export function FormularioProducto({
       }
       onGuardado?.()
     } catch {
-      setAviso('No se pudo guardar el producto. Revisá los datos y probá de nuevo.')
+      setAviso(noSePudo('guardar', 'el producto'))
     } finally {
       setGuardando(false)
     }

@@ -12,6 +12,8 @@ import { Hoja } from '@/ui/sistema/Hoja'
 import { Segmentado } from '@/ui/sistema/Segmentado'
 import { IconoClientes, IconoConfirmar, IconoEntrega, IconoUbicacion } from '@/ui/sistema/iconos'
 import './pedidos.css'
+import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
+import { noSePudo } from '@/ui/sistema/textos'
 
 function fechaInput(epoch: number | null | undefined): string {
   return epoch ? new Date(epoch).toISOString().slice(0, 10) : ''
@@ -90,7 +92,7 @@ export function FormularioPedido({
       setTelefonoNuevo('')
       setBusquedaCliente('')
     } catch {
-      setAviso('No se pudo guardar el cliente.')
+      setAviso(noSePudo('guardar', 'el cliente'))
     } finally {
       setGuardandoCliente(false)
     }
@@ -126,7 +128,7 @@ export function FormularioPedido({
       if (error instanceof ErrorStockInsuficiente) {
         setAviso(`No hay unidades suficientes de ${error.producto}. Disponibles para reservar: ${error.disponible}.`)
       } else {
-        setAviso('No se pudo guardar el pedido. Revisá los datos y probá de nuevo.')
+        setAviso(noSePudo('guardar', 'el pedido'))
       }
     } finally {
       setGuardando(false)
@@ -160,7 +162,7 @@ export function FormularioPedido({
                   </button>
                 ))}
               </div>
-              <Boton type="button" variante="secundario" onClick={() => setNuevoCliente(true)}><IconoClientes /> Crear cliente rápido</Boton>
+              <Boton type="button" variante="secundario" onClick={() => setNuevoCliente(true)}><IconoClientes /> Agregar cliente</Boton>
               {clienteElegido && <p className="f-dato">Pedido asociado a {clienteElegido.nombre}.</p>}
             </>
           ) : (
@@ -190,7 +192,7 @@ export function FormularioPedido({
           </label>
           {busquedaProducto.trim() !== '' && (
             <div className="f-pedidos-opciones">
-              {productosVisibles.length === 0 ? <p className="f-texto f-pedidos-vacio">No encontramos ese producto.</p> : productosVisibles.map((producto) => {
+              {productosVisibles.length === 0 ? <EstadoVacio compacto titulo="No encontramos ese producto" texto="Probá con otro nombre o cargalo primero en Stock." /> : productosVisibles.map((producto) => {
                 const disponible = Math.max(0, producto.stock - (reservadas.get(producto.id) ?? 0) + (pedido?.reservarStock && pedidoReservaDelProducto(pedido, producto.id) ? pedidoCantidad(pedido, producto.id) : 0))
                 return (
                   <button type="button" key={producto.id} className="f-pedidos-opcion" disabled={disponible <= 0} onClick={() => { setItems((actuales) => agregarItemPedido(actuales, producto)); setBusquedaProducto(''); setAviso(null) }}>

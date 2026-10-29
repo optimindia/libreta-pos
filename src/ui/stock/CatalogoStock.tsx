@@ -9,7 +9,6 @@ import { Boton } from '@/ui/sistema/Boton'
 import { Chip } from '@/ui/sistema/Chip'
 import { CampoBusqueda } from '@/ui/sistema/CampoBusqueda'
 import { Segmentado } from '@/ui/sistema/Segmentado'
-import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { Etiqueta } from '@/ui/sistema/Etiqueta'
 import { Hoja } from '@/ui/sistema/Hoja'
 import { normalizarTexto } from '@/dominio/validaciones'
@@ -19,6 +18,9 @@ import { IconoCerrar, IconoEliminar, IconoFavorito, IconoStock } from '@/ui/sist
 import { FormularioProducto } from './FormularioProducto'
 import { usePuede } from '@/ui/sistema/usoRol'
 import './stock.css'
+import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
+import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
+import { TEXTOS, noSePudo } from '@/ui/sistema/textos'
 
 type Orden = 'nombre' | 'stock' | 'precio' | 'margen'
 type Filtro = 'reponer' | 'sin-stock' | 'sin-precio'
@@ -49,7 +51,7 @@ function AjustarStock({ producto, onTerminado }: { producto: Producto; onTermina
       if (error instanceof ErrorStockInsuficiente) {
         setAviso(`No podés restar ${numero}: quedan ${error.disponible} unidades.`)
       } else {
-        setAviso('No se pudo actualizar el stock. Probá de nuevo.')
+        setAviso(noSePudo('actualizar', 'el stock'))
       }
     } finally {
       setGuardando(false)
@@ -89,7 +91,7 @@ function DetalleProducto({ producto }: { producto: Producto }) {
     ].sort((a, b) => b.fecha - a.fecha).slice(0, 8)
     return { ventas, movimientos, rotacion: rotacionStock(producto, ventas), alertas: alertasProducto(producto) }
   }, [producto])
-  if (!datos) return null
+  if (!datos) return <EstadoCarga compacto filas={2} texto="Cargando el detalle…" />
   return (
     <>
       <div className="f-stock-datos">
@@ -99,7 +101,7 @@ function DetalleProducto({ producto }: { producto: Producto }) {
       </div>
       {datos.alertas.length > 0 && <p className="f-aviso" data-tono="ambar">{datos.alertas.join(' · ')}</p>}
       <h3 className="f-hoja-subtitulo">Últimos movimientos</h3>
-      {datos.movimientos.length === 0 ? <p className="f-hoja-ayuda">Todavía no hay ventas ni ingresos para este producto.</p> : (
+      {datos.movimientos.length === 0 ? <EstadoVacio compacto titulo="Todavía no hay movimientos" texto="Las ventas y los ingresos de este producto aparecen acá." /> : (
         <ul className="f-stock-movimientos">
           {datos.movimientos.map((movimiento) => (
             <li key={movimiento.id} className="f-renglon">
@@ -192,13 +194,13 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
       const eliminado = await repos.productos.eliminar(producto.id)
       setProductoAEliminar(null)
       if (!eliminado) return
-      setAviso({ tipo: 'exito', texto: `${producto.nombre} fue eliminado. El cambio se sincronizará con tus otros dispositivos.` })
+      setAviso({ tipo: 'exito', texto: `${producto.nombre} fue eliminado. ${TEXTOS.avisoEliminado}` })
     } catch (error) {
       setProductoAEliminar(null)
       if (error instanceof ErrorProductoConHistorial) {
         setAviso({ tipo: 'error', texto: error.message })
       } else {
-        setAviso({ tipo: 'error', texto: 'No se pudo eliminar el producto. Revisá la conexión e intentá de nuevo.' })
+        setAviso({ tipo: 'error', texto: noSePudo('eliminar', 'el producto') })
       }
     } finally {
       setBorrandoProducto(false)
@@ -216,12 +218,12 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
     return (
       <>
         {avisoVisual}
-        <Tarjeta como="section" relleno="grande" className="f-stock-vacio" aria-labelledby="stock-empty-title">
-          <span className="f-stock-vacio-icono" aria-hidden="true"><IconoStock /></span>
-          <h2 id="stock-empty-title" className="f-seccion">Empezá con tu primer producto</h2>
-          <p className="f-texto">Cargá precio y existencias para tener el stock bajo control desde la primera venta.</p>
-          {onCargar && <Boton variante="principal" onClick={onCargar}>Cargar primer producto</Boton>}
-        </Tarjeta>
+        <EstadoVacio
+          icono={<IconoStock />}
+          titulo="Todavía no tenés productos"
+          texto="Cargá el precio y cuántos tenés para controlar el stock desde la primera venta."
+          accion={onCargar ? { etiqueta: TEXTOS.cargarProducto, alTocar: onCargar } : undefined}
+        />
       </>
     )
   }

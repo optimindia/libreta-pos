@@ -7,6 +7,7 @@ import { pesosDeTexto } from '@/dominio/dinero'
 import { Boton } from '@/ui/sistema/Boton'
 import { IconoCerrar, IconoEscanear } from '@/ui/sistema/iconos'
 import './escaner.css'
+import { noSePudo } from '@/ui/sistema/textos'
 
 /** `codigo` viene cuando el código no es de ningún producto: es lo que
  *  permite ofrecer cargarlo ahí mismo. */
@@ -148,7 +149,7 @@ export function VisorCamara({
         onCerrarRef.current()
       }
     } catch {
-      setErrorNuevo('No se pudo guardar el producto. Probá de nuevo.')
+      setErrorNuevo(noSePudo('guardar', 'el producto'))
     } finally {
       setGuardando(false)
     }

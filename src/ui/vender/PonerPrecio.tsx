@@ -10,6 +10,7 @@ import { useRol } from '@/ui/sistema/usoRol'
 import { db } from '@/datos/local/db'
 import { puede, rolDe } from '@/dominio/roles'
 import { Boton } from '@/ui/sistema/Boton'
+import { noSePudo } from '@/ui/sistema/textos'
 
 /** Un producto cargado sin precio no se puede vender a $0. En vez de
  *  mandar al almacenero a Stock, se lo pide acá mismo: escribe el precio,
@@ -45,7 +46,7 @@ export function PonerPrecio({
       const esDeLaFicha = puede(rolDe((await db.negocio.get('unico'))?.rol), 'editarProductos')
       onListo(esDeLaFicha ? await repos.productos.guardar({ ...producto, precio }) : { ...producto, precio })
     } catch {
-      setError('No se pudo guardar el precio. Probá de nuevo.')
+      setError(noSePudo('guardar', 'el precio'))
       setGuardando(false)
     }
   }

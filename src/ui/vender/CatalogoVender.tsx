@@ -1,16 +1,16 @@
 'use client'
 
-import Link from 'next/link'
 import { useState, type ReactNode } from 'react'
 import type { Producto } from '@/dominio/tipos'
 import { formatearPesos } from '@/dominio/dinero'
 import { repos } from '@/datos/local/repos'
 import { precioVigente, tieneOfertaVigente } from '@/dominio/ticket'
-import { IconoFavorito, IconoFlechaDerecha, IconoStock } from '@/ui/sistema/iconos'
+import { IconoFavorito, IconoStock } from '@/ui/sistema/iconos'
 import { CampoBusqueda } from '@/ui/sistema/CampoBusqueda'
 import { Chip, Chips } from '@/ui/sistema/Chip'
 import { Etiqueta } from '@/ui/sistema/Etiqueta'
-import { clasesBoton } from '@/ui/sistema/Boton'
+import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
+import { TEXTOS } from '@/ui/sistema/textos'
 
 /** Quita acentos y pasa a minúscula, igual que repos.productos.buscar. */
 function normalizar(texto: string): string {
@@ -103,12 +103,16 @@ export function CatalogoVender({
       )}
 
       {visibles.length === 0 ? (
-        <div className="f-catalogo-vacio">
-          <span className="f-catalogo-vacio-icono" aria-hidden="true"><IconoStock /></span>
-          <strong>{productos.length === 0 ? 'Tu catálogo te espera' : 'No encontramos ese producto'}</strong>
-          <p>{productos.length === 0 ? 'Cargá tus productos una vez y después vendé con dos toques.' : `Ningún producto coincide con “${busqueda}”.`}</p>
-          {productos.length === 0 && <Link href="/stock" className={clasesBoton('secundario')}>Cargar productos <IconoFlechaDerecha /></Link>}
-        </div>
+        productos.length === 0 ? (
+          <EstadoVacio
+            icono={<IconoStock />}
+            titulo="Todavía no tenés productos"
+            texto="Cargalos una vez y después vendés con dos toques."
+            accion={{ etiqueta: TEXTOS.cargarProducto, href: '/stock' }}
+          />
+        ) : (
+          <EstadoVacio compacto titulo="No encontramos ese producto" texto={busqueda.trim() ? `Ningún producto coincide con “${busqueda}”. Probá con otro nombre o código.` : 'No hay productos en esta categoría. Probá con otra.'} />
+        )
       ) : (
         <div className="f-productos">
           {visibles.map((producto) => {

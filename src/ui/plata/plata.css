@@ -37,7 +37,6 @@
 .fp-lista { margin: 0; padding: 0; list-style: none; }
 .fp-lista .f-renglon-fin[data-tono='ambar'] { color: var(--f-ambar); }
 .fp-lista .f-renglon-fin[data-tono='verde'] { color: var(--f-verde); }
-.fp-vacio { margin: 0; font-size: 15px; font-weight: 500; }
 
 .fp-subtitulo {
   margin: var(--f-3) 0 0;

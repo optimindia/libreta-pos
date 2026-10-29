@@ -182,29 +182,6 @@
 .f-producto-estrella[data-activa='true'] svg { fill: currentColor; }
 .f-producto-estrella:focus-visible { outline: 3px solid var(--f-foco); outline-offset: -2px; opacity: 1; }
 
-.f-catalogo-vacio {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 40px 20px;
-  border-radius: var(--f-radio-tarjeta);
-  background: var(--f-superficie);
-  text-align: center;
-}
-
-.f-catalogo-vacio strong { font-size: 20px; font-weight: 700; }
-.f-catalogo-vacio p { margin: 0 0 8px; color: var(--f-tinta-2); font-size: 15px; }
-
-.f-catalogo-vacio-icono {
-  display: grid;
-  width: 56px;
-  height: 56px;
-  place-items: center;
-  border-radius: var(--f-radio-tarjeta);
-  background: var(--f-fondo);
-}
-
 /* ───────────── Panel de la venta ───────────── */
 
 .f-venta {
@@ -311,19 +288,6 @@
 }
 
 .f-venta-subtotal { min-width: 76px; }
-
-.f-venta-vacia {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 40px 12px;
-  color: var(--f-tinta-2);
-  text-align: center;
-}
-
-.f-venta-vacia strong { color: var(--f-tinta); font-size: 16px; font-weight: 700; }
-.f-venta-vacia p { margin: 0; font-size: 15px; font-weight: 500; }
 
 .f-venta-pie {
   display: flex;
