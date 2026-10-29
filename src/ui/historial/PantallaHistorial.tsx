@@ -19,6 +19,10 @@ import { Hoja } from '@/ui/sistema/Hoja'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { IconoFlechaDerecha, IconoFlechaIzquierda, IconoHistorial } from '@/ui/sistema/iconos'
 import { usePuede } from '@/ui/sistema/usoRol'
+import { useIdentidad, type Identidad } from '@/ui/sistema/usoVendedor'
+import { FiltroVendedor } from '@/ui/sistema/FiltroVendedor'
+import { etiquetaVendedor, filtrarPorVendedor } from '@/dominio/turno'
+import { CierreTurno } from './CierreTurno'
 
 const ETIQUETA_PERIODO: Record<PeriodoReporte, string> = { hoy: 'Hoy', '7dias': '7 días', '30dias': '30 días', todo: 'Todo' }
 const PERIODOS: PeriodoReporte[] = ['hoy', '7dias', '30dias', 'todo']
@@ -33,7 +37,7 @@ function fechaVenta(epoch: number): string {
   }).format(new Date(epoch))
 }
 
-function DetalleVenta({ venta, onAnulada }: { venta: Venta; onAnulada: (venta: Venta) => void }) {
+function DetalleVenta({ venta, yo, onAnulada }: { venta: Venta; yo: Identidad; onAnulada: (venta: Venta) => void }) {
   const negocio = useLiveQuery(() => db.negocio.get('unico'), [], undefined)
   const nombre = negocio?.nombre || 'Tu almacén'
   const [confirmando, setConfirmando] = useState(false)
@@ -63,6 +67,7 @@ function DetalleVenta({ venta, onAnulada }: { venta: Venta; onAnulada: (venta: V
   return (
     <>
       <p className="f-hoja-ayuda">{fechaVenta(venta.fecha)} · {MEDIOS[venta.medioPago]}{anulada ? ' · Anulada' : ''}</p>
+      <p className="f-hoja-ayuda">Vendió: {etiquetaVendedor(venta.vendidoPor, yo)}</p>
       {anulada && (
         <div className="f-aviso" data-tono="ambar">
           <strong>Venta anulada</strong>
@@ -112,7 +117,14 @@ export function PantallaHistorial() {
   const [periodo, setPeriodo] = useState<PeriodoReporte>('todo')
   const [busqueda, setBusqueda] = useState('')
   const [seleccionada, setSeleccionada] = useState<Venta | null>(null)
-  const ventas = useLiveQuery(() => repos.ventas.todas(), [], [])
+  const [vendedor, setVendedor] = useState<string | null>(null)
+  const yo = useIdentidad()
+  const todas = useLiveQuery(() => repos.ventas.todas(), [], [])
+  // Hasta saber quién es no se muestra nada; el vendedor ve sólo lo suyo y
+  // el filtro por vendedor es del dueño.
+  const ventas = yo === null ? []
+    : yo.rol === 'vendedor' ? (yo.usuarioId ? filtrarPorVendedor(todas, yo.usuarioId) : [])
+    : filtrarPorVendedor(todas, vendedor)
   const aguja = normalizarTexto(busqueda)
   const filtradas = filtrarVentas(ventas, rangoReporte(periodo), true).filter((venta) => {
     if (aguja === '') return true
@@ -136,6 +148,8 @@ export function PantallaHistorial() {
             <Chip key={opcion} activo={periodo === opcion} onClick={() => setPeriodo(opcion)}>{ETIQUETA_PERIODO[opcion]}</Chip>
           ))}
         </Chips>
+        {yo?.rol === 'dueno' && <FiltroVendedor filas={todas} valor={vendedor} onCambiar={setVendedor} yo={yo} />}
+        {yo?.rol === 'vendedor' && yo.usuarioId && <CierreTurno usuarioId={yo.usuarioId} />}
         <Boton variante="secundario" className="fh-exportar" onClick={() => descargarCsv(`ventas-${new Date().toISOString().slice(0, 10)}.csv`, ventasACsv(filtradas))}>
           Exportar estas ventas a CSV
         </Boton>
@@ -185,7 +199,7 @@ export function PantallaHistorial() {
         titulo="Detalle de venta"
         ancho="angosto"
       >
-        {seleccionada && <DetalleVenta venta={seleccionada} onAnulada={(venta) => setSeleccionada(venta)} />}
+        {seleccionada && yo && <DetalleVenta venta={seleccionada} yo={yo} onAnulada={(venta) => setSeleccionada(venta)} />}
       </Hoja>
     </div>
   )

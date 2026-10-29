@@ -150,11 +150,11 @@ function PanelCierre({
   )
 }
 
-function Monto({ centavos }: { centavos: number }) {
+export function Monto({ centavos }: { centavos: number }) {
   return <span className="f-plata f-plata-16">{formatearPesos(centavos)}</span>
 }
 
-function Fila({
+export function Fila({
   nombre, fuerte, children,
 }: { nombre: string; fuerte?: boolean; children: React.ReactNode }) {
   return (

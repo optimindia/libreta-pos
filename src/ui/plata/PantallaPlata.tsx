@@ -15,6 +15,10 @@ import { Chip, Chips } from '@/ui/sistema/Chip'
 import { Renglon } from '@/ui/sistema/Renglon'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { CierreCaja } from './CierreCaja'
+import { CierrePorVendedor } from './CierrePorVendedor'
+import { useIdentidad } from '@/ui/sistema/usoVendedor'
+import { FiltroVendedor } from '@/ui/sistema/FiltroVendedor'
+import { SIN_DATO, filtrarPorVendedor } from '@/dominio/turno'
 import { MovimientosCaja } from './MovimientosCaja'
 import { InteligenciaPlata } from './InteligenciaPlata'
 import { CentroAcciones } from './CentroAcciones'
@@ -32,13 +36,18 @@ const PERIODOS: PeriodoReporte[] = ['hoy', '7dias', '30dias', 'todo']
 
 export function PantallaPlata() {
   const [periodo, setPeriodo] = useState<PeriodoReporte>('hoy')
+  const [vendedor, setVendedor] = useState<string | null>(null)
+  const yo = useIdentidad()
+  // Un vendedor (si llegara a esta pantalla) sólo ve lo suyo; el filtro es del dueño.
+  const filtro = yo?.rol === 'vendedor' ? (yo.usuarioId ?? SIN_DATO) : vendedor
   const datos = useLiveQuery(async () => {
     const ahora = Date.now()
-    const [ventas, productos, clientes] = await Promise.all([
+    const [todas, productos, clientes] = await Promise.all([
       repos.ventas.todas(),
       repos.productos.todos(),
       repos.clientes.todos(),
     ])
+    const ventas = filtrarPorVendedor(todas, filtro)
     const [fiados, ultimoCierre] = await Promise.all([
       repos.fiados.abiertos(),
       repos.cierres.ultimo(),
@@ -49,19 +58,20 @@ export function PantallaPlata() {
       ranking: rankingProductos(ventas, periodo, ahora).slice(0, 3),
       compras: listaDeCompra(productos, ventas, ahora),
       ventas,
+      todas,
       productos,
       clientes,
       fiados,
       ultimoCierre,
     }
-  }, [periodo])
+  }, [periodo, filtro])
   const pendientesSync = useLiveQuery(() => db.cola.count(), [], 0)
 
   if (!datos) return <CargandoPagina texto="Preparando tu resumen financiero…" />
   const medios = Object.entries(datos.resumen.porMedioPago).filter(([, monto]) => monto > 0)
   const inicioHoy = new Date()
   inicioHoy.setHours(0, 0, 0, 0)
-  const cierrePendiente = datos.ventas.some((venta) => venta.fecha >= inicioHoy.getTime()) && (!datos.ultimoCierre || datos.ultimoCierre.fecha < inicioHoy.getTime())
+  const cierrePendiente = datos.todas.some((venta) => venta.fecha >= inicioHoy.getTime()) && (!datos.ultimoCierre || datos.ultimoCierre.fecha < inicioHoy.getTime())
   const agotados = datos.productos.filter((producto) => producto.stock <= 0).length
   const alertasMargen = datos.productos.filter((producto) => producto.costo <= 0 || producto.precio <= 0 || producto.precio < producto.costo).length
   const vencidos = datos.fiados.filter((fiado) => estadoVencimiento(fiado.vence, datos.ahora) === 'vencido').length
@@ -92,6 +102,8 @@ export function PantallaPlata() {
           </Chip>
         ))}
       </Chips>
+
+      {yo?.rol === 'dueno' && <FiltroVendedor filas={datos.todas} valor={vendedor} onCambiar={setVendedor} yo={yo} className="fp-periodos" />}
 
       <div className="fp-grilla">
         <CentroAcciones agotados={agotados} reposiciones={datos.compras.length} vencidos={vencidos} alertasMargen={alertasMargen} cierrePendiente={cierrePendiente} pendientesSync={nubeActiva() ? pendientesSync : 0} />
@@ -161,6 +173,7 @@ export function PantallaPlata() {
         <Tarjeta como="section" id="caja" aria-labelledby="plata-caja">
           <h2 id="plata-caja" className="f-seccion">Caja</h2>
           <CierreCaja />
+          {yo?.rol === 'dueno' && <CierrePorVendedor yo={yo} />}
           <MovimientosCaja />
         </Tarjeta>
 

@@ -165,3 +165,11 @@
   .fh-exportar { width: auto; }
   .fh-lista-caja { padding: 0 var(--f-6); }
 }
+
+/* ───────────── Cierre de turno del vendedor ───────────── */
+
+.fh-turno { display: flex; flex-direction: column; gap: var(--f-2); }
+.fh-turno > .f-boton { min-height: 48px; }
+.fh-turno-ultimo { margin: 0; font-size: 14px; }
+.fh-turno-ultimo[data-tono='ambar'] { color: var(--f-ambar); }
+.fh-turno-ultimo[data-tono='verde'] { color: var(--f-verde); }
