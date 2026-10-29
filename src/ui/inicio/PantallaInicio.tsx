@@ -24,6 +24,8 @@ import { Entrar } from '@/ui/vender/Entrar'
 import { IconoCamara, IconoFlechaDerecha, IconoMasCantidad, IconoVender } from '@/ui/sistema/iconos'
 import type { Venta } from '@/dominio/tipos'
 import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
+import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
+import { PrimerosPasos, pasosDeLaGuia } from './PrimerosPasos'
 
 const MEDIO: Record<Venta['medioPago'], string> = { efectivo: 'efectivo', transferencia: 'transferencia', qr: 'QR', fiado: 'fiado' }
 const HORA = new Intl.DateTimeFormat('es-AR', { hour: 'numeric', minute: '2-digit', hour12: false })
@@ -111,6 +113,25 @@ export function PantallaInicio() {
           </span>
           <span className="fi-vender-flecha" aria-hidden="true"><IconoFlechaDerecha /></span>
         </Link>
+
+        {esDueno && productos.length === 0 && (
+          <EstadoVacio
+            className="fi-vacio"
+            titulo="Todavía no cargaste productos"
+            texto="Cargá el primero o importá tu lista para empezar a vender."
+            accion={{ etiqueta: 'Cargar producto', href: '/stock' }}
+          />
+        )}
+
+        <PrimerosPasos
+          negocioId={negocio?.negocioId}
+          pasos={pasosDeLaGuia({
+            esDueno,
+            productos: productos.length,
+            ventas: cantidadVentas,
+            nombreConfigurado: nombre !== 'Tu almacén',
+          })}
+        />
 
         <Tarjeta como={hayPlata ? Link : 'div'} {...(hayPlata ? { href: '/plata' } : {})} className="fi-hoy">
           <span className="f-dato">Vendiste hoy</span>
