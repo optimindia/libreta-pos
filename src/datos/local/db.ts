@@ -59,3 +59,11 @@ db.version(4).stores({
 db.version(5).stores({
   preferencias: 'id, negocioId, actualizadoEn',
 })
+
+/** FUN-04: se indexa quién hizo cada venta, pago y cierre. Las filas viejas
+ *  no tienen el campo y no se tocan: Dexie sólo agrega los índices. */
+db.version(6).stores({
+  ventas: 'id, fecha, vendidoPor',
+  fiadoPagos: 'id, fiadoId, usuarioId',
+  cierres: 'id, fecha, usuarioId',
+})

@@ -1,7 +1,7 @@
 import { db } from './db'
 import { encolar } from './cola'
 import type {
-  Cierre, Cliente, Centavos, EstadoPedido, Fiado, Ingreso, ItemIngreso, ItemVenta, MedioPago, MovimientoCaja, Pedido, PreferenciasNegocio, Producto, UUID, Venta,
+  Cierre, Cliente, Centavos, EstadoPedido, Fiado, FiadoPago, Ingreso, ItemIngreso, ItemVenta, MedioPago, MovimientoCaja, Pedido, PreferenciasNegocio, Producto, UUID, Venta,
 } from '@/dominio/tipos'
 import type { FuncionesNegocio } from '@/dominio/funciones'
 import { normalizarFunciones } from '@/dominio/funciones'
@@ -31,6 +31,13 @@ async function encolarMovimientoStock(
     origen,
     referenciaId,
   })
+}
+
+/** Quién usa el aparato. Sin sesión (negocio sólo local) no hay dato: la clave
+ *  se omite en vez de guardar null, así lo viejo y lo local quedan iguales. */
+async function quienSoy(): Promise<{ usuarioId?: UUID }> {
+  const usuarioId = (await db.negocio.get('unico'))?.usuarioId
+  return usuarioId ? { usuarioId } : {}
 }
 
 async function obtenerPreferenciasLocales(): Promise<PreferenciasNegocio> {
@@ -239,6 +246,7 @@ export const repos = {
       pedidoId?: UUID
     }): Promise<Venta> {
       validarVenta(datos.items, datos.medioPago, datos.clienteId)
+      const vendidoPor = (await quienSoy()).usuarioId
       const venta: Venta = {
         id: nuevoId(),
         fecha: Date.now(),
@@ -250,6 +258,7 @@ export const repos = {
         estadoCobro: 'confirmado',
         referenciaPago: datos.referenciaPago?.trim() || undefined,
         pedidoId: datos.pedidoId,
+        ...(vendidoPor ? { vendidoPor } : {}),
       }
       const tocados: Producto[] = []
       let fiado: Fiado | null = null
@@ -444,7 +453,7 @@ export const repos = {
     async pagar(fiadoId: UUID, monto: Centavos): Promise<void> {
       const fiado = await db.fiados.get(fiadoId)
       if (!fiado || fiado.anuladoEn || !Number.isFinite(monto) || monto <= 0) return
-      const pago = { id: nuevoId(), fiadoId, monto, fecha: Date.now() }
+      const pago: FiadoPago = { id: nuevoId(), fiadoId, monto, fecha: Date.now(), ...(await quienSoy()) }
       await db.fiadoPagos.add(pago)
       await encolar('fiadoPago', 'crear', pago)
     },
@@ -513,16 +522,32 @@ export const repos = {
       // mismo milisegundo no pueden empatar, o "el último" queda ambiguo.
       const anterior = await db.cierres.orderBy('fecha').last()
       const fecha = Math.max(Date.now(), (anterior?.fecha ?? 0) + 1)
-      const cierre: Cierre = { ...datos, id: nuevoId(), fecha }
+      const cierre: Cierre = { ...datos, id: nuevoId(), fecha, ...(await quienSoy()) }
       await db.cierres.add(cierre)
       await encolar('cierre', 'crear', cierre)
       return cierre
     },
+    /** El cierre del turno de un vendedor: sólo su efectivo, sin fondo ni
+     *  movimientos manuales. Convive con los cierres del día del dueño, pero
+     *  no los pisa (ver `ultimo` y `todos`). */
+    async registrarTurno(datos: Pick<Cierre, 'ventasEfectivo' | 'pagosFiadoEfectivo' | 'esperado' | 'contado'>): Promise<Cierre> {
+      const anterior = await db.cierres.orderBy('fecha').last()
+      const fecha = Math.max(Date.now(), (anterior?.fecha ?? 0) + 1)
+      const cierre: Cierre = { ...datos, fondoInicial: 0, id: nuevoId(), fecha, alcance: 'turno', ...(await quienSoy()) }
+      await db.cierres.add(cierre)
+      await encolar('cierre', 'crear', cierre)
+      return cierre
+    },
+    /** Cierres del día (caja). Los de turno no cuentan: si no, el cierre de
+     *  un vendedor reiniciaría el período y el fondo del dueño. */
     async todos(): Promise<Cierre[]> {
-      return db.cierres.orderBy('fecha').reverse().toArray()
+      return (await db.cierres.orderBy('fecha').reverse().toArray()).filter((c) => c.alcance !== 'turno')
+    },
+    async turnos(): Promise<Cierre[]> {
+      return (await db.cierres.orderBy('fecha').reverse().toArray()).filter((c) => c.alcance === 'turno')
     },
     async ultimo(): Promise<Cierre | null> {
-      return (await db.cierres.orderBy('fecha').last()) ?? null
+      return (await db.cierres.orderBy('fecha').reverse().filter((c) => c.alcance !== 'turno').first()) ?? null
     },
   },
 
