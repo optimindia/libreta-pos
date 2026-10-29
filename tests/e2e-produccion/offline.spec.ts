@@ -88,6 +88,7 @@ test('con la nube caída la venta se reintenta y no se pierde', async ({ page, c
 test('con la última confirmación de hace menos de 72 h y sin red no manda al login', async ({ page, context }) => {
   await abrirYAsegurarOffline(page)
   await context.setOffline(true)
+  nube.caida = true // el mock responde igual aunque el contexto esté sin red
   await fijarVerificadoEn(page, Date.now() - 71 * HORA)
 
   await page.goto('/vender')
@@ -99,6 +100,7 @@ test('con la última confirmación de hace menos de 72 h y sin red no manda al l
 test('pasadas las 72 h sin verificar, sin red pide conectarse (y tampoco muestra el login)', async ({ page, context }) => {
   await abrirYAsegurarOffline(page)
   await context.setOffline(true)
+  nube.caida = true // el mock responde igual aunque el contexto esté sin red
   await fijarVerificadoEn(page, Date.now() - 73 * HORA)
 
   await page.goto('/vender')
@@ -110,6 +112,7 @@ test('pasadas las 72 h sin verificar, sin red pide conectarse (y tampoco muestra
 test('sin red, un token vencido no cierra la sesión del aparato', async ({ page, context }) => {
   await abrirYAsegurarOffline(page)
   await context.setOffline(true)
+  nube.caida = true
   // El token guardado vence (un día sin abrir la app) y sin señal no se puede renovar.
   await page.evaluate(() => {
     const clave = 'sb-falso-auth-token'
