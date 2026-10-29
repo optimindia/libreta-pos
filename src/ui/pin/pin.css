@@ -1,0 +1,162 @@
+/* PIN y recuperación (SEG-04) con el sistema F: formularios de cambio y de
+   recuperación, y la tarjeta que muestra un secreto una sola vez. La hoja
+   impresa muestra sólo el recuadro con el valor. Sólo tokens --f-*. */
+
+.f-pin-form {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.f-pin-form > *,
+.f-pin-unavez > * { margin: 0; }
+
+.f-pin-recuperar {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.f-pin-recuperar > * { margin: 0; }
+
+.f-pin-unavez {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.f-pin-unavez h2:focus-visible {
+  outline: 3px solid var(--f-foco);
+  outline-offset: 2px;
+}
+
+.f-pin-hoja {
+  padding: var(--f-4);
+  border: 2px dashed var(--f-borde);
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie-2);
+  color: var(--f-tinta);
+}
+
+.f-pin-hoja > * { margin: 0; }
+
+.f-pin-hoja-titulo {
+  color: var(--f-tinta-2);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.f-pin-valor {
+  margin-top: var(--f-2) !important;
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.f-pin-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--f-3);
+}
+
+.f-pin-acciones > button { min-height: 44px; }
+
+.f-pin-codigo {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+
+/* ───────────── Seguridad del PIN (Cuenta / Admin) ───────────── */
+
+.f-pin-seguridad {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.f-pin-seguridad > * { margin: 0; }
+
+.f-pin-bloque {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-3);
+}
+
+.f-pin-bloque > * { margin: 0; }
+
+.f-pin-lista {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.f-pin-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-3);
+  padding: var(--f-3) 0;
+  border-top: 1px solid var(--f-linea);
+}
+
+.f-pin-fila:first-child { border-top: 0; }
+
+.f-pin-fila-datos {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.f-pin-fila-datos > * { margin: 0; }
+
+.f-pin-confirmar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-3);
+  padding: var(--f-3);
+  border: 1px solid var(--f-borde);
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie-2);
+}
+
+.f-pin-confirmar > * { margin: 0; }
+
+@media (pointer: coarse) {
+  .f-pin-acciones > button,
+  .f-pin-fila button { min-height: 44px; }
+}
+
+/* ───────────── Impresión: sólo el recuadro con el valor ───────────── */
+
+@media print {
+  body * { visibility: hidden; }
+
+  .f-pin-hoja,
+  .f-pin-hoja * { visibility: visible; }
+
+  .f-pin-hoja {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    border-color: currentcolor;
+    background: transparent;
+  }
+}

@@ -95,6 +95,78 @@ Límite conocido: todos los ingresos llegan a Auth desde los servidores de
 Supabase, que limita `/auth/v1/token` por IP. Con muchos ingresos simultáneos
 Auth puede responder 429 y la pantalla dice "Probá de nuevo en un rato".
 
+## Recuperar el PIN (SEG-04)
+
+Hasta ahora un PIN olvidado sólo lo resolvía el administrador de la plataforma.
+Ahora hay dos caminos, sin intervención nuestra:
+
+- **Un vendedor olvidó su PIN**: su dueño lo restablece desde **Cuenta →
+  Seguridad de tu PIN → PIN de tus vendedores**. Aparece un PIN temporal de 6
+  números, una sola vez (copiar y "Ya lo guardé"). El vendedor, al ingresar,
+  ve una pantalla que le pide elegir uno propio antes de abrir la caja.
+- **El dueño olvidó su PIN**: usa su **código de recuperación** desde
+  **Ingresá a tu negocio → Me olvidé el PIN** (teléfono del negocio + código +
+  PIN nuevo). El código se genera al crear la cuenta, al regenerar o cambiar el
+  PIN y a pedido en Cuenta. Se muestra una sola vez (se puede copiar e
+  imprimir), se guarda sólo su hash HMAC, sirve una única vez y al usarlo se
+  emite uno nuevo. Generar uno nuevo invalida el anterior.
+
+Qué hace cada pieza (todo se decide en el servidor, la pantalla sólo pide):
+
+- `admin` (acción `pin`): `estado`, `reiniciar_vendedor`, `generar_codigo` y
+  `cambiar`. Exige sesión; para reiniciar verifica que quien llama es **dueño
+  del mismo negocio** del vendedor (un vendedor, o el dueño de otro negocio, no
+  puede). Límite: 5 reinicios por dueño en 15 minutos (después, 15 minutos de
+  espera); el PIN actual que se pide para generar un código o cambiar el PIN
+  usa el mismo contador de intentos (5 fallos → 15 minutos). Los contadores
+  son los de `intentos_ingreso` de SEG-03, con claves propias
+  (`reset:`, `pin:`, `recuperar:`).
+- `ingresar` (acción `recuperar`): sin sesión. Mismo límite de intentos, con
+  llave propia (un atacante que adivina códigos no bloquea el ingreso del
+  dueño) y el mismo captcha opcional. Teléfono desconocido, código incorrecto
+  y teléfono de un vendedor devuelven el mismo error.
+- Auditoría en `suscripcion_eventos`: `pin_vendedor_reiniciado`,
+  `pin_codigo_generado`, `pin_cambiado`, `pin_recuperado`. El detalle sólo
+  lleva a quién se le hizo; nunca PIN, código, hash ni teléfono. Nada de eso
+  se escribe tampoco en consola (hay un test que lo vigila).
+
+### Activación (nada de esto está hecho todavía)
+
+El código queda inerte hasta que se haga, en este orden:
+
+1. Aplicar `supabase/migrations/20261030120000_recuperacion_pin.sql` (aditiva:
+   tabla `recuperacion_pin_codigos` cerrada por RLS, sin políticas, sólo
+   `service_role`; y la columna `usuarios_negocio.debe_cambiar_pin`). Para
+   revertirla, el SQL está comentado al final del archivo.
+2. Desplegar las dos funciones, con el **mismo** `LIBRETA_PIN_PEPPER` en ambas:
+   `supabase functions deploy ingresar --no-verify-jwt` y
+   `supabase functions deploy admin`.
+3. Desplegar la app.
+4. Cada dueño entra a **Cuenta**, toca **Generar código** (con su PIN actual) y
+   guarda el código en papel. Hasta que lo haga, no puede recuperar su PIN solo.
+
+Antes del paso 1 o del 2 nada se rompe: el ingreso no depende de la migración
+(la pantalla de cambio obligatorio trata cualquier falla como "no"), el panel
+de la plataforma sigue funcionando y la recuperación responde "código
+incorrecto" o "todavía no está disponible".
+
+Límites que conviene saber:
+
+- **El cambio obligatorio es una barrera de la pantalla, no del servidor.** El
+  servidor sólo guarda la marca `debe_cambiar_pin`; si alguien con un PIN
+  temporal llama a la API a mano, puede operar igual. Se reduce a que el PIN
+  temporal lo ve una sola persona (el dueño), lo conoce un vendedor concreto y
+  deja de servir al cambiarlo. Cerrarlo del lado del servidor requeriría
+  condicionar las políticas RLS a esa marca; queda como mejora.
+- La recuperación del dueño busca la cuenta por `negocios.telefono_contacto`:
+  si ese dato no está cargado o difiere del teléfono con el que ingresa, no
+  funciona (y el error es el genérico).
+- Un vendedor no puede recuperar por su cuenta: siempre lo restablece su dueño.
+  Si el dueño perdió también el código, sigue valiendo el camino anterior
+  (el administrador de la plataforma regenera el PIN desde `/admin`).
+- Dónde está en la interfaz: `/cuenta` (todos los usuarios) y el panel
+  `/admin` cuando el usuario no es administrador de la plataforma.
+
 ## Verificar que el aislamiento sigue sano
 
 ```bash

@@ -12,6 +12,7 @@ import { IconoNube } from './iconos'
 import './acceso.css'
 import { claveTurnstile, VerificacionHumana, type ControlVerificacion } from './VerificacionHumana'
 import { TEXTOS } from '@/ui/sistema/textos'
+import { RecuperarPin } from '@/ui/pin/RecuperarPin'
 
 export function PantallaAcceso({ modo = 'negocio' }: { modo?: 'negocio' | 'admin' }) {
   const [telefono, setTelefono] = useState('')
@@ -21,6 +22,7 @@ export function PantallaAcceso({ modo = 'negocio' }: { modo?: 'negocio' | 'admin
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const verificacion = useRef<ControlVerificacion>(null)
   const clave = claveTurnstile()
+  const [recuperando, setRecuperando] = useState(false)
   const esAdmin = modo === 'admin'
 
   async function iniciar(evento: React.FormEvent<HTMLFormElement>) {
@@ -51,6 +53,16 @@ export function PantallaAcceso({ modo = 'negocio' }: { modo?: 'negocio' | 'admin
     } finally {
       setTrabajando(false)
     }
+  }
+
+  if (recuperando && !esAdmin) {
+    return (
+      <main id="contenido" tabIndex={-1} className="f-acceso">
+        <Tarjeta como="section" relleno="grande" className="f-acceso-tarjeta">
+          <RecuperarPin onVolver={() => setRecuperando(false)} />
+        </Tarjeta>
+      </main>
+    )
   }
 
   return (
@@ -85,6 +97,9 @@ export function PantallaAcceso({ modo = 'negocio' }: { modo?: 'negocio' | 'admin
           </Boton>
         </form>
         {aviso && <p className="f-aviso" role="alert">{aviso}</p>}
+        {!esAdmin && (
+          <Boton variante="secundario" onClick={() => setRecuperando(true)}>Me olvidé el PIN</Boton>
+        )}
         <p className="f-acceso-legal">
           Al entrar aceptás los <Link href="/terminos">Términos</Link> y la <Link href="/privacidad">Política de privacidad</Link>.
         </p>

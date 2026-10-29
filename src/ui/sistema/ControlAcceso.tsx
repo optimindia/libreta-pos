@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { cliente } from '@/datos/nube/cliente'
-import { accesoSaasObligatorio, cargarEstadoAcceso, EVENTO_ACCESO, type EstadoAcceso } from '@/datos/nube/acceso'
+import { accesoSaasObligatorio, cargarEstadoAcceso, EVENTO_ACCESO, notificarCambioAcceso, type EstadoAcceso } from '@/datos/nube/acceso'
+import { debeCambiarPin } from '@/datos/nube/pin'
+import { CambioObligatorio } from '@/ui/pin/CambioObligatorio'
 import { accesoPermitido, diasRestantes, estadoSuscripcion, fechaSuscripcion, puedeOperarSinVerificar } from '@/dominio/suscripcion'
 import { enlaceWhatsApp } from '@/dominio/mensajes'
 import { Navegacion } from './Navegacion'
@@ -20,6 +22,22 @@ const RUTAS_PUBLICAS = ['/terminos', '/privacidad'] as const
 
 function esRutaPublica(ruta: string): boolean {
   return RUTAS_PUBLICAS.some((publica) => ruta === publica || ruta.startsWith(`${publica}/`))
+}
+
+/** Espera como máximo 3 s y ante cualquier falla dice "no": un error nuestro
+ *  nunca deja a un negocio sin poder vender. */
+async function debeCambiarPinSeguro(): Promise<boolean> {
+  let reloj: ReturnType<typeof setTimeout> | undefined
+  try {
+    const limite = new Promise<boolean>((resolver) => {
+      reloj = setTimeout(() => resolver(false), 3000)
+    })
+    return await Promise.race([debeCambiarPin(), limite])
+  } catch {
+    return false
+  } finally {
+    if (reloj) clearTimeout(reloj)
+  }
 }
 
 function AvisoVencimiento({ estado }: { estado: EstadoAcceso }) {
@@ -68,6 +86,7 @@ export function ControlAcceso({ children }: { children: React.ReactNode }) {
   const esCuenta = useMemo(() => ruta === '/cuenta' || ruta.startsWith('/cuenta/'), [ruta])
   const esPublica = useMemo(() => esRutaPublica(ruta ?? ''), [ruta])
   const [estado, setEstado] = useState<EstadoAcceso | null>(null)
+  const [debeCambiar, setDebeCambiar] = useState(false)
 
   useEffect(() => {
     if (!saas || esPublica) return
@@ -75,7 +94,13 @@ export function ControlAcceso({ children }: { children: React.ReactNode }) {
 
     async function refrescar() {
       const siguiente = await cargarEstadoAcceso()
-      if (vivo) setEstado(siguiente)
+      // PIN temporal (SEG-04): se averigua junto con el estado para no mostrar
+      // la caja un instante antes de pedir el cambio. Si falla o tarda, no
+      // bloquea a nadie (ver debeCambiarPinSeguro).
+      const debe = siguiente.autenticado ? await debeCambiarPinSeguro() : false
+      if (!vivo) return
+      setDebeCambiar(debe)
+      setEstado(siguiente)
     }
 
     // Primero se descarta el estado de la ruta anterior y recién después se
@@ -140,6 +165,10 @@ export function ControlAcceso({ children }: { children: React.ReactNode }) {
   if (!estado) return <CargandoAcceso />
   if (!estado.autenticado) {
     return <PantallaAcceso modo={esAdmin ? 'admin' : 'negocio'} />
+  }
+  // PIN temporal: nada más se abre hasta que elija uno propio.
+  if (debeCambiar) {
+    return <CambioObligatorio onListo={() => { setDebeCambiar(false); notificarCambioAcceso() }} />
   }
   if (esAdmin) {
     return <Marco admin>{children}</Marco>

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { clasesBoton } from '@/ui/sistema/Boton'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
+import { SeguridadPin } from '@/ui/pin/SeguridadPin'
 import { EstadoCuenta } from './EstadoCuenta'
 import './cuenta.css'
 
@@ -20,6 +21,7 @@ export function PantallaCuenta() {
       <div className="f-cuenta-cuerpo">
         <EstadoCuenta destacar />
         <div className="f-cuenta-lateral">
+          <SeguridadPin />
           <Tarjeta className="f-cuenta-nota">
             <IconoCuentaMini />
             <div><strong className="f-renglon-texto">¿Necesitás renovar?</strong><p className="f-texto">Escribinos por WhatsApp y el administrador actualizará tu cuenta manualmente.</p></div>

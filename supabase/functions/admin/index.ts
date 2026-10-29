@@ -1,5 +1,8 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.112.4'
 import { emailDeTelefono, passwordParaCuenta, telefonoNormalizado } from '../_shared/credenciales.ts'
+import { crearAlmacenIntentos } from '../_shared/almacenIntentos.ts'
+import { crearDatosPin } from '../_shared/depsPin.ts'
+import { emitirCodigoRecuperacion, pinValido, procesarPinSesion, type DependenciasPin } from '../_shared/recuperacionPin.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
 const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
@@ -23,7 +26,7 @@ type TipoPlan = 'prueba' | 'pago' | 'cortesia'
 type MedioPagoAdmin = 'alias' | 'efectivo' | 'transferencia' | 'mercado_pago' | 'otro'
 
 interface CuerpoAdmin {
-  accion?: 'listar' | 'crear' | 'suscripcion' | 'cuenta' | 'plan' | 'vendedor'
+  accion?: 'listar' | 'crear' | 'suscripcion' | 'cuenta' | 'plan' | 'vendedor' | 'pin'
   usuarioId?: unknown
   nombre?: unknown
   telefono?: unknown
@@ -132,9 +135,24 @@ function medioPagoValido(valor: unknown): valor is MedioPagoAdmin {
     || valor === 'mercado_pago' || valor === 'otro'
 }
 
-function pinValido(pin: string): boolean {
-  if (!/^\d{6}$/.test(pin)) return false
-  return !new Set(['000000', '111111', '222222', '333333', '444444', '555555', '666666', '777777', '888888', '999999']).has(pin)
+/** Lo que necesita la recuperación del PIN (SEG-04): base, límite de intentos
+ *  y el mismo secreto que usan `ingresar` y las contraseñas v2. */
+function dependenciasPin(admin: ReturnType<typeof createClient>): DependenciasPin {
+  return {
+    datos: crearDatosPin(admin, supabaseUrl, serviceKey),
+    almacen: crearAlmacenIntentos(admin),
+    pepper,
+  }
+}
+
+/** Código de recuperación para una cuenta nueva o con PIN regenerado. Si la
+ *  migración SEG-04 todavía no se aplicó, no rompe el alta: devuelve null. */
+async function codigoDeRecuperacion(admin: ReturnType<typeof createClient>, usuarioId: string): Promise<string | null> {
+  try {
+    return await emitirCodigoRecuperacion(usuarioId, dependenciasPin(admin))
+  } catch {
+    return null
+  }
 }
 
 async function credenciales(telefono: string, pin: string): Promise<{ email: string; password: string }> {
@@ -210,7 +228,8 @@ function mensajeError(error: unknown): string {
   return 'No se pudo completar la operación.'
 }
 
-async function clienteAdmin(req: Request) {
+/** Quién llama: valida el token de la sesión. No decide permisos todavía. */
+async function identificar(req: Request) {
   if (!supabaseUrl || !anonKey || !serviceKey) throw new Error('La función administrativa no está configurada.')
   const authorization = req.headers.get('Authorization')
   if (!authorization || !/^Bearer\s+\S+$/i.test(authorization)) throw new Response(JSON.stringify({ error: 'Hay que iniciar sesión.' }), { status: 401, headers: corsHeaders(req) })
@@ -227,14 +246,18 @@ async function clienteAdmin(req: Request) {
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   })
+  return { admin, actorId: identidad.data.user.id }
+}
+
+/** Sólo el administrador de la plataforma pasa de acá. */
+async function exigirAdministrador(admin: ReturnType<typeof createClient>, actorId: string, req: Request) {
   const permiso = await admin
     .from('administradores_plataforma')
     .select('rol')
-    .eq('usuario_id', identidad.data.user.id)
+    .eq('usuario_id', actorId)
     .maybeSingle()
   if (permiso.error) throw new Error('No se pudo validar el administrador.')
   if (!permiso.data) throw new Response(JSON.stringify({ error: 'No tenés permisos para administrar cuentas.' }), { status: 403, headers: corsHeaders(req) })
-  return { admin, actorId: identidad.data.user.id }
 }
 
 async function obtenerPlan(
@@ -404,6 +427,8 @@ async function crearCuenta(admin: ReturnType<typeof createClient>, actorId: stri
       ok: true,
       cuenta: { id: negocioId, nombre, telefono: numero },
       credenciales: { telefono: numero, pin },
+      // Se muestra una sola vez: el dueño lo guarda para recuperar su PIN.
+      codigoRecuperacion: await codigoDeRecuperacion(admin, usuarioId),
       suscripcion: filaPublica(suscripcion.data as FilaSuscripcion),
     }
   } catch (error) {
@@ -536,7 +561,8 @@ async function gestionarCuenta(admin: ReturnType<typeof createClient>, actorId: 
       actor_id: actorId,
     })
     if (evento.error) throw new Error('El PIN cambió, pero no se pudo registrar la acción.')
-    return { ok: true, credenciales: { telefono: telefonoActual, pin } }
+    // El código anterior quedó atado al PIN viejo: sale uno nuevo, una sola vez.
+    return { ok: true, credenciales: { telefono: telefonoActual, pin }, codigoRecuperacion: await codigoDeRecuperacion(admin, usuarioId) }
   }
 
   const nombre = texto(cuerpo.nombre, 120)
@@ -643,7 +669,11 @@ async function gestionarVendedor(admin: ReturnType<typeof createClient>, actorId
     const cambio = await admin.auth.admin.updateUserById(usuarioId, { password: (await credenciales(telefono, pin)).password })
     if (cambio.error) throw new Error('No se pudo cambiar el PIN del vendedor.')
     await admin.from('suscripcion_eventos').insert({ negocio_id: negocioId, accion: 'vendedor_pin', detalle: { nombre: vinculo.data.nombre }, actor_id: actorId })
-    return { ok: true, credenciales: { telefono, pin } }
+    // El PIN lo eligió el administrador y viajó por WhatsApp: el vendedor tiene
+    // que cambiarlo al primer ingreso. Si la migración SEG-04 todavía no se
+    // aplicó, la marca falla y todo sigue como antes.
+    const marca = await admin.from('usuarios_negocio').update({ debe_cambiar_pin: true }).eq('negocio_id', negocioId).eq('usuario_id', usuarioId)
+    return { ok: true, credenciales: { telefono, pin }, debeCambiar: !marca.error }
   }
 
   // quitar: se borra el acceso; lo que vendió queda en el negocio.
@@ -726,7 +756,7 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Método no permitido.' }, 405, req)
 
   try {
-    const { admin, actorId } = await clienteAdmin(req)
+    const { admin, actorId } = await identificar(req)
     const longitud = Number(req.headers.get('Content-Length') ?? 0)
     if (Number.isFinite(longitud) && longitud > 64_000) return json({ error: 'El pedido es demasiado grande.' }, 413, req)
     let cuerpo: CuerpoAdmin
@@ -737,6 +767,14 @@ Deno.serve(async (req) => {
     } catch {
       return json({ error: 'El pedido no es JSON válido.' }, 400, req)
     }
+    // PIN (SEG-04): lo usa el dueño y cualquier usuario con sesión, no sólo el
+    // administrador de la plataforma. Los permisos se deciden adentro, con los
+    // vínculos de usuarios_negocio y el id del token (nunca del cuerpo).
+    if (cuerpo.accion === 'pin') {
+      const { status, cuerpo: respuesta } = await procesarPinSesion(cuerpo, actorId, dependenciasPin(admin))
+      return json(respuesta, status, req)
+    }
+    await exigirAdministrador(admin, actorId, req)
     if (cuerpo.accion === 'listar') return json(await listar(admin), 200, req)
     if (cuerpo.accion === 'crear') return json(await crearCuenta(admin, actorId, cuerpo), 200, req)
     if (cuerpo.accion === 'suscripcion') return json(await actualizarSuscripcion(admin, actorId, cuerpo), 200, req)
