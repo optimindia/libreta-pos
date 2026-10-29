@@ -30,6 +30,8 @@ function sesionFalsa(venceEnSegundos: number) {
 export interface NubeFalsa {
   /** Mientras es true, la nube "no contesta": como si no hubiera señal. */
   caida: boolean
+  /** Sólo el servicio de sesión "no contesta" (renovar el token falla por red). */
+  authCaida: boolean
   /** Peticiones de escritura que llegaron a la nube falsa. */
   escrituras: { metodo: string; ruta: string; cuerpo: unknown }[]
   /** Peticiones a cualquier otro host (debe quedar vacío). */
@@ -60,7 +62,7 @@ export async function prepararNubeFalsa(
   context: BrowserContext,
   opciones: { sesionVenceEnMs?: number } = {},
 ): Promise<NubeFalsa> {
-  const nube: NubeFalsa = { caida: false, escrituras: [], externas: [] }
+  const nube: NubeFalsa = { caida: false, authCaida: false, escrituras: [], externas: [] }
   const venceEn = Math.floor((Date.now() + (opciones.sesionVenceEnMs ?? 2 * HORA)) / 1000)
   const sesion = JSON.stringify(sesionFalsa(venceEn))
 
@@ -83,6 +85,7 @@ export async function prepararNubeFalsa(
     const json = (estado: number, cuerpo: unknown) =>
       ruta.fulfill({ status: estado, contentType: 'application/json', headers: { 'content-range': '*/0' }, body: JSON.stringify(cuerpo) })
 
+    if (url.pathname.startsWith('/auth/v1/') && nube.authCaida) return ruta.abort('internetdisconnected')
     if (url.pathname.startsWith('/auth/v1/')) return json(404, { message: 'sin auth en las pruebas' })
 
     if (metodo !== 'GET') nube.escrituras.push({ metodo, ruta: url.pathname, cuerpo: cuerpoDe(peticion) })
