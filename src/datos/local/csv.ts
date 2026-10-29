@@ -1,4 +1,5 @@
 import type { Producto, Venta } from '@/dominio/tipos'
+import { pesosDeTexto } from '@/dominio/dinero'
 
 export interface ProductoCsv {
   nombre: string
@@ -78,25 +79,8 @@ function separarFila(fila: string, separador = ';'): string[] {
   return celdas
 }
 
-/** Números como los escribe cualquiera en Argentina: "1.500" son mil
- *  quinientos, "1.500,50" lleva coma decimal y "$ 1500" trae el signo.
- *  También lee el formato que exporta la app ("4200.5"). */
-export function numero(texto: string | undefined): number {
-  let limpio = (texto ?? '').replace(/[$\s]/g, '')
-  if (limpio === '') return 0
-  const punto = limpio.lastIndexOf('.')
-  const coma = limpio.lastIndexOf(',')
-  if (punto >= 0 && coma >= 0) {
-    // El último separador es el decimal; el otro, de miles.
-    limpio = coma > punto ? limpio.replace(/\./g, '').replace(',', '.') : limpio.replace(/,/g, '')
-  } else if (coma >= 0) {
-    limpio = /^-?\d{1,3}(,\d{3})+$/.test(limpio) && limpio.split(',').length > 2 ? limpio.replace(/,/g, '') : limpio.replace(',', '.')
-  } else if (/^-?\d{1,3}(\.\d{3})+$/.test(limpio)) {
-    limpio = limpio.replace(/\./g, '')
-  }
-  const valor = Number(limpio)
-  return Number.isFinite(valor) ? valor : 0
-}
+/** Mismo criterio que los formularios: ver pesosDeTexto. */
+export const numero = pesosDeTexto
 
 /** Lee el formato que exporta la app y tolera encabezados en español. */
 export function productosDesdeCsv(texto: string): ProductoCsv[] {

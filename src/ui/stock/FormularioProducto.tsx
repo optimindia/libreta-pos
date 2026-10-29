@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { Producto } from '@/dominio/tipos'
-import { pesosACentavos } from '@/dominio/dinero'
+import { pesosACentavos, pesosDeTexto } from '@/dominio/dinero'
 import { hayErroresProducto, validarProducto, type ErroresProducto } from '@/dominio/validaciones'
 import { repos } from '@/datos/local/repos'
 import { Boton } from '@/ui/sistema/Boton'
@@ -45,9 +45,9 @@ export function FormularioProducto({
     evento?.preventDefault()
     setAviso(null)
     try {
-      const costoCentavos = pesosACentavos(Number(costo) || 0)
-      const precioCentavos = pesosACentavos(Number(precio) || 0)
-      const ofertaCentavos = precioOferta.trim() === '' ? undefined : pesosACentavos(Number(precioOferta) || 0)
+      const costoCentavos = pesosACentavos(pesosDeTexto(costo))
+      const precioCentavos = pesosACentavos(pesosDeTexto(precio))
+      const ofertaCentavos = precioOferta.trim() === '' ? undefined : pesosACentavos(pesosDeTexto(precioOferta))
       const fechaOferta = ofertaHasta ? new Date(`${ofertaHasta}T23:59:59`).getTime() : undefined
       const stockMinimo = Number(minimo) || 0
       const stock = Number(stockInicial) || 0

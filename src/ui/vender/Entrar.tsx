@@ -5,6 +5,7 @@ import { entrar } from '@/datos/nube/sesion'
 import { accesoSaasObligatorio } from '@/datos/nube/acceso'
 import { bajarTodo, traerDeSupabase } from '@/datos/nube/sincronizar'
 import { Boton } from '@/ui/sistema/Boton'
+import '@/ui/sistema/acceso.css'
 import { IconoNube } from '@/ui/sistema/iconos'
 import { claveTurnstile, VerificacionHumana, type ControlVerificacion } from '@/ui/sistema/VerificacionHumana'
 
@@ -40,23 +41,23 @@ export function Entrar({ onListo }: { onListo: () => void }) {
   }
 
   return (
-    <form className="vender-entry form-shell form-card mt-6" onSubmit={(evento) => void traerMiNegocio(evento)}>
-      <div className="form-intro">
-        <span className="form-intro-icon" aria-hidden="true"><IconoNube /></span>
-        <div><strong>¿Ya usás Libreta en otro aparato?</strong><p>Traé tu negocio a este dispositivo en unos segundos.</p></div>
+    <form className="f-tarjeta f-acceso-entrar" data-relleno="normal" onSubmit={(evento) => void traerMiNegocio(evento)}>
+      <div className="f-acceso-intro">
+        <span className="f-acceso-icono" aria-hidden="true"><IconoNube /></span>
+        <div><strong className="f-seccion">¿Ya usás Libreta en otro aparato?</strong><p className="f-texto">Traé tu negocio a este dispositivo en unos segundos.</p></div>
       </div>
-      <p className="form-callout">
+      <p className="f-acceso-nota">
         Entrá con tu teléfono y el mismo PIN, y este aparato queda con todo tu negocio.
       </p>
 
-      <label className="form-field">
-        <span className="form-field-label">Teléfono <em>de tu negocio</em></span>
-        <input aria-label="Tu teléfono" inputMode="tel" placeholder="Ej. 261 555 1234" className="form-input tabular" value={telefono} onChange={(evento) => setTelefono(evento.target.value)} />
+      <label className="f-campo">
+        <span>Teléfono <em>de tu negocio</em></span>
+        <input aria-label="Tu teléfono" inputMode="tel" placeholder="Ej. 261 555 1234" className="f-entrada" value={telefono} onChange={(evento) => setTelefono(evento.target.value)} />
       </label>
-      <label className="form-field">
-        <span className="form-field-label">PIN <em>6 números</em></span>
-        <input aria-label="PIN de 6 números" inputMode="numeric" type="password" autoComplete="current-password" placeholder="PIN de 6 números" className="form-input tabular" value={pin} onChange={(evento) => setPin(evento.target.value)} />
-        <span className="form-field-help">Es el mismo PIN que elegiste al crear tu respaldo.</span>
+      <label className="f-campo">
+        <span>PIN <em>6 números</em></span>
+        <input aria-label="PIN de 6 números" inputMode="numeric" type="password" autoComplete="current-password" placeholder="PIN de 6 números" className="f-entrada" value={pin} onChange={(evento) => setPin(evento.target.value)} />
+        <small className="f-acceso-ayuda">Es el mismo PIN que elegiste al crear tu respaldo.</small>
       </label>
 
       {clave && <VerificacionHumana ref={verificacion} clave={clave} onToken={setCaptchaToken} />}
@@ -64,14 +65,14 @@ export function Entrar({ onListo }: { onListo: () => void }) {
       <Boton
         variante="principal"
         type="submit"
-        className="w-full !py-3 !text-[13px]"
+        ancho
         disabled={trabajando || (clave !== null && !captchaToken)}
       >
         {trabajando ? 'Bajando tu negocio…' : 'Traer mi negocio'}
       </Boton>
 
       {aviso && (
-        <p className="form-message form-message-error" role="alert">{aviso}</p>
+        <p className="f-aviso" role="alert">{aviso}</p>
       )}
 
       {!accesoSaasObligatorio() && (
@@ -79,13 +80,13 @@ export function Entrar({ onListo }: { onListo: () => void }) {
           <Boton
             type="button"
             variante="secundario"
-            className="w-full !py-3 !text-[13px]"
+            ancho
             onClick={onListo}
           >
             Empezar de cero acá
           </Boton>
 
-          <p className="form-field-help">
+          <p className="f-acceso-ayuda">
             Si cargaste algo acá y traés tu negocio, las dos cosas quedan: no se borra nada.
           </p>
         </>

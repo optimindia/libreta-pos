@@ -7,7 +7,13 @@ self.addEventListener('install', (evento) => {
   evento.waitUntil(
     caches.open(CACHE).then((cache) => Promise.all(ARMAZON.map((ruta) => cache.add(ruta).catch(() => undefined)))),
   )
-  self.skipWaiting()
+  // La versión nueva no se activa sola acá: espera a que la
+  // pantalla avise ("Hay una versión nueva" → Actualizar), así nunca cambia
+  // el código de la app en medio de una venta.
+})
+
+self.addEventListener('message', (evento) => {
+  if (evento.data && evento.data.tipo === 'SKIP_WAITING') self.skipWaiting()
 })
 
 self.addEventListener('activate', (evento) => {

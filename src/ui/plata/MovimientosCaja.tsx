@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { MedioCaja, TipoMovimientoCaja } from '@/dominio/tipos'
-import { formatearPesos, pesosACentavos } from '@/dominio/dinero'
+import { formatearPesos, pesosACentavos, pesosDeTexto } from '@/dominio/dinero'
 import { repos } from '@/datos/local/repos'
 import { Boton } from '@/ui/sistema/Boton'
 import { Hoja } from '@/ui/sistema/Hoja'
@@ -38,7 +38,7 @@ export function MovimientosCaja() {
 
   async function guardar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault()
-    const montoCentavos = pesosACentavos(Number(monto) || 0)
+    const montoCentavos = pesosACentavos(pesosDeTexto(monto))
     if (concepto.trim().length < 2 || montoCentavos <= 0) {
       setAviso('Completá un concepto y un monto mayor a cero.')
       return

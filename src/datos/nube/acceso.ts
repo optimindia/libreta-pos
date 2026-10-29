@@ -3,6 +3,7 @@
 import { db } from '@/datos/local/db'
 import type { EstadoSuscripcion, Negocio, UUID } from '@/dominio/tipos'
 import type { Suscripcion } from '@/dominio/suscripcion'
+import { limpiarDatosLocales } from '@/datos/local/limpiar'
 import { cliente, nubeActiva } from './cliente'
 import { rolDe } from '@/dominio/roles'
 
@@ -18,6 +19,27 @@ export interface EstadoAcceso {
    *  leídos correctamente desde Supabase en esta comprobación. */
   verificadoRemoto: boolean
   motivoVerificacion?: 'sin_red' | 'error_red' | 'vencimiento_local'
+  /** El servidor confirmó que este usuario ya no pertenece a ningún negocio
+   *  (por ejemplo, el dueño lo quitó) y la copia local fue borrada. */
+  motivoSinNegocio?: 'vendedor_quitado'
+}
+
+const CLAVE_AVISO_BAJA = 'libreta:aviso-baja'
+
+function avisoBajaPendiente(usuarioId: UUID): boolean {
+  try { return localStorage.getItem(CLAVE_AVISO_BAJA) === usuarioId } catch { return false }
+}
+
+function marcarAvisoBaja(usuarioId: UUID | null): void {
+  try {
+    if (usuarioId) localStorage.setItem(CLAVE_AVISO_BAJA, usuarioId)
+    else localStorage.removeItem(CLAVE_AVISO_BAJA)
+  } catch { /* sin almacenamiento el aviso sólo dura esta comprobación */ }
+}
+
+/** Quita el aviso de baja (al cerrar sesión o cuando vuelve a haber negocio). */
+export function olvidarAvisoBaja(): void {
+  marcarAvisoBaja(null)
 }
 
 /** La obligatoriedad se enciende por defecto en producción cuando hay nube.
@@ -124,8 +146,18 @@ async function guardarAccesoLocal(
   return negocio
 }
 
-function estadoSinNegocio(usuarioId: UUID, online: boolean): EstadoAcceso {
-  return { autenticado: true, usuarioId, negocio: null, suscripcion: null, online, verificadoRemoto: true }
+/** Sólo se llama cuando Supabase respondió bien y dijo que no hay negocio
+ *  visible: nunca por un fallo de red. Si este aparato tenía la copia de un
+ *  negocio, ya no corresponde (vendedor quitado): se borra y se avisa. */
+async function estadoSinNegocio(usuarioId: UUID, online: boolean, cache: Negocio | undefined): Promise<EstadoAcceso> {
+  if (cache?.negocioId) {
+    await limpiarDatosLocales()
+    marcarAvisoBaja(usuarioId)
+  }
+  return {
+    autenticado: true, usuarioId, negocio: null, suscripcion: null, online, verificadoRemoto: true,
+    motivoSinNegocio: avisoBajaPendiente(usuarioId) ? 'vendedor_quitado' : undefined,
+  }
 }
 
 function estadoSinVerificar(
@@ -182,7 +214,7 @@ export async function cargarEstadoAcceso(): Promise<EstadoAcceso> {
       .maybeSingle()
     if (vinculo.error) throw vinculo.error
     const negocioId = vinculo.data?.negocio_id as UUID | undefined
-    if (!negocioId) return estadoSinNegocio(usuarioId, online)
+    if (!negocioId) return await estadoSinNegocio(usuarioId, online, cache)
 
     const [negocioRemoto, suscripcionRemota] = await Promise.all([
       cliente.from('negocios').select('id,nombre,logo,color').eq('id', negocioId).maybeSingle(),
@@ -195,7 +227,7 @@ export async function cargarEstadoAcceso(): Promise<EstadoAcceso> {
     // La identidad no recibe acceso ni siquiera desde la caché si el negocio
     // dejó de estar visible en Supabase (por ejemplo, fue desactivado o
     // revocado). La copia local sólo sirve para explicar un bloqueo.
-    if (!negocioRemoto.data) return estadoSinNegocio(usuarioId, online)
+    if (!negocioRemoto.data) return await estadoSinNegocio(usuarioId, online, cache)
     const suscripcion = mapearSuscripcion((suscripcionRemota.data as Record<string, unknown> | null) ?? null)
     const negocio = await guardarAccesoLocal(
       cache,
@@ -205,6 +237,7 @@ export async function cargarEstadoAcceso(): Promise<EstadoAcceso> {
       suscripcion,
       (vinculo.data as { rol?: unknown; nombre?: unknown } | null) ?? {},
     )
+    marcarAvisoBaja(null)
     return { autenticado: true, usuarioId, negocio, suscripcion, online, verificadoRemoto: true }
   } catch {
     return estadoSinVerificar(usuarioId, cache, online, 'error_red')

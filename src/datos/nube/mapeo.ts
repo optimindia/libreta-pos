@@ -36,6 +36,8 @@ const CAMPOS: Record<string, string> = {
   fechaEntrega: 'fecha_entrega',
   tipoEntrega: 'tipo_entrega',
   reservarStock: 'reservar_stock',
+  vendidoPor: 'vendido_por',
+  usuarioId: 'usuario_id',
 }
 
 const FECHAS = new Set(['fecha', 'vence', 'anulado_en', 'actualizado_en', 'oferta_hasta', 'eliminado_en', 'fecha_entrega'])

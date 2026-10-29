@@ -85,6 +85,52 @@ describe('repos.productos', () => {
   })
 })
 
+describe('repos.productos: código de barras repetido (FUN-13)', () => {
+  const base = { costo: 100, precio: 200, stock: 0, stockMinimo: 0 }
+
+  it('no deja guardar otro producto con un código que ya existe', async () => {
+    await repos.productos.guardar({ ...base, codigoBarras: '779001', nombre: 'Yerba' })
+    await expect(repos.productos.guardar({ ...base, codigoBarras: ' 779001 ', nombre: 'Otra yerba' }))
+      .rejects.toThrow(/código/i)
+    expect(await repos.productos.todos()).toHaveLength(1)
+  })
+
+  it('editar un producto con su propio código sigue funcionando', async () => {
+    const yerba = await repos.productos.guardar({ ...base, codigoBarras: '779001', nombre: 'Yerba' })
+    await repos.productos.guardar({ ...yerba, precio: 300 })
+    expect((await repos.productos.todos())[0].precio).toBe(300)
+  })
+
+  it('varios productos sin código no chocan entre sí', async () => {
+    await repos.productos.guardar({ ...base, codigoBarras: null, nombre: 'Pan' })
+    await repos.productos.guardar({ ...base, codigoBarras: null, nombre: 'Facturas' })
+    expect(await repos.productos.todos()).toHaveLength(2)
+  })
+
+  it('un código vacío se trata como sin código y no se encuentra al escanear vacío', async () => {
+    await repos.productos.guardar({ ...base, codigoBarras: '' as unknown as null, nombre: 'Pan' })
+    await repos.productos.guardar({ ...base, codigoBarras: '  ' as unknown as null, nombre: 'Facturas' })
+    expect(await repos.productos.porCodigoBarras('')).toBeNull()
+    expect((await repos.productos.todos()).map((p) => p.codigoBarras)).toEqual([null, null])
+  })
+})
+
+describe('repos.ingresos: costo 0 (FUN-13)', () => {
+  it('un ingreso con costo 0 suma el stock y no pisa el costo conocido', async () => {
+    const p = await repos.productos.guardar({ codigoBarras: null, nombre: 'Gaseosa', costo: 70000, precio: 100000, stock: 1, stockMinimo: 0 })
+    await repos.ingresos.registrar({ proveedor: null, origen: 'manual', items: [{ productoId: p.id, cantidad: 5, costoUnitario: 0 }] })
+    const [actual] = await repos.productos.todos()
+    expect(actual.stock).toBe(6)
+    expect(actual.costo).toBe(70000)
+  })
+
+  it('un ingreso con costo 0 de un producto sin costo conocido lo deja en 0 sin romper', async () => {
+    const p = await repos.productos.guardar({ codigoBarras: null, nombre: 'Muestra', costo: 0, precio: 100000, stock: 0, stockMinimo: 0 })
+    await repos.ingresos.registrar({ proveedor: null, origen: 'manual', items: [{ productoId: p.id, cantidad: 2, costoUnitario: 0 }] })
+    expect((await repos.productos.todos())[0].stock).toBe(2)
+  })
+})
+
 describe('repos.ventas', () => {
   it('registra la venta y descuenta el stock del producto', async () => {
     const producto = await repos.productos.guardar(yerba)

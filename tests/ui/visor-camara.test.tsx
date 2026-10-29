@@ -95,6 +95,18 @@ describe('VisorCamara', () => {
       expect(screen.getByRole('button', { name: 'Listo · 1 producto' })).toBeTruthy()
     })
 
+    it('entiende "1.500,50" como mil quinientos con cincuenta', async () => {
+      const alCargar = vi.fn(async () => ({ tipo: 'ok' as const, texto: '✓ Cargado' }))
+      await abierto({ continuo: true, alLeer: desconocido, alCargar })
+      await act(async () => { alDetectar?.('779052') })
+      fireEvent.click(await screen.findByRole('button', { name: /cargarlo ahora/i }))
+      fireEvent.change(screen.getByPlaceholderText(/yerba playadito/i), { target: { value: 'Aceite' } })
+      fireEvent.change(screen.getByLabelText(/precio de venta/i), { target: { value: '1.500,50' } })
+      fireEvent.change(screen.getByLabelText(/cuántas tenés/i), { target: { value: '2' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar y sumar' }))
+      await waitFor(() => expect(alCargar).toHaveBeenCalledWith(expect.objectContaining({ precio: 1500.5 })))
+    })
+
     it('pide lo que falta antes de guardar', async () => {
       const alCargar = vi.fn()
       await abierto({ continuo: true, alLeer: desconocido, alCargar })

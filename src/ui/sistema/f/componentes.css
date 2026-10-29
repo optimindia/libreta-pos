@@ -394,6 +394,28 @@
 .f-aviso strong { display: block; font-size: 16px; font-weight: 800; }
 .f-aviso span { display: block; margin-top: 2px; font-weight: 600; }
 
+/* ───────────── Versión nueva (banner arriba, sobre todo lo demás) ───────────── */
+
+.f-version-nueva {
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  z-index: 80;
+  display: flex;
+  width: min(calc(100% - 32px), 520px);
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+  transform: translateX(-50%);
+}
+
+.f-version-nueva-texto strong { display: block; font-size: 16px; font-weight: 800; }
+.f-version-nueva-texto span { display: block; margin-top: 2px; color: var(--f-tinta-2); font-size: 14px; font-weight: 600; line-height: 1.3; }
+
 /* ───────────── Hoja (sube desde abajo; centrada en la PC) ───────────── */
 
 .f-hoja-capa {

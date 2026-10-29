@@ -1,9 +1,14 @@
 import { describe, it, expect, vi } from 'vitest'
-import { escucharCambios } from '@/datos/nube/realtime'
 
 describe('escucharCambios', () => {
-  it('sin nube configurada no suscribe nada y devuelve null', () => {
-    expect(escucharCambios(['productos'], () => {})).toBeNull()
+  it('sin nube configurada no suscribe nada y devuelve null', async () => {
+    // En CI las variables de Supabase existen (falsas): se fuerza el caso sin nube.
+    vi.doMock('@/datos/nube/cliente', () => ({ cliente: null }))
+    vi.resetModules()
+    const { escucharCambios: escuchar } = await import('@/datos/nube/realtime')
+    expect(escuchar(['productos'], () => {})).toBeNull()
+    vi.doUnmock('@/datos/nube/cliente')
+    vi.resetModules()
   })
 
   it('suscribe cada tabla en un canal y devuelve la parada', async () => {

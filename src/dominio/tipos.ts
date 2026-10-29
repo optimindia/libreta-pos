@@ -62,6 +62,8 @@ export interface Venta {
   estadoCobro?: EstadoCobro
   referenciaPago?: string
   pedidoId?: UUID
+  /** Quién cobró (id de usuario). Las ventas viejas no lo traen: "Sin dato". */
+  vendidoPor?: UUID | null
 }
 
 export interface ItemPedido {
@@ -115,6 +117,8 @@ export interface FiadoPago {
   fiadoId: UUID
   monto: Centavos
   fecha: number
+  /** Quién cobró el pago. Opcional: los pagos viejos no lo traen. */
+  usuarioId?: UUID | null
 }
 
 export interface ItemIngreso {
@@ -144,6 +148,11 @@ export interface Cierre {
   contado: Centavos
   entradasCaja?: Centavos
   salidasCaja?: Centavos
+  /** Quién hizo el cierre. Opcional: los cierres viejos no lo traen. */
+  usuarioId?: UUID | null
+  /** 'turno' es el cierre de un vendedor (sólo sus ventas, sin fondo ni
+   *  movimientos manuales). Ausente o 'caja' es el cierre del día del dueño. */
+  alcance?: 'turno' | 'caja' | null
 }
 
 /** Movimiento manual del cajón; no es una venta ni un gasto contable. */

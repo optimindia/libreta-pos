@@ -6,8 +6,11 @@ import { accesoSaasObligatorio, cargarEstadoAcceso, EVENTO_ACCESO, type EstadoAc
 import { accesoPermitido, diasRestantes, estadoSuscripcion, fechaSuscripcion } from '@/dominio/suscripcion'
 import { formatearPesos } from '@/dominio/dinero'
 import { enlaceWhatsApp } from '@/dominio/mensajes'
-import { Boton } from '@/ui/sistema/Boton'
+import { Boton, clasesBoton } from '@/ui/sistema/Boton'
+import { Etiqueta } from '@/ui/sistema/Etiqueta'
+import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { IconoAlerta, IconoBloqueo, IconoCalendarioCuenta, IconoCuentaActiva, IconoCuentaCerrada, IconoCuentaSegura, IconoReintentar, IconoTarjeta } from '@/ui/sistema/iconos'
+import './cuenta.css'
 
 const DIAS_AVISO = 3
 
@@ -62,23 +65,27 @@ function IconoEstado({ estado, verificado }: { estado: ReturnType<typeof estadoS
 
 function EstadoCuentaLocal() {
   return (
-    <section className="account-status-card account-status-local" aria-labelledby="account-status-title">
-      <div className="account-status-head">
-        <div className="account-status-title">
-          <span className="account-status-icon is-safe" aria-hidden="true"><IconoCuentaActiva /></span>
-          <div><span className="page-kicker">Cuenta y suscripción</span><h2 id="account-status-title">Modo local</h2><p>Este aparato todavía no está vinculado a una cuenta comercial.</p></div>
+    <Tarjeta como="section" className="f-cuenta-estado" aria-labelledby="account-status-title">
+      <div className="f-cuenta-cabeza">
+        <span className="f-cuenta-icono" data-tono="ok" aria-hidden="true"><IconoCuentaActiva /></span>
+        <div className="f-cuenta-titulo">
+          <span className="f-dato">Cuenta y suscripción</span>
+          <h2 id="account-status-title" className="f-seccion">Modo local</h2>
+          <p className="f-dato">Este aparato todavía no está vinculado a una cuenta comercial.</p>
         </div>
-        <span className="account-status-badge" data-status="local">Local</span>
+        <Etiqueta tono="gris">Local</Etiqueta>
       </div>
-      <div className="account-status-local-copy">
-        <strong>La suscripción aparecerá cuando vincules tu negocio.</strong>
-        <p>En la versión comercial, el estado se consulta contra el servidor y el acceso se bloquea automáticamente al vencer.</p>
+      <div className="f-cuenta-bloque">
+        <strong className="f-renglon-texto">La suscripción aparecerá cuando vincules tu negocio.</strong>
+        <p className="f-texto">En la versión comercial, el estado se consulta contra el servidor y el acceso se bloquea automáticamente al vencer.</p>
       </div>
-    </section>
+    </Tarjeta>
   )
 }
 
-export function EstadoCuenta() {
+/** `destacar` pinta en lima el botón de WhatsApp: sólo para la pantalla de
+ *  Cuenta, donde es la única acción principal (en Ajustes ya hay otra). */
+export function EstadoCuenta({ destacar = false }: { destacar?: boolean } = {}) {
   const [estado, setEstado] = useState<EstadoAcceso | null>(null)
   const [cargando, setCargando] = useState(true)
   const [ahora, setAhora] = useState(() => Date.now())
@@ -118,28 +125,28 @@ export function EstadoCuenta() {
 
   if (cargando && !estado) {
     return (
-      <section className="account-status-card account-status-loading" aria-busy="true" aria-live="polite">
-        <span className="account-status-loading-icon"><IconoReintentar /></span>
-        <div><strong>Consultando el estado de tu cuenta…</strong><p>Estamos verificando la suscripción en el servidor.</p></div>
-      </section>
+      <Tarjeta como="section" className="f-cuenta-estado f-cuenta-simple" aria-busy="true" aria-live="polite">
+        <span className="f-cuenta-icono f-cuenta-gira" aria-hidden="true"><IconoReintentar /></span>
+        <div><strong className="f-renglon-texto">Consultando el estado de tu cuenta…</strong><p className="f-dato">Estamos verificando la suscripción en el servidor.</p></div>
+      </Tarjeta>
     )
   }
 
   if (!estado) {
     return (
-      <section className="account-status-card account-status-error" role="alert">
-        <div className="account-status-main-copy"><strong>No pudimos cargar el estado de tu cuenta.</strong><p>Probá nuevamente cuando tengas conexión.</p></div>
-        <Boton variante="secundario" className="button-with-icon" onClick={() => void refrescar()}><IconoReintentar /> Reintentar</Boton>
-      </section>
+      <Tarjeta como="section" className="f-cuenta-estado f-cuenta-simple" role="alert">
+        <div><strong className="f-renglon-texto">No pudimos cargar el estado de tu cuenta.</strong><p className="f-dato">Probá nuevamente cuando tengas conexión.</p></div>
+        <Boton variante="secundario" onClick={() => void refrescar()}><IconoReintentar /> Reintentar</Boton>
+      </Tarjeta>
     )
   }
 
   if (!estado.autenticado) {
     return (
-      <section className="account-status-card account-status-error" aria-labelledby="account-status-title">
-        <div className="account-status-main-copy"><span>Cuenta</span><strong>Iniciá sesión para ver tu suscripción</strong><p>El estado comercial sólo está disponible para la cuenta vinculada al negocio.</p></div>
-        <Link className="account-refresh-link" href="/">Ingresar</Link>
-      </section>
+      <Tarjeta como="section" className="f-cuenta-estado f-cuenta-simple" aria-labelledby="account-status-title">
+        <div><span className="f-dato">Cuenta</span><strong id="account-status-title" className="f-renglon-texto">Iniciá sesión para ver tu suscripción</strong><p className="f-dato">El estado comercial sólo está disponible para la cuenta vinculada al negocio.</p></div>
+        <Link className={clasesBoton('secundario')} href="/">Ingresar</Link>
+      </Tarjeta>
     )
   }
 
@@ -153,65 +160,68 @@ export function EstadoCuenta() {
   const estadoTexto = nombreEstado(efectivo, estado.verificadoRemoto)
   const bloqueado = !permitido
   const necesitaContacto = bloqueado || aviso
+  const tono = bloqueado ? 'coral' : aviso ? 'ambar' : 'verde'
 
   return (
-    <section className={`account-status-card${aviso ? ' is-warning' : ''}${bloqueado ? ' is-blocked' : ''}`} aria-labelledby="account-status-title">
-      <div className="account-status-head">
-        <div className="account-status-title">
-          <span className={`account-status-icon${permitido ? ' is-safe' : ''}`} aria-hidden="true"><IconoEstado estado={efectivo} verificado={estado.verificadoRemoto} /></span>
-          <div><span className="page-kicker">Cuenta y suscripción</span><h2 id="account-status-title">{nombre}</h2><p>Estado comercial y acceso al POS en tiempo real.</p></div>
+    <Tarjeta como="section" className="f-cuenta-estado" data-estado={bloqueado ? 'bloqueado' : aviso ? 'aviso' : 'activo'} aria-labelledby="account-status-title">
+      <div className="f-cuenta-cabeza">
+        <span className="f-cuenta-icono" data-tono={permitido ? 'ok' : 'cuidado'} aria-hidden="true"><IconoEstado estado={efectivo} verificado={estado.verificadoRemoto} /></span>
+        <div className="f-cuenta-titulo">
+          <span className="f-dato">Cuenta y suscripción</span>
+          <h2 id="account-status-title" className="f-seccion">{nombre}</h2>
+          <p className="f-dato">Estado comercial y acceso al POS en tiempo real.</p>
         </div>
-        <span className="account-status-badge" data-status={bloqueado ? 'blocked' : aviso ? 'warning' : 'active'}>{estadoTexto}</span>
+        <Etiqueta tono={tono} punto>{estadoTexto}</Etiqueta>
       </div>
 
-      <div className="account-status-main">
-        <div className="account-status-main-copy">
-          <span>{bloqueado ? 'Acceso operativo' : aviso ? 'Aviso de vencimiento' : 'Acceso operativo'}</span>
+      <div className="f-cuenta-principal">
+        <div className="f-cuenta-copia">
+          <span className="f-dato">{bloqueado ? 'Acceso operativo' : aviso ? 'Aviso de vencimiento' : 'Acceso operativo'}</span>
           <strong>{copy.titulo}</strong>
-          <p>{copy.texto}</p>
+          <p className="f-texto">{copy.texto}</p>
         </div>
         {!bloqueado && estado.suscripcion && (
-          <div className="account-status-days" aria-label={`${dias} ${dias === 1 ? 'día restante' : 'días restantes'}`}>
-            <strong>{dias}</strong><span>{dias === 1 ? 'día restante' : 'días restantes'}</span>
+          <div className="f-cuenta-dias" data-aviso={aviso ? 'true' : undefined} aria-label={`${dias} ${dias === 1 ? 'día restante' : 'días restantes'}`}>
+            <strong className="f-plata-36">{dias}</strong><span>{dias === 1 ? 'día restante' : 'días restantes'}</span>
           </div>
         )}
       </div>
 
-      <dl className="account-status-details">
+      <dl className="f-cuenta-datos">
         <div><dt><IconoTarjeta /> Plan</dt><dd>{tipoSuscripcion(estado.suscripcion?.tipo, estado.suscripcion?.planNombre)}</dd></div>
         <div><dt><IconoCalendarioCuenta /> Vencimiento</dt><dd>{fecha}</dd></div>
         <div><dt><IconoBloqueo /> Acceso</dt><dd>{permitido ? 'Habilitado' : 'Bloqueado'}</dd></div>
-        {Boolean(estado.suscripcion?.importeCentavos) && <div><dt><IconoTarjeta /> Importe registrado</dt><dd>{formatearPesos(estado.suscripcion?.importeCentavos ?? 0)}</dd></div>}
+        {Boolean(estado.suscripcion?.importeCentavos) && <div><dt><IconoTarjeta /> Importe registrado</dt><dd className="f-plata-16">{formatearPesos(estado.suscripcion?.importeCentavos ?? 0)}</dd></div>}
       </dl>
 
       {aviso && (
-        <div className="account-renewal-alert" role="alert">
+        <div className="f-aviso f-cuenta-alerta" data-tono="ambar" role="alert">
           <IconoAlerta />
-          <div><strong>Tu suscripción vence pronto</strong><p>Te quedan {dias} {dias === 1 ? 'día' : 'días'}. Escribinos para renovar y seguir trabajando sin cortes.</p></div>
+          <div><strong>Tu suscripción vence pronto</strong><span>Te quedan {dias} {dias === 1 ? 'día' : 'días'}. Escribinos para renovar y seguir trabajando sin cortes.</span></div>
         </div>
       )}
 
       {bloqueado && estado.verificadoRemoto && (
-        <div className="account-blocked-alert" role="alert">
+        <div className="f-aviso f-cuenta-alerta" role="alert">
           <IconoBloqueo />
-          <div><strong>El POS está bloqueado</strong><p>Tus datos siguen guardados; se habilitarán únicamente cuando el administrador confirme la renovación.</p></div>
+          <div><strong>El POS está bloqueado</strong><span>Tus datos siguen guardados; se habilitarán únicamente cuando el administrador confirme la renovación.</span></div>
         </div>
       )}
 
       {!estado.verificadoRemoto && (
-        <div className="account-blocked-alert" role="alert">
+        <div className="f-aviso f-cuenta-alerta" role="alert">
           <IconoAlerta />
-          <div><strong>Verificación pendiente</strong><p>Por seguridad, no se habilita el POS sin una validación reciente del servidor.</p></div>
+          <div><strong>Verificación pendiente</strong><span>Por seguridad, no se habilita el POS sin una validación reciente del servidor.</span></div>
         </div>
       )}
 
-      <div className="account-status-footer">
-        <div className="account-security-note"><IconoCuentaSegura /><span><strong>Acceso protegido</strong><small>La fecha y el estado se validan en Supabase. La copia local nunca puede habilitar una cuenta vencida.</small></span></div>
-        <div className="account-status-actions">
-          {necesitaContacto && <a className="account-contact-button" href={enlaceWhatsApp('', `Hola, necesito revisar la suscripción de ${nombre}.`)} target="_blank" rel="noreferrer">Hablar por WhatsApp</a>}
-          <Link className="account-refresh-link" href="/cuenta">Ver detalle completo</Link>
+      <div className="f-cuenta-pie">
+        <div className="f-cuenta-seguro"><IconoCuentaSegura /><span><strong>Acceso protegido</strong><small>La fecha y el estado se validan en Supabase. La copia local nunca puede habilitar una cuenta vencida.</small></span></div>
+        <div className="f-cuenta-acciones">
+          {necesitaContacto && <a className={clasesBoton(destacar ? 'principal' : 'secundario')} href={enlaceWhatsApp('', `Hola, necesito revisar la suscripción de ${nombre}.`)} target="_blank" rel="noreferrer">Hablar por WhatsApp</a>}
+          <Link className={clasesBoton('secundario')} href="/cuenta">Ver detalle completo</Link>
         </div>
       </div>
-    </section>
+    </Tarjeta>
   )
 }

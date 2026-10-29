@@ -11,6 +11,7 @@ import { PantallaAcceso } from './PantallaAcceso'
 import { PantallaEstadoAcceso } from './PantallaEstadoAcceso'
 import { IconoAlerta, IconoCuenta } from './iconos'
 import { GuardiaFuncion } from './GuardiaFuncion'
+import './acceso.css'
 
 /** Páginas que cualquiera puede leer sin cuenta: los términos y la política
  *  de privacidad tienen que poder consultarse antes de aceptarlos. */
@@ -38,9 +39,9 @@ function AvisoVencimiento({ estado }: { estado: EstadoAcceso }) {
 
 function Marco({ children, admin = false, estado }: { children: React.ReactNode; admin?: boolean; estado?: EstadoAcceso }) {
   return (
-    <div className={admin ? 'app-shell app-shell-admin' : 'nb-app'}>
+    <div className={admin ? 'f-admin-marco' : 'nb-app'}>
       {!admin && <Navegacion />}
-      <main className={`app-main${admin ? ' admin-main' : ''}`}>{!admin && estado && <AvisoVencimiento estado={estado} />}{children}</main>
+      <main className={admin ? 'f-admin-principal' : 'app-main'}>{!admin && estado && <AvisoVencimiento estado={estado} />}{children}</main>
     </div>
   )
 }
@@ -48,8 +49,8 @@ function Marco({ children, admin = false, estado }: { children: React.ReactNode;
 function CargandoAcceso() {
   return (
     <Marco admin>
-      <div className="access-loading" role="status" aria-live="polite">
-        <span className="access-brand-mark">L</span>
+      <div className="f-acceso-cargando" role="status" aria-live="polite">
+        <span className="f-acceso-marca" aria-hidden="true">L</span>
         <span>Preparando tu acceso…</span>
       </div>
     </Marco>

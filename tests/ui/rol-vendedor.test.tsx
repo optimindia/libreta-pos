@@ -86,8 +86,9 @@ describe('El vendedor no ve acciones que la base le rechaza', () => {
 
   it('Historial: el vendedor ve la venta pero no la puede anular', async () => {
     const yerba = await conProducto()
-    await repos.ventas.registrar({ items: [{ productoId: yerba.id, nombre: 'Yerba', cantidad: 1, precio: 420000, costo: 300000 }], medioPago: 'efectivo', clienteId: null })
+    // El vendedor ve lo que vendió él: la venta se registra ya con su sesión.
     await comoVendedor()
+    await repos.ventas.registrar({ items: [{ productoId: yerba.id, nombre: 'Yerba', cantidad: 1, precio: 420000, costo: 300000 }], medioPago: 'efectivo', clienteId: null })
     ruta = '/historial'
     render(<PantallaHistorial />)
     fireEvent.click(await screen.findByText(/Yerba/))
