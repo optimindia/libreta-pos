@@ -7,7 +7,7 @@ import { cerrarSesion } from '@/datos/nube/sesion'
 import { Boton } from '@/ui/sistema/Boton'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { Respaldo } from './Respaldo'
-import { RespaldoLocal } from './RespaldoLocal'
+import { TusDatos } from './TusDatos'
 import { TemaControl } from './TemaControl'
 import { TicketControl } from './TicketControl'
 import { InstalarApp } from './InstalarApp'
@@ -143,7 +143,8 @@ export function PantallaConfig() {
 
         <div className="f-config-col">
           <FuncionesControl />
-          {funcionActiva(funciones, 'respaldoLocal') && <><Respaldo /><RespaldoLocal /></>}
+          {funcionActiva(funciones, 'respaldoLocal') && <Respaldo />}
+          <TusDatos />
           <EstadoSincronizacion />
         </div>
       </div>

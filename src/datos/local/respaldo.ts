@@ -1,72 +1,63 @@
 import { db } from './db'
 import { normalizarFunciones } from '@/dominio/funciones'
 import type { PreferenciasNegocio } from '@/dominio/tipos'
+import {
+  ESQUEMA_ACTUAL, TABLAS_DATOS, VERSION_COPIA, planificarFusion, validarCopiaObjeto,
+  type Copia, type FilasActuales, type PlanFusion, type TablaDatos,
+} from '@/dominio/copia'
 
-export interface RespaldoLocal {
-  version: 1
-  creadoEn: number
-  productos: unknown[]
-  ventas: unknown[]
-  clientes: unknown[]
-  fiados: unknown[]
-  fiadoPagos: unknown[]
-  ingresos: unknown[]
-  cierres: unknown[]
-  /** Opcional para seguir abriendo copias creadas antes del control de caja. */
-  movimientosCaja?: unknown[]
-  /** Opcional para que las copias anteriores sigan siendo compatibles. */
-  pedidos?: unknown[]
-  /** Opcional para que las copias anteriores sigan siendo compatibles. */
-  preferencias?: unknown[]
-  negocio: unknown[]
-}
+export type RespaldoLocal = Copia
 
-const TABLAS = ['productos', 'ventas', 'clientes', 'fiados', 'fiadoPagos', 'ingresos', 'cierres', 'negocio'] as const
-
+/** Copia completa desde Dexie. La cola de sincronización queda afuera a
+ *  propósito: es estado de este aparato, no datos del negocio. */
 export async function crearRespaldoLocal(): Promise<RespaldoLocal> {
-  const filas = await Promise.all([...TABLAS.map((tabla) => db[tabla].toArray()), db.movimientosCaja.toArray(), db.pedidos.toArray(), db.preferencias.toArray()])
+  const [productos, ventas, clientes, fiados, fiadoPagos, ingresos, cierres, negocio, movimientosCaja, pedidos, preferencias] =
+    await Promise.all([
+      db.productos.toArray(), db.ventas.toArray(), db.clientes.toArray(), db.fiados.toArray(),
+      db.fiadoPagos.toArray(), db.ingresos.toArray(), db.cierres.toArray(), db.negocio.toArray(),
+      db.movimientosCaja.toArray(), db.pedidos.toArray(), db.preferencias.toArray(),
+    ])
   return {
-    version: 1,
-    creadoEn: Date.now(),
-    productos: filas[0], ventas: filas[1], clientes: filas[2], fiados: filas[3],
-    fiadoPagos: filas[4], ingresos: filas[5], cierres: filas[6], negocio: filas[7], movimientosCaja: filas[8], pedidos: filas[9], preferencias: filas[10],
-  }
-}
-
-function esRegistro(valor: unknown): valor is { id: string } {
-  return typeof valor === 'object' && valor !== null && typeof (valor as { id?: unknown }).id === 'string'
-}
-
-function esLista(valor: unknown): valor is unknown[] {
-  return Array.isArray(valor) && valor.every(esRegistro)
+    version: VERSION_COPIA, esquema: ESQUEMA_ACTUAL, creadoEn: Date.now(),
+    productos, ventas, clientes, fiados, fiadoPagos, ingresos, cierres, negocio, movimientosCaja, pedidos, preferencias,
+  } as unknown as RespaldoLocal
 }
 
 export function validarRespaldoLocal(valor: unknown): valor is RespaldoLocal {
-  if (typeof valor !== 'object' || valor === null) return false
-  const respaldo = valor as Partial<RespaldoLocal>
-  return respaldo.version === 1 && typeof respaldo.creadoEn === 'number' &&
-    TABLAS.every((tabla) => esLista(respaldo[tabla])) &&
-    (respaldo.movimientosCaja === undefined || esLista(respaldo.movimientosCaja)) &&
-    (respaldo.pedidos === undefined || esLista(respaldo.pedidos)) &&
-    (respaldo.preferencias === undefined || esLista(respaldo.preferencias))
+  return validarCopiaObjeto(valor).ok
 }
 
-export async function restaurarRespaldoLocal(respaldo: RespaldoLocal): Promise<number> {
+async function filasActuales(): Promise<FilasActuales> {
+  const entradas = await Promise.all(
+    TABLAS_DATOS.map(async (tabla) => [tabla, await db[tabla].toArray()] as const),
+  )
+  return Object.fromEntries(entradas) as FilasActuales
+}
+
+/** Qué pasaría al restaurar, sin tocar nada: sirve para mostrar el resumen. */
+export async function planRestauracion(respaldo: RespaldoLocal, reemplazar = false): Promise<PlanFusion> {
+  return planificarFusion(respaldo, await filasActuales(), { reemplazar })
+}
+
+/** Restaura fusionando por id. Con `reemplazar` borra además lo que la copia
+ *  no trae (el pedido explícito de la persona). Nunca toca la cola de sync ni
+ *  el vínculo del aparato con la nube. Devuelve cuántos registros escribió. */
+export async function restaurarRespaldoLocal(respaldo: RespaldoLocal, opciones: { reemplazar?: boolean } = {}): Promise<number> {
   if (!validarRespaldoLocal(respaldo)) throw new Error('respaldo inválido')
   let restauradas = 0
   await db.transaction('rw', [db.productos, db.ventas, db.clientes, db.fiados, db.fiadoPagos, db.ingresos, db.cierres, db.movimientosCaja, db.pedidos, db.preferencias, db.negocio], async () => {
     const actual = await db.negocio.get('unico')
     const actualPreferencias = await db.preferencias.get('unico')
-    if (respaldo.productos.length > 0) { await db.productos.bulkPut(respaldo.productos as never[]); restauradas += respaldo.productos.length }
-    if (respaldo.ventas.length > 0) { await db.ventas.bulkPut(respaldo.ventas as never[]); restauradas += respaldo.ventas.length }
-    if (respaldo.clientes.length > 0) { await db.clientes.bulkPut(respaldo.clientes as never[]); restauradas += respaldo.clientes.length }
-    if (respaldo.fiados.length > 0) { await db.fiados.bulkPut(respaldo.fiados as never[]); restauradas += respaldo.fiados.length }
-    if (respaldo.fiadoPagos.length > 0) { await db.fiadoPagos.bulkPut(respaldo.fiadoPagos as never[]); restauradas += respaldo.fiadoPagos.length }
-    if (respaldo.ingresos.length > 0) { await db.ingresos.bulkPut(respaldo.ingresos as never[]); restauradas += respaldo.ingresos.length }
-    if (respaldo.cierres.length > 0) { await db.cierres.bulkPut(respaldo.cierres as never[]); restauradas += respaldo.cierres.length }
-    if (respaldo.movimientosCaja && respaldo.movimientosCaja.length > 0) { await db.movimientosCaja.bulkPut(respaldo.movimientosCaja as never[]); restauradas += respaldo.movimientosCaja.length }
-    if (respaldo.pedidos && respaldo.pedidos.length > 0) { await db.pedidos.bulkPut(respaldo.pedidos as never[]); restauradas += respaldo.pedidos.length }
-    const filaPreferencias = respaldo.preferencias?.[0] as Partial<PreferenciasNegocio> | undefined
+    const plan = planificarFusion(respaldo, await filasActuales(), { reemplazar: opciones.reemplazar })
+    for (const tabla of TABLAS_DATOS as readonly TablaDatos[]) {
+      const p = plan.tablas[tabla]
+      const aEscribir = [...p.agregar, ...p.actualizar]
+      const destino = db[tabla] as unknown as { bulkPut(filas: unknown[]): Promise<unknown> }
+      if (aEscribir.length > 0) await destino.bulkPut(aEscribir)
+      if (p.borrar.length > 0) await db[tabla].bulkDelete(p.borrar)
+      restauradas += aEscribir.length
+    }
+    const filaPreferencias = respaldo.preferencias?.[0] as unknown as Partial<PreferenciasNegocio> | undefined
     if (
       filaPreferencias &&
       typeof filaPreferencias.actualizadoEn === 'number' &&
@@ -82,12 +73,10 @@ export async function restaurarRespaldoLocal(respaldo: RespaldoLocal): Promise<n
     }
     const filaNegocio = respaldo.negocio[0]
     if (filaNegocio) {
-      await db.negocio.put({
-        ...(filaNegocio as object),
-        ...(actual ?? {}),
-        ...(filaNegocio as object),
-        negocioId: actual?.negocioId ?? (filaNegocio as { negocioId?: string }).negocioId,
-      } as never)
+      // La identidad visual viene de la copia; el vínculo con la nube, el rol y
+      // la suscripción son de este aparato y no se pisan.
+      const { nombre, logo, color } = filaNegocio as unknown as { nombre: string; logo: string | null; color: string | null }
+      await db.negocio.put((actual ? { ...actual, nombre, logo, color } : filaNegocio) as never)
       restauradas++
     }
   })
