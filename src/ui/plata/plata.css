@@ -348,3 +348,9 @@
   .fp-resumen-datos .fp-dato-caja { padding: var(--f-4) var(--f-5); }
   .fp-dato-monto { font-size: 30px; }
 }
+
+/* ───────────── Hoy, por vendedor (sólo el dueño) ───────────── */
+
+.fp-vendedores { display: flex; flex-direction: column; gap: var(--f-2); margin-top: var(--f-3); }
+.fp-vendedores .fp-subtitulo { margin: 0; }
+.fp-vendedores .f-renglon-detalle { overflow-wrap: anywhere; }
