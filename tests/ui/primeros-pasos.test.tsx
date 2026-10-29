@@ -76,7 +76,7 @@ describe('Primeros pasos en Inicio', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Ocultar guía' }))
 
-    expect(screen.queryByRole('region', { name: 'Primeros pasos' })).toBeNull()
+    await waitFor(() => expect(screen.queryByRole('region', { name: 'Primeros pasos' })).toBeNull())
     expect(window.localStorage.getItem(claveGuia('n-1'))).toBe('1')
     // nada se borró: los datos siguen ahí y Vender sigue andando
     expect(screen.getByRole('link', { name: /^vender/i }).getAttribute('href')).toBe('/vender')
