@@ -34,6 +34,7 @@ export function PantallaVender() {
   const [verTicket, setVerTicket] = useState(false)
   const [medio, setMedio] = useState<MedioCobro>('efectivo')
   const [cobrada, setCobrada] = useState<Venta | null>(null)
+  const [pagoCon, setPagoCon] = useState<number | null>(null)
   const [busqueda, setBusqueda] = useState('')
   const [deCero, setDeCero] = useState(false)
   const [avisoStock, setAvisoStock] = useState<string | null>(null)
@@ -103,7 +104,7 @@ export function PantallaVender() {
     return () => window.removeEventListener('keydown', atajo)
   }, [atajosPc, cobrando, items.length])
 
-  async function cobrar(medio: MedioPago, clienteId: UUID | null = null, vence: number | null = null, referenciaPago?: string) {
+  async function cobrar(medio: MedioPago, clienteId: UUID | null = null, vence: number | null = null, referenciaPago?: string, entregado?: number) {
     if (items.length === 0) return
     if (medio === 'fiado' && !clienteId) return
     try {
@@ -111,6 +112,7 @@ export function PantallaVender() {
       setItems([])
       setCobrando(false)
       setMedio('efectivo')
+      setPagoCon(medio === 'efectivo' && entregado !== undefined ? entregado : null)
       setCobrada(venta)
     } catch (error) {
       if (error instanceof ErrorStockInsuficiente) {
@@ -343,6 +345,7 @@ export function PantallaVender() {
         <Cobrado
           venta={cobrada}
           negocio={estado?.negocio ?? NEGOCIO_POR_DEFECTO}
+          pagoCon={pagoCon}
           onNueva={() => setCobrada(null)}
         />
       )}

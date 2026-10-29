@@ -1,0 +1,118 @@
+/* Ticket para impresora térmica (58 mm; 80 mm se elige en Config).
+   En pantalla no se ve. Al imprimir se esconde toda la app y queda sólo el
+   ticket: monoespaciado, negro sobre blanco y sin fondos. */
+
+.f-ticket-botones {
+  display: grid;
+  gap: 8px;
+}
+
+.f-ticket-impreso {
+  display: none;
+}
+
+/* Tamaño de papel base (58 mm). El de 80 mm lo pisa el <style> del ticket. */
+@page {
+  size: 58mm auto;
+  margin: 2mm;
+}
+
+@media print {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: none !important;
+    color: #000 !important;
+  }
+
+  /* Todo lo que cuelga del body (la app, la hoja abierta, avisos) se va. */
+  body > *:not(.f-ticket-impreso) {
+    display: none !important;
+  }
+
+  .f-ticket-impreso {
+    display: block !important;
+    width: 100%;
+    max-width: 58mm;
+    margin: 0;
+    padding: 0;
+    font-family: 'Courier New', Courier, ui-monospace, monospace;
+    font-size: 9pt;
+    line-height: 1.25;
+    color: #000;
+    background: none;
+    break-inside: avoid;
+  }
+
+  .f-ticket-impreso[data-ancho='80'] {
+    max-width: 80mm;
+    font-size: 10pt;
+  }
+
+  .f-ticket-impreso * {
+    background: none !important;
+    box-shadow: none !important;
+    color: #000 !important;
+    font-family: inherit;
+    margin: 0;
+    padding: 0;
+  }
+
+  .f-ticket-cabecera {
+    text-align: center;
+    padding-bottom: 2mm;
+    border-bottom: 1px dashed #000;
+  }
+
+  .f-ticket-cabecera h1 {
+    font-size: 1.2em;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .f-ticket-renglones {
+    list-style: none;
+    padding: 2mm 0;
+    border-bottom: 1px dashed #000;
+  }
+
+  .f-ticket-renglones li {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    column-gap: 1.5mm;
+    align-items: baseline;
+  }
+
+  .f-ticket-nombre {
+    overflow-wrap: anywhere;
+  }
+
+  .f-ticket-importe,
+  .f-ticket-totales dd {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .f-ticket-totales {
+    padding: 2mm 0;
+  }
+
+  .f-ticket-totales > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 2mm;
+  }
+
+  .f-ticket-total {
+    font-size: 1.2em;
+    font-weight: 700;
+  }
+
+  .f-ticket-leyenda {
+    text-align: center;
+    padding-top: 2mm;
+    border-top: 1px dashed #000;
+    overflow-wrap: anywhere;
+  }
+}
