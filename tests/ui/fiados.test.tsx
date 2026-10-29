@@ -69,12 +69,14 @@ describe('PantallaFiados', () => {
     render(<PantallaFiados />)
     fireEvent.click(await screen.findByRole('button', { name: /editar cliente/i }))
     fireEvent.change(await screen.findByLabelText('Límite de fiado'), { target: { value: '30.000' } })
-    fireEvent.click(screen.getByRole('button', { name: /guardar cliente/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /guardar cliente/i }))
     await waitFor(async () => expect((await repos.clientes.todos())[0].limiteFiado).toBe(3000000))
+    // La hoja de edición se cierra sola: se espera antes de abrirla otra vez.
+    await waitFor(() => expect(screen.queryByRole('button', { name: /guardar cliente/i })).toBeNull())
 
     fireEvent.click(await screen.findByRole('button', { name: /editar cliente/i }))
     fireEvent.change(await screen.findByLabelText('Límite de fiado'), { target: { value: '30,5' } })
-    fireEvent.click(screen.getByRole('button', { name: /guardar cliente/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /guardar cliente/i }))
     await waitFor(async () => expect((await repos.clientes.todos())[0].limiteFiado).toBe(3050))
   })
 })
