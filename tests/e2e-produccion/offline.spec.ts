@@ -112,7 +112,6 @@ test('pasadas las 72 h sin verificar, sin red pide conectarse (y tampoco muestra
 test('sin red, un token vencido no cierra la sesión del aparato', async ({ page, context }) => {
   await abrirYAsegurarOffline(page)
   await context.setOffline(true)
-  nube.caida = true
   // El token guardado vence (un día sin abrir la app) y sin señal no se puede renovar.
   await page.evaluate(() => {
     const clave = 'sb-falso-auth-token'
