@@ -49,7 +49,7 @@ export function PantallaEstadoAcceso({ estado }: { estado: EstadoAcceso }) {
   const seguro = estado.verificadoRemoto && efectivo !== 'vencida' && efectivo !== 'suspendida' && efectivo !== 'sin_suscripcion'
 
   return (
-    <div className="f-acceso">
+    <main id="contenido" tabIndex={-1} className="f-acceso">
       <Tarjeta como="section" relleno="grande" className="f-acceso-tarjeta" role="alertdialog" aria-modal="true" aria-labelledby="access-status-title">
         <div className="f-acceso-marca-fila">
           <span className="f-acceso-marca" aria-hidden="true">L</span>
@@ -83,6 +83,6 @@ export function PantallaEstadoAcceso({ estado }: { estado: EstadoAcceso }) {
         </Boton>
         {estado.motivoSinNegocio !== 'vendedor_quitado' && <p className="f-acceso-ayuda">Tus datos no se borran por vencer o cerrar sesión.</p>}
       </Tarjeta>
-    </div>
+    </main>
   )
 }

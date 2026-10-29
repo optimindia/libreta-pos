@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import type { Producto } from '@/dominio/tipos'
 import { pesosACentavos } from '@/dominio/dinero'
 import { conPuntos, soloDigitos } from '@/dominio/cobro'
@@ -26,6 +26,7 @@ export function PonerPrecio({
   onCancelar: () => void
   onListo: (conPrecio: Producto) => void
 }) {
+  const idError = useId()
   const [pesos, setPesos] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -61,6 +62,8 @@ export function PonerPrecio({
             <span aria-hidden="true">$</span>
             <input
               aria-label={`Precio de ${producto.nombre}`}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? idError : undefined}
               inputMode="numeric"
               autoComplete="off"
               autoFocus
@@ -71,7 +74,7 @@ export function PonerPrecio({
             />
           </span>
         </label>
-        {error && <p className="f-aviso" role="alert">{error}</p>}
+        {error && <p id={idError} className="f-aviso" role="alert">{error}</p>}
         <Boton type="submit" variante="principal" tamano="grande" ancho disabled={guardando}>
           {guardando ? 'Guardando…' : guardaFicha ? 'Guardar y agregar a la venta' : 'Agregar a la venta'}
         </Boton>

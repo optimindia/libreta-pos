@@ -42,7 +42,7 @@ function Marco({ children, admin = false, estado }: { children: React.ReactNode;
   return (
     <div className={admin ? 'f-admin-marco' : 'nb-app'}>
       {!admin && <Navegacion />}
-      <main className={admin ? 'f-admin-principal' : 'app-main'}>{!admin && estado && <AvisoVencimiento estado={estado} />}{children}</main>
+      <main id="contenido" tabIndex={-1} className={admin ? 'f-admin-principal' : 'app-main'}>{!admin && estado && <AvisoVencimiento estado={estado} />}{children}</main>
     </div>
   )
 }
@@ -131,7 +131,7 @@ export function ControlAcceso({ children }: { children: React.ReactNode }) {
 
   // Sin menú del POS ni chequeo de sesión: sólo el texto, legible para
   // quien todavía no tiene cuenta.
-  if (esPublica) return <main className="legal-shell">{children}</main>
+  if (esPublica) return <main id="contenido" tabIndex={-1} className="legal-shell">{children}</main>
 
   if (!saas) {
     return <Marco><GuardiaFuncion>{children}</GuardiaFuncion></Marco>
