@@ -9,6 +9,7 @@ import { Boton } from '@/ui/sistema/Boton'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { Hoja } from '@/ui/sistema/Hoja'
 import { IconoSubir } from '@/ui/sistema/iconos'
+import { noSePudo } from '@/ui/sistema/textos'
 
 interface ItemLeido {
   nombre: string
@@ -121,7 +122,7 @@ export function SubirFactura() {
       setProveedor('')
       mostrarAviso('Listo, se sumó al stock.', 'success')
     } catch {
-      mostrarAviso('No se pudo sumar la factura al stock. Revisá la conexión e intentá de nuevo.')
+      mostrarAviso(noSePudo('sumar', 'la factura al stock'))
     } finally {
       setConfirmando(false)
     }

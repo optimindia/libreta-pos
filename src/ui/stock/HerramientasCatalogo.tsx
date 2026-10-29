@@ -38,7 +38,7 @@ export function HerramientasCatalogo({ productos }: { productos: Producto[] }) {
       }
       setAviso(candidatos.length === 0 ? 'El archivo no tiene filas válidas.' : `Importados ${guardados} productos${omitidos > 0 ? ` · ${omitidos} duplicados omitidos` : ''}.`)
     } catch {
-      setAviso('No se pudo leer el CSV. Usá el formato exportado por la app.')
+      setAviso('No se pudo leer el archivo CSV. Usá el formato que exporta la app.')
     } finally {
       setImportando(false)
       if (archivo.current) archivo.current.value = ''

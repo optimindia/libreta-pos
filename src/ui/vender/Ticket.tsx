@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { ItemVenta } from '@/dominio/tipos'
 import { formatearPesos } from '@/dominio/dinero'
 import { IconoMasCantidad, IconoMenos } from '@/ui/sistema/iconos'
+import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 
 /** "Vaciar" la venta, con una confirmación en el lugar: un toque de más no
  *  borra todo. */
@@ -45,10 +46,7 @@ export function Ticket({
 }) {
   if (items.length === 0) {
     return (
-      <div className="f-venta-vacia">
-        <strong>Listo para anotar</strong>
-        <p>Escaneá o tocá un producto para empezar la venta.</p>
-      </div>
+      <EstadoVacio compacto titulo="Todavía no hay nada en la venta" texto="Escaneá o tocá un producto para empezar." />
     )
   }
 

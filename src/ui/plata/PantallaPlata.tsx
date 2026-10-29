@@ -23,7 +23,8 @@ import { MovimientosCaja } from './MovimientosCaja'
 import { InteligenciaPlata } from './InteligenciaPlata'
 import { CentroAcciones } from './CentroAcciones'
 import { estadoVencimiento } from '@/dominio/inteligencia'
-import { CargandoPagina } from '@/ui/sistema/CargandoPagina'
+import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
+import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 
 const ETIQUETA_PERIODO: Record<PeriodoReporte, string> = { hoy: 'Hoy', '7dias': '7 días', '30dias': '30 días', todo: 'Todo' }
 
@@ -67,7 +68,7 @@ export function PantallaPlata() {
   }, [periodo, filtro])
   const pendientesSync = useLiveQuery(() => db.cola.count(), [], 0)
 
-  if (!datos) return <CargandoPagina texto="Preparando tu resumen financiero…" />
+  if (!datos) return <EstadoCarga texto="Preparando tu resumen…" filas={4} />
   const medios = Object.entries(datos.resumen.porMedioPago).filter(([, monto]) => monto > 0)
   const inicioHoy = new Date()
   inicioHoy.setHours(0, 0, 0, 0)
@@ -131,7 +132,7 @@ export function PantallaPlata() {
         <Tarjeta como="section" aria-labelledby="plata-rindio">
           <h2 id="plata-rindio" className="f-seccion">Lo que más rindió</h2>
           {datos.ranking.length === 0 ? (
-            <p className="f-dato fp-vacio">Todavía no hay ventas en este período.</p>
+            <EstadoVacio compacto titulo="Todavía no hay ventas en este período" texto="Cuando cobres, vas a ver qué productos rinden más." />
           ) : (
             <ul className="fp-lista">
               {datos.ranking.map((producto, indice) => (
@@ -151,7 +152,7 @@ export function PantallaPlata() {
         <Tarjeta como="section" aria-labelledby="plata-pagaron">
           <h2 id="plata-pagaron" className="f-seccion">Cómo te pagaron</h2>
           {medios.length === 0 ? (
-            <p className="f-dato fp-vacio">Todavía no cobraste en este período.</p>
+            <EstadoVacio compacto titulo="Todavía no cobraste en este período" texto="Cuando cobres, vas a ver cómo te pagaron." />
           ) : (
             <ul className="fp-medios">
               {medios.map(([medio, monto]) => {
@@ -180,7 +181,7 @@ export function PantallaPlata() {
         <Tarjeta como="section" id="lista-compra" aria-labelledby="plata-reponer">
           <h2 id="plata-reponer" className="f-seccion">Tenés que reponer</h2>
           {datos.compras.length === 0 ? (
-            <p className="f-dato fp-vacio">Por ahora no te falta nada.</p>
+            <EstadoVacio compacto titulo="No tenés nada para reponer" texto="Cuando algo se esté por terminar, lo ves acá." />
           ) : (
             <>
               <ul className="fp-lista">

@@ -8,6 +8,7 @@ import { repos } from '@/datos/local/repos'
 import { Importe } from '@/ui/sistema/Importe'
 import { Boton } from '@/ui/sistema/Boton'
 import { Chip } from '@/ui/sistema/Chip'
+import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 
 type Modo = 'porcentaje' | 'margen'
 
@@ -102,9 +103,7 @@ export function ActualizarPrecios() {
       </section>
 
       {sinCostos ? (
-        <p className="f-dato">
-          Todavía no cargaste costos: subí una factura del mayorista y volvé.
-        </p>
+        <EstadoVacio compacto titulo="Todavía no cargaste costos" texto="Subí una factura del mayorista y después volvé para actualizar los precios." />
       ) : candidatos.length === 0 ? (
         <p className="f-dato">
           Con ese número no cambia ningún precio.

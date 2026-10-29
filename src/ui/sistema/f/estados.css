@@ -1,0 +1,95 @@
+/* Sistema F · estados compartidos: vacío, carga y error.
+   Componentes: EstadoVacio, EstadoCarga, EstadoError (src/ui/sistema). */
+
+.f-estado {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--f-3);
+  padding: var(--f-7);
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+}
+
+.f-estado[data-compacto='true'] {
+  padding: var(--f-3) 0;
+  border-radius: 0;
+  background: transparent;
+  gap: var(--f-2);
+}
+
+.f-estado-icono {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie-2);
+  color: var(--f-tinta-2);
+}
+
+.f-estado-icono svg { width: 24px; height: 24px; }
+
+.f-estado-titulo {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.f-estado[data-compacto='true'] .f-estado-titulo { font-size: 16px; }
+
+.f-estado-texto {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--f-tinta-2);
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.f-estado[data-compacto='true'] .f-estado-texto { font-size: 15px; }
+
+/* ───────────── Error ───────────── */
+
+.f-estado-error {
+  border-left: 4px solid var(--f-coral);
+  background: var(--f-coral-suave);
+}
+
+.f-estado-error[data-compacto='true'] { padding: var(--f-3) var(--f-4); border-radius: var(--f-radio-control); }
+.f-estado-error .f-estado-titulo { color: var(--f-coral); }
+
+/* ───────────── Carga: esqueleto ───────────── */
+
+.f-estado-carga { gap: var(--f-4); }
+.f-estado-carga[data-compacto='true'] { padding: var(--f-3) 0; }
+.f-estado-carga .f-estado-texto { font-size: 15px; font-weight: 600; }
+
+.f-estado-barras {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: var(--f-3);
+}
+
+.f-estado-barra {
+  display: block;
+  height: 16px;
+  border-radius: var(--f-radio-chip);
+  background: var(--f-superficie-2);
+  animation: f-estado-latido 1.4s ease-in-out infinite;
+}
+
+.f-estado-barra:nth-child(2n) { width: 82%; }
+.f-estado-barra:nth-child(3n) { width: 64%; }
+
+@keyframes f-estado-latido {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f-estado-barra { animation: none; }
+}

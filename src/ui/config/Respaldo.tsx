@@ -8,6 +8,7 @@ import { accesoSaasObligatorio } from '@/datos/nube/acceso'
 import { crearRespaldo } from '@/datos/nube/sesion'
 import { Boton } from '@/ui/sistema/Boton'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
+import { TEXTOS } from '@/ui/sistema/textos'
 
 const VENTAS_PARA_OFRECER = 10
 const PRODUCTOS_PARA_OFRECER = 5
@@ -45,7 +46,7 @@ export function Respaldo() {
           : resultado.motivo,
       )
     } catch {
-      setAviso('No se pudo crear el respaldo. Probá de nuevo cuando tengas señal.')
+      setAviso(`No se pudo crear el respaldo. ${TEXTOS.revisarSenal}`)
     } finally {
       setTrabajando(false)
     }

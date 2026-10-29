@@ -16,6 +16,7 @@ import {
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { Etiqueta } from '@/ui/sistema/Etiqueta'
 import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
+import { noSePudo } from '@/ui/sistema/textos'
 
 const GRUPOS: readonly GrupoFuncion[] = ['Módulos', 'Herramientas', 'Productividad']
 
@@ -40,7 +41,7 @@ export function FuncionesControl() {
       setAviso(`${definicion.titulo} ${activa ? 'desactivada' : 'activada'}. ${alcance}`)
       setAvisoTipo('ok')
     } catch {
-      setAviso('No se pudo guardar esta preferencia. Probá de nuevo.')
+      setAviso(noSePudo('guardar', 'esta preferencia'))
       setAvisoTipo('error')
     } finally {
       setGuardando(null)
@@ -59,7 +60,7 @@ export function FuncionesControl() {
         </span>
       </div>
 
-      <p className="f-dato f-config-nube">{negocio?.negocioId ? 'Configuración sincronizada: todos tus dispositivos reciben estos cambios.' : 'Se guarda en este aparato. Al vincular tu cuenta, se replicará entre tus dispositivos.'}</p>
+      <p className="f-dato f-config-nube">{negocio?.negocioId ? 'Esta configuración llega a todos tus dispositivos.' : 'Se guarda en este aparato. Cuando vincules tu cuenta, llega a tus otros dispositivos.'}</p>
 
       {GRUPOS.map((grupo) => (
         <div className="f-config-grupo" key={grupo}>

@@ -37,7 +37,7 @@ describe('PantallaClientes', () => {
 
   it('el límite de fiado "20.000" son veinte mil pesos, no veinte', async () => {
     render(<PantallaClientes />)
-    fireEvent.click(await screen.findByRole('button', { name: /nuevo cliente/i }))
+    fireEvent.click((await screen.findAllByRole('button', { name: /agregar cliente/i }))[0])
     fireEvent.change(await screen.findByLabelText('Nombre del cliente'), { target: { value: 'Lucía' } })
     fireEvent.change(screen.getByLabelText('Límite de fiado'), { target: { value: '20.000' } })
     fireEvent.click(screen.getByRole('button', { name: /guardar cliente/i }))

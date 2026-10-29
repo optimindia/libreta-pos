@@ -17,12 +17,14 @@ import { Chip, Chips } from '@/ui/sistema/Chip'
 import { Etiqueta } from '@/ui/sistema/Etiqueta'
 import { Hoja } from '@/ui/sistema/Hoja'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
-import { IconoFlechaDerecha, IconoFlechaIzquierda, IconoHistorial } from '@/ui/sistema/iconos'
+import { IconoFlechaIzquierda, IconoHistorial } from '@/ui/sistema/iconos'
 import { usePuede } from '@/ui/sistema/usoRol'
 import { useIdentidad, type Identidad } from '@/ui/sistema/usoVendedor'
 import { FiltroVendedor } from '@/ui/sistema/FiltroVendedor'
 import { etiquetaVendedor, filtrarPorVendedor } from '@/dominio/turno'
 import { CierreTurno } from './CierreTurno'
+import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
+import { TEXTOS, noSePudo } from '@/ui/sistema/textos'
 
 const ETIQUETA_PERIODO: Record<PeriodoReporte, string> = { hoy: 'Hoy', '7dias': '7 días', '30dias': '30 días', todo: 'Todo' }
 const PERIODOS: PeriodoReporte[] = ['hoy', '7dias', '30dias', 'todo']
@@ -58,7 +60,7 @@ function DetalleVenta({ venta, yo, onAnulada }: { venta: Venta; yo: Identidad; o
       setMotivo('')
     } catch (error) {
       if (error instanceof ErrorVentaYaAnulada || error instanceof ErrorVentaNoAnulable) setAviso(error.message)
-      else setAviso('No se pudo anular la venta. Probá de nuevo.')
+      else setAviso(noSePudo('anular', 'la venta'))
     } finally {
       setGuardando(false)
     }
@@ -157,16 +159,14 @@ export function PantallaHistorial() {
 
       {filtradas.length === 0 ? (
         ventas.length === 0 ? (
-          <Tarjeta como="section" relleno="grande" className="fh-vacio" aria-labelledby="historial-empty-title">
-            <span className="fh-vacio-icono" aria-hidden="true"><IconoHistorial /></span>
-            <h2 id="historial-empty-title" className="f-seccion">Todavía no hay ventas</h2>
-            <p className="f-texto">Las ventas cobradas van a quedar ordenadas acá para revisarlas y exportarlas cuando lo necesites.</p>
-            <Link href="/vender" className={clasesBoton('principal')}>Ir a vender <IconoFlechaDerecha /></Link>
-          </Tarjeta>
+          <EstadoVacio
+            icono={<IconoHistorial />}
+            titulo="Todavía no tenés ventas"
+            texto="Las ventas que cobres van a quedar ordenadas acá para revisarlas y exportarlas."
+            accion={{ etiqueta: TEXTOS.irAVender, href: '/vender', variante: 'principal' }}
+          />
         ) : (
-          <Tarjeta className="fh-vacio">
-            <p className="f-texto">No hay ventas en {etiquetaPeriodo(periodo).toLowerCase()}.</p>
-          </Tarjeta>
+          <EstadoVacio titulo="No hay ventas para mostrar" texto={`No encontramos ventas en ${etiquetaPeriodo(periodo).toLowerCase()}. Probá con otro período o con otra búsqueda.`} />
         )
       ) : (
         <Tarjeta como="section" relleno="ninguno" className="fh-lista-caja" aria-label="Ventas">

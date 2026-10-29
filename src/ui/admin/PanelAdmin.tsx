@@ -12,7 +12,11 @@ import { Hoja } from '@/ui/sistema/Hoja'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import '@/ui/sistema/acceso.css'
 import './admin.css'
-import { IconoAlerta, IconoBloqueo, IconoBuscar, IconoCalendarioCuenta, IconoCerrar, IconoClientes, IconoEditar, IconoEliminar, IconoNube, IconoNuevaVenta, IconoReintentar, IconoSincronizado } from '@/ui/sistema/iconos'
+import { IconoAlerta, IconoBloqueo, IconoBuscar, IconoCalendarioCuenta, IconoCerrar, IconoClientes, IconoEditar, IconoEliminar, IconoNube, IconoNuevaVenta, IconoReintentar } from '@/ui/sistema/iconos'
+import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
+import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
+import { EstadoError } from '@/ui/sistema/EstadoError'
+import { TEXTOS, noSePudo } from '@/ui/sistema/textos'
 
 const FORMULARIO_INICIAL = { nombre: '', telefono: '', pin: '', diasPrueba: '7', planId: '', nota: '' }
 const FORMULARIO_SUSCRIPCION = { planId: '', dias: '30', modo: 'sumar' as 'sumar' | 'reiniciar', importe: '', medioPago: '' as MedioPagoAdmin | '', referenciaPago: '', nota: '' }
@@ -164,7 +168,7 @@ export function PanelAdmin() {
       setEventos(respuesta.eventos)
       setPlanes(respuesta.planes)
     } catch (problema) {
-      setError(problema instanceof Error ? problema.message : 'No se pudo cargar el panel.')
+      setError(problema instanceof Error ? problema.message : 'No se pudo cargar el panel. Probá de nuevo.')
     } finally {
       setCargando(false)
     }
@@ -217,7 +221,7 @@ export function PanelAdmin() {
       setAviso('Cuenta creada. Mandale las credenciales al cliente por WhatsApp.')
       await cargar()
     } catch (problema) {
-      setError(problema instanceof Error ? problema.message : 'No se pudo crear la cuenta.')
+      setError(problema instanceof Error ? problema.message : noSePudo('crear', 'la cuenta'))
     } finally {
       setGuardando(false)
     }
@@ -233,7 +237,7 @@ export function PanelAdmin() {
       setAviso('Cuenta pausada. El cliente conserva sus datos, pero no puede operar.')
       await cargar()
     } catch (problema) {
-      setError(problema instanceof Error ? problema.message : 'No se pudo pausar la cuenta.')
+      setError(problema instanceof Error ? problema.message : noSePudo('pausar', 'la cuenta'))
     } finally {
       setAccion(null)
     }
@@ -277,7 +281,7 @@ export function PanelAdmin() {
       setAviso('Suscripción actualizada. El cambio queda activo en el próximo chequeo del cliente.')
       await cargar()
     } catch (problema) {
-      setError(problema instanceof Error ? problema.message : 'No se pudo actualizar la suscripción.')
+      setError(problema instanceof Error ? problema.message : noSePudo('actualizar', 'la suscripción'))
     } finally {
       setGuardando(false)
     }
@@ -320,7 +324,7 @@ export function PanelAdmin() {
       setAviso('PIN regenerado. Copialo y envialo al cliente por WhatsApp.')
       await cargar()
     } catch (problema) {
-      setError(problema instanceof Error ? problema.message : 'No se pudo regenerar el PIN.')
+      setError(problema instanceof Error ? problema.message : noSePudo('regenerar', 'el PIN'))
     } finally {
       setGuardando(false)
     }
@@ -370,7 +374,7 @@ export function PanelAdmin() {
       setCredenciales(respuesta.credenciales)
       setFormVendedor(FORMULARIO_VENDEDOR)
       return `${respuesta.vendedor.nombre} ya puede entrar con su teléfono y PIN.`
-    }, 'No se pudo agregar el vendedor.')
+    }, noSePudo('agregar', 'el vendedor'))
   }
 
   function cambiarPinVendedor(evento: FormEvent<HTMLFormElement>, vendedor: AdminVendedor) {
@@ -383,7 +387,7 @@ export function PanelAdmin() {
       setCredenciales(respuesta.credenciales)
       setPinVendedor(null)
       return `PIN nuevo para ${vendedor.nombre ?? 'el vendedor'}. El anterior ya no funciona.`
-    }, 'No se pudo cambiar el PIN.')
+    }, noSePudo('cambiar', 'el PIN'))
   }
 
   function quitarVendedor(vendedor: AdminVendedor) {
@@ -393,7 +397,7 @@ export function PanelAdmin() {
       await adminAccion<{ ok: true }>({ accion: 'vendedor', negocioId, operacion: 'quitar', usuarioId: vendedor.usuarioId })
       setQuitando(null)
       return `${vendedor.nombre ?? 'El vendedor'} ya no tiene acceso. Sus ventas quedan en el negocio.`
-    }, 'No se pudo quitar el vendedor.')
+    }, noSePudo('quitar', 'el vendedor'))
   }
 
   function abrirNuevoPlan() {
@@ -426,7 +430,7 @@ export function PanelAdmin() {
       setPlanEditando(null)
       await cargar()
     } catch (problema) {
-      setError(problema instanceof Error ? problema.message : 'No se pudo guardar el paquete.')
+      setError(problema instanceof Error ? problema.message : noSePudo('guardar', 'el paquete'))
     } finally {
       setGuardando(false)
     }
@@ -443,7 +447,7 @@ export function PanelAdmin() {
       setAviso(plan.activo ? 'Paquete archivado.' : 'Paquete restaurado.')
       await cargar()
     } catch (problema) {
-      setError(problema instanceof Error ? problema.message : 'No se pudo cambiar el estado del paquete.')
+      setError(problema instanceof Error ? problema.message : noSePudo('cambiar', 'el estado del paquete'))
     } finally {
       setAccion(null)
     }
@@ -455,7 +459,7 @@ export function PanelAdmin() {
       setCopiado(clave)
       window.setTimeout(() => setCopiado(null), 1800)
     } catch {
-      setAviso('No se pudo copiar automáticamente. Seleccioná el dato y copialo manualmente.')
+      setAviso('No se pudo copiar. Seleccioná el dato y copialo a mano.')
     }
   }
 
@@ -512,11 +516,13 @@ export function PanelAdmin() {
             <CampoBusqueda etiqueta="Buscar cliente" valor={busqueda} onCambiar={setBusqueda} placeholder="Buscar por negocio o teléfono" />
             <label className="f-admin-filtro"><span className="f-sr">Filtrar cuentas</span><select className="f-entrada" value={filtro} onChange={(evento) => setFiltro(evento.target.value as FiltroCuenta)}><option value="todas">Todas las cuentas</option><option value="activas">Con acceso</option><option value="por_vencer">Vencen en 7 días</option><option value="vencidas">Vencidas / sin activar</option><option value="suspendidas">Pausadas</option></select></label>
           </div>
-          {error && <p className="f-aviso" role="alert">{error}</p>}
+          {error && cuentas.length === 0 && !cargando
+            ? <EstadoError titulo="No pudimos cargar las cuentas" texto={error} onReintentar={() => void cargar()} />
+            : error && <p className="f-aviso" role="alert">{error}</p>}
           {aviso && <p className="f-aviso f-admin-ok" role="status">{aviso}</p>}
-          {cargando && cuentas.length === 0 && <div className="f-admin-vacio"><IconoReintentar /><span>Trayendo cuentas…</span></div>}
-          {!cargando && cuentas.length > 0 && cuentasVisibles.length === 0 && <div className="f-admin-vacio"><IconoBuscar /><strong>No encontramos esa cuenta</strong><span>Probá con otro nombre, teléfono o filtro.</span></div>}
-          {!cargando && cuentas.length === 0 && <div className="f-admin-vacio"><IconoSincronizado /><strong>Todavía no hay cuentas</strong><span>Creá el primer negocio desde el formulario.</span></div>}
+          {cargando && cuentas.length === 0 && <EstadoCarga texto={TEXTOS.cargandoCuentas} />}
+          {!cargando && cuentas.length > 0 && cuentasVisibles.length === 0 && <EstadoVacio icono={<IconoBuscar />} titulo="No encontramos esa cuenta" texto="Probá con otro nombre, teléfono o filtro." />}
+          {!cargando && !error && cuentas.length === 0 && <EstadoVacio titulo="Todavía no hay cuentas" texto="Creá el primer negocio desde el formulario de arriba." />}
           <div className="f-admin-lista">
             {cuentasVisibles.map((cuenta) => {
               const ocupado = accion?.startsWith(`${cuenta.id}:`) ?? false
@@ -576,7 +582,7 @@ export function PanelAdmin() {
 
       <Tarjeta como="section" className="f-admin-historial">
         <div><span className="f-dato">Trazabilidad</span><h2 className="f-seccion">Últimas acciones</h2><p className="f-dato">Cada alta, cambio, renovación y pausa queda registrada.</p></div>
-        {eventos.length === 0 ? <p className="f-texto f-admin-historial-vacio">Todavía no hay acciones registradas.</p> : <div className="f-admin-historial-lista">{eventos.slice(0, 10).map((evento) => { const cuenta = cuentas.find((item) => item.id === evento.negocio_id); return <div className="f-renglon" key={evento.id}><span className="f-admin-punto" aria-hidden="true" /><span className="f-renglon-cuerpo"><span className="f-renglon-titulo">{nombreEvento(evento)}</span><span className="f-renglon-detalle">{cuenta?.nombre ?? 'Negocio'} · {fechaCorta(evento.creado_en)}</span></span></div> })}</div>}
+        {eventos.length === 0 ? <EstadoVacio compacto titulo="Todavía no hay acciones" texto="Lo que hagas con las cuentas queda anotado acá." /> : <div className="f-admin-historial-lista">{eventos.slice(0, 10).map((evento) => { const cuenta = cuentas.find((item) => item.id === evento.negocio_id); return <div className="f-renglon" key={evento.id}><span className="f-admin-punto" aria-hidden="true" /><span className="f-renglon-cuerpo"><span className="f-renglon-titulo">{nombreEvento(evento)}</span><span className="f-renglon-detalle">{cuenta?.nombre ?? 'Negocio'} · {fechaCorta(evento.creado_en)}</span></span></div> })}</div>}
       </Tarjeta>
 
       {modal?.tipo === 'suscripcion' && <ModalMarco titulo={`Renovar ${modal.cuenta.nombre}`} subtitulo="Elegí un paquete o cargá una cantidad exacta de días." onClose={() => setModal(null)}>
@@ -613,7 +619,7 @@ export function PanelAdmin() {
       {modal?.tipo === 'vendedores' && <ModalMarco titulo={`Vendedores de ${modal.cuenta.nombre}`} subtitulo="Cada vendedor entra con su teléfono y PIN y comparte la misma base del negocio." onClose={() => setModal(null)}>
         <div className="f-admin-form">
           {(modal.cuenta.vendedores ?? []).length === 0
-            ? <p className="f-admin-ayuda">Todavía no hay vendedores. Sólo el dueño entra a esta cuenta.</p>
+            ? <EstadoVacio compacto titulo="Todavía no hay vendedores" texto="Sólo el dueño entra a esta cuenta. Agregá un vendedor para que venda con su propio PIN." />
             : <ul className="f-admin-vendedores" aria-label="Vendedores con acceso">
               {(modal.cuenta.vendedores ?? []).map((vendedor) => (
                 <li className="f-admin-vendedor" key={vendedor.usuarioId}>

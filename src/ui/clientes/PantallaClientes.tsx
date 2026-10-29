@@ -19,6 +19,8 @@ import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { usePuede } from '@/ui/sistema/usoRol'
 import { IconoCerrar, IconoEditar, IconoEliminar, IconoFlechaDerecha, IconoFiados, IconoPedidos, IconoWhatsApp } from '@/ui/sistema/iconos'
 import './clientes.css'
+import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
+import { TEXTOS, noSePudo } from '@/ui/sistema/textos'
 
 type FiltroCliente = 'todos' | 'con_deuda' | 'activos' | 'favoritos'
 
@@ -107,7 +109,7 @@ export function PantallaClientes() {
       setFormulario(null)
       setAviso(id ? 'Cliente actualizado.' : 'Cliente agregado a tu cartera.')
     } catch {
-      setAviso('No se pudo guardar el cliente.')
+      setAviso(noSePudo('guardar', 'el cliente'))
     }
   }
 
@@ -128,14 +130,14 @@ export function PantallaClientes() {
       if (!eliminado) return
       setSeleccionado(null)
       setFormulario(null)
-      setAviso('Cliente eliminado. El cambio se sincronizará con tus otros dispositivos.')
+      setAviso(`Cliente eliminado. ${TEXTOS.avisoEliminado}`)
     } catch (error) {
       setClienteAEliminar(null)
       if (error instanceof ErrorClienteConHistorial) {
         setAviso(error.message)
         return
       }
-      setAviso('No se pudo eliminar el cliente. Revisá la conexión e intentá de nuevo.')
+      setAviso(noSePudo('eliminar', 'el cliente'))
     } finally {
       setEliminando(false)
     }
@@ -152,7 +154,7 @@ export function PantallaClientes() {
           <p className="f-clientes-sub">Quién vuelve, quién debe y qué suele llevar.</p>
         </div>
         <Boton variante="principal" onClick={() => { setFormulario('nuevo'); setAviso(null) }}>
-          + Nuevo cliente
+          + {TEXTOS.agregarCliente}
         </Boton>
       </header>
 
@@ -189,11 +191,15 @@ export function PantallaClientes() {
       </div>
 
       {visibles.length === 0 ? (
-        <Tarjeta como="section" relleno="grande" className="f-clientes-vacia">
-          <h2 className="f-seccion">{datos.perfiles.length === 0 ? 'Tus clientes van a vivir acá' : 'No encontramos clientes'}</h2>
-          <p className="f-texto">{datos.perfiles.length === 0 ? 'Guardá un nombre y teléfono para reconocer a quien vuelve y resolver sus pedidos más rápido.' : 'Probá con otra búsqueda o filtro.'}</p>
-          {datos.perfiles.length === 0 && <Boton variante="secundario" onClick={() => setFormulario('nuevo')}>Agregar primer cliente</Boton>}
-        </Tarjeta>
+        datos.perfiles.length === 0 ? (
+          <EstadoVacio
+            titulo="Todavía no tenés clientes"
+            texto="Guardá un nombre y un teléfono para reconocer a quien vuelve y resolver sus pedidos más rápido."
+            accion={{ etiqueta: TEXTOS.agregarCliente, alTocar: () => setFormulario('nuevo') }}
+          />
+        ) : (
+          <EstadoVacio titulo="No encontramos clientes" texto="Probá con otra búsqueda o filtro." />
+        )
       ) : (
         <ul className="f-clientes-grilla">
           {visibles.map((cliente) => (
@@ -266,7 +272,7 @@ function ClienteDetalle({ perfil, ventas, onCerrar, onEditar, onEliminar }: { pe
       )}
       <div className="f-clientes-ficha-bloque">
         <h3 className="f-hoja-subtitulo">Últimas compras</h3>
-        {compras.length === 0 ? <p className="f-texto f-clientes-vacio">Todavía no hay ventas vinculadas.</p> : (
+        {compras.length === 0 ? <EstadoVacio compacto titulo="Todavía no compró" texto="Cuando le vendas, sus compras aparecen acá." /> : (
           <ul className="f-clientes-compras">
             {compras.map((venta) => (
               <li key={venta.id} className="f-renglon">

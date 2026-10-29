@@ -11,6 +11,7 @@ import { Tarjeta } from './Tarjeta'
 import { IconoNube } from './iconos'
 import './acceso.css'
 import { claveTurnstile, VerificacionHumana, type ControlVerificacion } from './VerificacionHumana'
+import { TEXTOS } from '@/ui/sistema/textos'
 
 export function PantallaAcceso({ modo = 'negocio' }: { modo?: 'negocio' | 'admin' }) {
   const [telefono, setTelefono] = useState('')
@@ -46,14 +47,14 @@ export function PantallaAcceso({ modo = 'negocio' }: { modo?: 'negocio' | 'admin
       }
       notificarCambioAcceso()
     } catch {
-      setAviso('No se pudo validar el acceso. Revisá la señal y probá de nuevo.')
+      setAviso(`No se pudo validar el acceso. ${TEXTOS.revisarSenal}`)
     } finally {
       setTrabajando(false)
     }
   }
 
   return (
-    <div className="f-acceso">
+    <main id="contenido" tabIndex={-1} className="f-acceso">
       <Tarjeta como="section" relleno="grande" className="f-acceso-tarjeta">
         <div className="f-acceso-marca-fila">
           <span className="f-acceso-marca" aria-hidden="true">L</span>
@@ -63,7 +64,7 @@ export function PantallaAcceso({ modo = 'negocio' }: { modo?: 'negocio' | 'admin
           <span className="f-acceso-icono" aria-hidden="true"><IconoNube /></span>
           <div>
             <h1 className="f-seccion">{esAdmin ? 'Ingresá al panel de cuentas' : 'Ingresá a tu negocio'}</h1>
-            <p className="f-texto">{esAdmin ? 'Sólo las cuentas autorizadas pueden gestionar clientes y vencimientos.' : 'Tu cuenta mantiene el negocio protegido y sincronizado en todos tus aparatos.'}</p>
+            <p className="f-texto">{esAdmin ? 'Sólo las cuentas autorizadas pueden gestionar clientes y vencimientos.' : 'Tu cuenta mantiene el negocio protegido y al día en todos tus aparatos.'}</p>
           </div>
         </div>
         <p className="f-acceso-nota">
@@ -92,6 +93,6 @@ export function PantallaAcceso({ modo = 'negocio' }: { modo?: 'negocio' | 'admin
           <a className={clasesBoton('secundario')} href={enlaceWhatsApp('', 'Hola, quiero solicitar acceso a Libreta.')} target="_blank" rel="noreferrer">Solicitar acceso por WhatsApp</a>
         </div>
       </Tarjeta>
-    </div>
+    </main>
   )
 }

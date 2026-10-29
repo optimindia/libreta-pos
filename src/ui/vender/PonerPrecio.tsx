@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import type { Producto } from '@/dominio/tipos'
 import { pesosACentavos } from '@/dominio/dinero'
 import { conPuntos, soloDigitos } from '@/dominio/cobro'
@@ -10,6 +10,7 @@ import { useRol } from '@/ui/sistema/usoRol'
 import { db } from '@/datos/local/db'
 import { puede, rolDe } from '@/dominio/roles'
 import { Boton } from '@/ui/sistema/Boton'
+import { noSePudo } from '@/ui/sistema/textos'
 
 /** Un producto cargado sin precio no se puede vender a $0. En vez de
  *  mandar al almacenero a Stock, se lo pide acá mismo: escribe el precio,
@@ -25,6 +26,7 @@ export function PonerPrecio({
   onCancelar: () => void
   onListo: (conPrecio: Producto) => void
 }) {
+  const idError = useId()
   const [pesos, setPesos] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +47,7 @@ export function PonerPrecio({
       const esDeLaFicha = puede(rolDe((await db.negocio.get('unico'))?.rol), 'editarProductos')
       onListo(esDeLaFicha ? await repos.productos.guardar({ ...producto, precio }) : { ...producto, precio })
     } catch {
-      setError('No se pudo guardar el precio. Probá de nuevo.')
+      setError(noSePudo('guardar', 'el precio'))
       setGuardando(false)
     }
   }
@@ -60,6 +62,8 @@ export function PonerPrecio({
             <span aria-hidden="true">$</span>
             <input
               aria-label={`Precio de ${producto.nombre}`}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? idError : undefined}
               inputMode="numeric"
               autoComplete="off"
               autoFocus
@@ -70,7 +74,7 @@ export function PonerPrecio({
             />
           </span>
         </label>
-        {error && <p className="f-aviso" role="alert">{error}</p>}
+        {error && <p id={idError} className="f-aviso" role="alert">{error}</p>}
         <Boton type="submit" variante="principal" tamano="grande" ancho disabled={guardando}>
           {guardando ? 'Guardando…' : guardaFicha ? 'Guardar y agregar a la venta' : 'Agregar a la venta'}
         </Boton>

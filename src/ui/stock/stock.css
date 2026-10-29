@@ -305,28 +305,6 @@
 
 /* ───────────── Vacío ───────────── */
 
-.f-stock-vacio {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--f-3);
-  text-align: center;
-}
-
-.f-stock-vacio > .f-boton { width: 100%; max-width: 360px; }
-
-.f-stock-vacio-icono {
-  display: grid;
-  width: 64px;
-  height: 64px;
-  place-items: center;
-  border-radius: var(--f-radio-tarjeta);
-  background: var(--f-superficie-2);
-  color: var(--f-tinta);
-}
-
-.f-stock-vacio-icono svg { width: 30px; height: 30px; }
-
 /* ───────────── Cargar ───────────── */
 
 .f-stock-cargar { display: flex; flex-direction: column; gap: var(--f-6); }
@@ -477,13 +455,6 @@
 .f-stock-tachado { color: var(--f-tinta-2); font-size: 13px; text-decoration: line-through; }
 
 /* ───────────── Escáner de la carga ───────────── */
-
-
-
-
-
-
-
 
 /* ───────────── Celu ancho y PC ───────────── */
 

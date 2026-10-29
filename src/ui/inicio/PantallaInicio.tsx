@@ -23,6 +23,7 @@ import { clasesBoton } from '@/ui/sistema/Boton'
 import { Entrar } from '@/ui/vender/Entrar'
 import { IconoCamara, IconoFlechaDerecha, IconoMasCantidad, IconoVender } from '@/ui/sistema/iconos'
 import type { Venta } from '@/dominio/tipos'
+import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
 
 const MEDIO: Record<Venta['medioPago'], string> = { efectivo: 'efectivo', transferencia: 'transferencia', qr: 'QR', fiado: 'fiado' }
 const HORA = new Intl.DateTimeFormat('es-AR', { hour: 'numeric', minute: '2-digit', hour12: false })
@@ -49,7 +50,7 @@ export function PantallaInicio() {
     return { ventas, fiados, pagos, productos, negocio, pendientes, cantidadVentas, clientes }
   })
 
-  if (!datos) return <div className="fi-pagina" aria-busy="true" />
+  if (!datos) return <div className="fi-pagina"><EstadoCarga texto="Preparando tu inicio…" /></div>
 
   const { ventas, fiados, pagos, productos, negocio, pendientes, cantidadVentas, clientes } = datos
   const aparatoNuevo =

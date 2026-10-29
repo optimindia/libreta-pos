@@ -205,9 +205,6 @@
 
 .f-pedidos-medios .f-boton { flex-direction: column; gap: 6px; }
 
-.f-pedidos-vacia { display: flex; flex-direction: column; align-items: flex-start; gap: var(--f-3); }
-.f-pedidos-vacia p { margin: 0; color: var(--f-tinta-2); }
-
 .f-pedidos-tip { display: flex; flex-direction: column; gap: 2px; }
 
 /* ───────────── Formulario en hoja ───────────── */
@@ -277,8 +274,6 @@
 }
 
 .f-pedidos-precio del { color: var(--f-tinta-2); font-size: 13px; font-weight: 600; }
-
-.f-pedidos-vacio { margin: 0; color: var(--f-tinta-2); }
 
 .f-pedidos-nuevo-cliente {
   display: flex;

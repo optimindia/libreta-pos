@@ -6,11 +6,13 @@ import { accesoSaasObligatorio, cargarEstadoAcceso, EVENTO_ACCESO, type EstadoAc
 import { accesoPermitido, diasRestantes, estadoSuscripcion, fechaSuscripcion } from '@/dominio/suscripcion'
 import { formatearPesos } from '@/dominio/dinero'
 import { enlaceWhatsApp } from '@/dominio/mensajes'
-import { Boton, clasesBoton } from '@/ui/sistema/Boton'
+import { clasesBoton } from '@/ui/sistema/Boton'
 import { Etiqueta } from '@/ui/sistema/Etiqueta'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
-import { IconoAlerta, IconoBloqueo, IconoCalendarioCuenta, IconoCuentaActiva, IconoCuentaCerrada, IconoCuentaSegura, IconoReintentar, IconoTarjeta } from '@/ui/sistema/iconos'
+import { IconoAlerta, IconoBloqueo, IconoCalendarioCuenta, IconoCuentaActiva, IconoCuentaCerrada, IconoCuentaSegura, IconoTarjeta } from '@/ui/sistema/iconos'
 import './cuenta.css'
+import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
+import { EstadoError } from '@/ui/sistema/EstadoError'
 
 const DIAS_AVISO = 3
 
@@ -125,19 +127,13 @@ export function EstadoCuenta({ destacar = false }: { destacar?: boolean } = {}) 
 
   if (cargando && !estado) {
     return (
-      <Tarjeta como="section" className="f-cuenta-estado f-cuenta-simple" aria-busy="true" aria-live="polite">
-        <span className="f-cuenta-icono f-cuenta-gira" aria-hidden="true"><IconoReintentar /></span>
-        <div><strong className="f-renglon-texto">Consultando el estado de tu cuenta…</strong><p className="f-dato">Estamos verificando la suscripción en el servidor.</p></div>
-      </Tarjeta>
+      <EstadoCarga texto="Consultando el estado de tu cuenta…" filas={2} />
     )
   }
 
   if (!estado) {
     return (
-      <Tarjeta como="section" className="f-cuenta-estado f-cuenta-simple" role="alert">
-        <div><strong className="f-renglon-texto">No pudimos cargar el estado de tu cuenta.</strong><p className="f-dato">Probá nuevamente cuando tengas conexión.</p></div>
-        <Boton variante="secundario" onClick={() => void refrescar()}><IconoReintentar /> Reintentar</Boton>
-      </Tarjeta>
+      <EstadoError titulo="No pudimos cargar el estado de tu cuenta" texto="Revisá la señal y probá de nuevo." onReintentar={() => void refrescar()} />
     )
   }
 

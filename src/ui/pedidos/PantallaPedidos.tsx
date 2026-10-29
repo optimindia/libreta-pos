@@ -18,6 +18,8 @@ import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { IconoCalendario, IconoCerrar, IconoCobrar, IconoConfirmar, IconoEntrega, IconoNota, IconoQR, IconoTransferencia, IconoUbicacion } from '@/ui/sistema/iconos'
 import { FormularioPedido } from './FormularioPedido'
 import './pedidos.css'
+import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
+import { TEXTOS, noSePudo } from '@/ui/sistema/textos'
 
 type FiltroPedido = 'todos' | EstadoPedido
 
@@ -80,7 +82,7 @@ export function PantallaPedidos() {
       await repos.pedidos.actualizarEstado(pedido.id, estado)
       setAviso(`${ETIQUETA_ESTADO_PEDIDO[estado]}: ${nombreCliente(clientesPorId.get(pedido.clienteId ?? ''))}.`)
     } catch (error) {
-      setAviso(error instanceof Error ? error.message : 'No se pudo actualizar el estado del pedido.')
+      setAviso(error instanceof Error ? error.message : 'No se pudo cambiar el estado del pedido. Probá de nuevo.')
     }
   }
 
@@ -90,7 +92,7 @@ export function PantallaPedidos() {
       await repos.pedidos.cancelar(pedido.id)
       setAviso('Pedido cancelado y reserva liberada.')
     } catch {
-      setAviso('No se pudo cancelar el pedido.')
+      setAviso(noSePudo('cancelar', 'el pedido'))
     }
   }
 
@@ -99,7 +101,7 @@ export function PantallaPedidos() {
       await repos.pedidos.convertirEnVenta(pedido.id, medio)
       setAviso(`Pedido de ${nombreCliente(clientesPorId.get(pedido.clienteId ?? ''))} cobrado y entregado.`)
     } catch (error) {
-      setAviso(error instanceof Error ? error.message : 'No se pudo cobrar el pedido.')
+      setAviso(error instanceof Error ? error.message : noSePudo('cobrar', 'el pedido'))
       throw error
     }
   }
@@ -112,7 +114,7 @@ export function PantallaPedidos() {
           <p className="f-pedidos-sub">Guardá encargos, reservá mercadería y cobrá cuando estén listos.</p>
         </div>
         <Boton variante="principal" onClick={() => { setEditando(null); setFormulario(true); setAviso(null) }}>
-          + Nuevo pedido
+          + {TEXTOS.agregarPedido}
         </Boton>
       </header>
 
@@ -154,11 +156,15 @@ export function PantallaPedidos() {
       </div>
 
       {visibles.length === 0 ? (
-        <Tarjeta como="section" relleno="grande" className="f-pedidos-vacia">
-          <h2 className="f-seccion">{datos.pedidos.length === 0 ? 'Tus pedidos van a vivir acá' : 'No encontramos coincidencias'}</h2>
-          <p className="f-texto">{datos.pedidos.length === 0 ? 'Anotá encargos de WhatsApp, teléfono o mostrador y seguí cada paso sin perder nada.' : 'Probá con otro cliente, producto o estado.'}</p>
-          {datos.pedidos.length === 0 && <Boton variante="secundario" onClick={() => setFormulario(true)}>Crear primer pedido</Boton>}
-        </Tarjeta>
+        datos.pedidos.length === 0 ? (
+          <EstadoVacio
+            titulo="Todavía no tenés pedidos"
+            texto="Anotá los encargos de WhatsApp, teléfono o mostrador y seguí cada paso sin perder nada."
+            accion={{ etiqueta: TEXTOS.agregarPedido, alTocar: () => setFormulario(true) }}
+          />
+        ) : (
+          <EstadoVacio titulo="No encontramos pedidos" texto="Probá con otro cliente, producto o estado." />
+        )
       ) : (
         <ul className="f-pedidos-lista">
           {visibles.map((pedido) => (

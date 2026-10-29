@@ -19,6 +19,9 @@ import { Hoja } from '@/ui/sistema/Hoja'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { IconoEditar, IconoWhatsApp } from '@/ui/sistema/iconos'
 import { usePantallaAncha } from './usoPantallaAncha'
+import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
+import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
+import { TEXTOS, noSePudo } from '@/ui/sistema/textos'
 
 function iniciales(nombre: string): string {
   return nombre.split(' ').slice(0, 2).map((palabra) => palabra.charAt(0).toUpperCase()).join('')
@@ -72,7 +75,7 @@ function ClienteForm({
       }
       onSaved()
     } catch {
-      setAviso('No se pudo guardar el cliente. Probá de nuevo.')
+      setAviso(noSePudo('guardar', 'el cliente'))
     } finally {
       setGuardando(false)
     }
@@ -142,8 +145,8 @@ function Movimientos({ clienteId }: { clienteId: UUID }) {
   return (
     <section className="f-fiados-movimientos" aria-label="Movimientos">
       <h3 className="f-seccion">Movimientos</h3>
-      {!movimientos ? null : movimientos.length === 0 ? (
-        <p className="f-texto f-fiados-vacio">Todavía no hay movimientos.</p>
+      {!movimientos ? <EstadoCarga compacto filas={2} texto="Cargando movimientos…" /> : movimientos.length === 0 ? (
+        <EstadoVacio compacto titulo="Todavía no hay movimientos" texto="Cada deuda y cada pago de este cliente queda anotado acá." />
       ) : (
         <ul className="f-fiados-movimientos-lista">
           {movimientos.map((movimiento) => (
@@ -336,7 +339,7 @@ export function PantallaFiados() {
       setMontoPago('')
       setClientePagando(null)
     } catch {
-      setAvisoPago('No se pudo registrar el pago. Probá de nuevo.')
+      setAvisoPago(noSePudo('registrar', 'el pago'))
     } finally {
       setGuardandoPago(false)
     }
@@ -398,14 +401,13 @@ export function PantallaFiados() {
 
         {deudas.length === 0 ? (
           datos.deudas.length === 0 ? (
-            <Tarjeta como="section" relleno="grande" className="f-fiados-vacia" aria-labelledby="fiados-vacio">
-              <Etiqueta tono="verde">Todo al día</Etiqueta>
-              <h2 id="fiados-vacio" className="f-seccion">No te debe nadie</h2>
-              <p className="f-texto">Cuando anotes una venta fiada, acá vas a ver quién debe, cuánto y desde cuándo.</p>
-              <Boton variante="principal" onClick={() => setFormularioCliente('nuevo')}>Agregar un cliente</Boton>
-            </Tarjeta>
+            <EstadoVacio
+              titulo="No te debe nadie"
+              texto="Cuando anotes una venta fiada, acá vas a ver quién debe, cuánto y desde cuándo."
+              accion={{ etiqueta: TEXTOS.agregarCliente, alTocar: () => setFormularioCliente('nuevo'), variante: 'principal' }}
+            />
           ) : (
-            <p className="f-texto f-fiados-vacio">Ningún cliente coincide con la búsqueda.</p>
+            <EstadoVacio titulo="No encontramos clientes" texto="Probá con otro nombre o teléfono." />
           )
         ) : (
           <Tarjeta como="ul" relleno="ninguno" className="f-fiados-lista" aria-label="Clientes que deben">

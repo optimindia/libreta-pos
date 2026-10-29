@@ -1,0 +1,98 @@
+/* Sistema F · accesibilidad (WCAG 2.2 AA). Va al final de la cascada para
+   cubrir lo que las capas viejas dejaron sin foco o sin tamaño. Las pruebas
+   que lo vigilan están en tests/estilos/accesibilidad.test.ts. */
+
+/* ───────────── Foco visible (2.4.7, 2.4.13) ───────────── */
+
+/* Respaldo para cualquier control que no tenga su propia regla: con :where no
+   suma especificidad, así que las reglas de cada componente siguen mandando. */
+:where(a[href], button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--f-foco);
+  outline-offset: 2px;
+}
+
+/* La barra y el lateral son oscuros en los dos temas: ahí el foco claro. */
+.f-lateral,
+.f-barra {
+  --f-foco: var(--f-foco-nav);
+}
+
+/* Campos sin borde propio: el anillo lo lleva el contenedor. */
+.f-buscar:focus-within,
+.f-cobro-monto:focus-within {
+  outline: 3px solid var(--f-foco);
+  outline-offset: 2px;
+}
+
+/* ───────────── Saltar al contenido (2.4.1) ───────────── */
+
+.f-saltar {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 1000;
+  padding: 12px 20px;
+  border: 3px solid var(--f-sobre-lima);
+  border-radius: var(--f-radio-control);
+  background: var(--f-lima);
+  color: var(--f-sobre-lima);
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.f-saltar:not(:focus) {
+  transform: translateY(-200%);
+}
+
+.f-saltar:focus {
+  outline: 3px solid var(--f-foco);
+  outline-offset: 2px;
+}
+
+/* El destino del enlace recibe el foco por código: sin anillo, no es un control. */
+[id='contenido']:focus {
+  outline: 0;
+}
+
+/* ───────────── No depender sólo del color (1.4.1) ───────────── */
+
+/* La sección actual, además de más clara y con el ícono lima, lleva una marca. */
+.f-barra-item:is([aria-current='page'], [data-activa='true'])::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 28px;
+  height: 4px;
+  border-radius: 0 0 4px 4px;
+  background: var(--f-lima);
+  transform: translateX(-50%);
+}
+
+.f-nav-item[aria-current='page']::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 4px;
+  height: 28px;
+  border-radius: 0 4px 4px 0;
+  background: var(--f-lima);
+  transform: translateY(-50%);
+}
+
+/* ───────────── Objetivo táctil (2.5.8) ───────────── */
+
+/* En el celu, los botones chicos llegan a 44 px (con el dedo, no el mouse). */
+@media (pointer: coarse) {
+  .f-paso button,
+  .f-producto-estrella,
+  .f-nav-mini,
+  .nb-icono-boton,
+  .f-hoja-cerrar,
+  .f-visor-cerrar {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

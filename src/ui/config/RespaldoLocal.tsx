@@ -5,6 +5,7 @@ import { crearRespaldoLocal, restaurarRespaldoLocal, validarRespaldoLocal, type 
 import { Boton } from '@/ui/sistema/Boton'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { IconoDescargar, IconoSubir } from '@/ui/sistema/iconos'
+import { noSePudo } from '@/ui/sistema/textos'
 
 export function RespaldoLocal() {
   const archivo = useRef<HTMLInputElement>(null)
@@ -43,7 +44,7 @@ export function RespaldoLocal() {
       setPendiente(null)
       setAviso(`Listo: se recuperaron ${cantidad} registros. Lo que ya tenías quedó intacto.`)
     } catch {
-      setAviso('No se pudo restaurar la copia.')
+      setAviso(noSePudo('restaurar', 'la copia'))
     } finally {
       setTrabajando(false)
     }

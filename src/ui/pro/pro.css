@@ -137,7 +137,6 @@
 
 .f-pro-lista { display: flex; flex-direction: column; }
 .f-pro-lista .f-renglon { padding-block: var(--f-3); }
-.f-pro-vacio { margin: 0; }
 
 .f-pro-bien {
   display: flex;

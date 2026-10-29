@@ -48,7 +48,7 @@ import { Boton } from '@/ui/sistema/Boton'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { Segmentado } from '@/ui/sistema/Segmentado'
 import { Etiqueta, type TonoEtiqueta } from '@/ui/sistema/Etiqueta'
-import { CargandoPagina } from '@/ui/sistema/CargandoPagina'
+import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
 import {
   IconoCerrar,
   IconoConfig,
@@ -62,6 +62,7 @@ import {
   IconoWhatsApp,
 } from '@/ui/sistema/iconos'
 import './pro.css'
+import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 
 const PERIODOS: Array<{ id: PeriodoOperacion; label: string }> = [
   { id: 'hoy', label: 'Hoy' },
@@ -137,8 +138,8 @@ function ProFeatureCard({
   )
 }
 
-function Vacio({ texto }: { texto: string }) {
-  return <p className="f-dato f-pro-vacio">{texto}</p>
+function Vacio({ titulo, texto }: { titulo: string; texto: string }) {
+  return <EstadoVacio compacto titulo={titulo} texto={texto} />
 }
 
 function Plata({ centavos, className = 'f-plata-16' }: { centavos: number; className?: string }) {
@@ -241,7 +242,7 @@ export function CentroPro() {
     }
   }, [datos, periodo])
 
-  if (!datos || !calculos) return <CargandoPagina texto="Preparando tu Centro Pro…" />
+  if (!datos || !calculos) return <EstadoCarga texto="Preparando tu Centro Pro…" filas={4} />
 
   const datosListos = datos
   const calculosListos = calculos
@@ -386,7 +387,7 @@ export function CentroPro() {
         </Panel>
 
         <Panel id="cobros" titulo="Cómo entró la plata" detalle="Distribución del período seleccionado.">
-          {calculos.mix.length === 0 ? <Vacio texto="Todavía no hay cobros en este período." /> : <div className="f-pro-lista">{calculos.mix.map((medio) => (
+          {calculos.mix.length === 0 ? <Vacio titulo="Todavía no hay cobros en este período" texto="Cuando cobres, vas a ver cómo te pagaron." /> : <div className="f-pro-lista">{calculos.mix.map((medio) => (
             <div key={medio.medio} className="f-pro-cobro">
               <div className="f-renglon-cuerpo"><span className="f-renglon-titulo">{MEDIOS[medio.medio]}</span><span className="f-renglon-detalle">{medio.ventas} {medio.ventas === 1 ? 'venta' : 'ventas'}</span></div>
               <div className="f-pro-cobro-monto"><span className="f-dato">{medio.porcentaje}%</span><Plata centavos={medio.monto} /></div>
@@ -407,7 +408,7 @@ export function CentroPro() {
               <span className="f-renglon-cuerpo"><span className="f-renglon-titulo">{item.producto.nombre}</span><span className="f-renglon-detalle">{item.unidadesVendidas} u. en 14 días · {item.diasCobertura === null ? 'sin rotación' : `${item.diasCobertura} días de cobertura`}</span></span>
               <Etiqueta tono={estadoEtiqueta(item.estado)}>{item.estado === 'agotado' ? 'Agotado' : item.estado === 'critico' ? 'Crítico' : item.estado === 'vigilar' ? 'Vigilar' : item.estado === 'sin-rotacion' ? 'Dormido' : 'Estable'}</Etiqueta>
             </div>
-          ))}{calculos.radar.length === 0 && <Vacio texto="Cargá productos para activar el radar." />}</div>
+          ))}{calculos.radar.length === 0 && <Vacio titulo="Todavía no hay productos para vigilar" texto="Cargá tus productos para ver qué se te termina." />}</div>
           <Link href="/stock" className="f-pro-enlace">Abrir stock completo <IconoFlechaDerecha /></Link>
         </Panel>
 
@@ -423,7 +424,7 @@ export function CentroPro() {
               <span className="f-renglon-cuerpo"><span className="f-renglon-titulo">{cliente.cliente.nombre}</span><span className="f-renglon-detalle">{cliente.ventas} compras · última {fechaCorta(cliente.ultimaCompra)}</span></span>
               <Plata centavos={cliente.gastado} />
             </div>
-          ))}{calculos.topClientes.length === 0 && <Vacio texto="Vinculá una venta a un cliente para construir tu ranking." />}</div>
+          ))}{calculos.topClientes.length === 0 && <Vacio titulo="Todavía no hay ranking de clientes" texto="Cuando vendas a un cliente, va a aparecer acá." />}</div>
           <div className="f-pro-destacado f-pro-destacado-fila"><span><strong className="f-renglon-texto">{calculos.inactivos.length} clientes para reactivar</strong><span className="f-dato"> Usá la cartera para volver a abrir la conversación.</span></span><Link href="/clientes" className="f-pro-enlace">Ver cartera <IconoFlechaDerecha /></Link></div>
         </Panel>
 
@@ -438,7 +439,7 @@ export function CentroPro() {
               <span className="f-renglon-cuerpo"><span className="f-renglon-titulo">{item.cliente?.nombre || 'Cliente sin ficha'}</span><span className="f-renglon-detalle">{item.dias === null ? 'Sin fecha' : etiquetaVencimiento(item.fiado.vence, datos.ahora)}</span></span>
               <Etiqueta tono={item.estado === 'vencido' ? 'coral' : item.estado === 'pronto' ? 'ambar' : 'gris'}>{formatearPesos(item.saldo)}</Etiqueta>
             </div>
-          ))}{calculos.vencimientos.length === 0 && <Vacio texto="No hay deuda abierta para seguir." />}</div>
+          ))}{calculos.vencimientos.length === 0 && <Vacio titulo="No te debe nadie" texto="Cuando anotes un fiado, lo seguís desde acá." />}</div>
           <Link href="/fiados" className="f-pro-enlace">Abrir fiados <IconoFlechaDerecha /></Link>
         </Panel>
 
@@ -453,7 +454,7 @@ export function CentroPro() {
               <span className="f-renglon-cuerpo"><span className="f-renglon-titulo">Pedido #{item.pedido.id.slice(0, 6)}</span><span className="f-renglon-detalle">{item.cliente?.nombre || 'Sin cliente'} · {item.dias === null ? 'Sin fecha' : item.dias === 0 ? 'Hoy' : `Hace ${item.dias} días`}</span></span>
               <Plata centavos={item.valor} />
             </div>
-          ))}{calculos.pedidosHoy.length === 0 && calculos.pedidosAtrasados.length === 0 && <Vacio texto="La agenda está limpia por ahora." />}</div>
+          ))}{calculos.pedidosHoy.length === 0 && calculos.pedidosAtrasados.length === 0 && <Vacio titulo="No tenés pedidos para hoy" texto="Los pedidos que anotes aparecen en esta agenda." />}</div>
           <Link href="/pedidos" className="f-pro-enlace">Abrir pedidos <IconoFlechaDerecha /></Link>
         </Panel>
 
@@ -465,7 +466,7 @@ export function CentroPro() {
               <Etiqueta tono={nivelEtiqueta(item.nivel)}>{nivelLabel(item.nivel)}</Etiqueta>
             </div>
           ))}</div>
-          <div className="f-pro-destacado f-pro-destacado-fila"><span className="f-dato">{nubeActiva() ? `${datos.pendientes} operaciones esperando sincronización.` : 'Modo local: todo queda guardado en este aparato.'}</span><Link href="/config" className="f-pro-enlace">Revisar <IconoFlechaDerecha /></Link></div>
+          <div className="f-pro-destacado f-pro-destacado-fila"><span className="f-dato">{nubeActiva() ? `${datos.pendientes} cambios esperan conexión para enviarse.` : 'Modo local: todo queda guardado en este aparato.'}</span><Link href="/config" className="f-pro-enlace">Revisar <IconoFlechaDerecha /></Link></div>
         </Panel>
       </div>
 

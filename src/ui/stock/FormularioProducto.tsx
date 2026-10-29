@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { Producto } from '@/dominio/tipos'
 import { pesosACentavos, pesosDeTexto } from '@/dominio/dinero'
 import { hayErroresProducto, validarProducto, type ErroresProducto } from '@/dominio/validaciones'
 import { repos } from '@/datos/local/repos'
 import { Boton } from '@/ui/sistema/Boton'
+import { noSePudo } from '@/ui/sistema/textos'
 
 const CATEGORIAS_SUGERIDAS = ['Almacén', 'Bebidas', 'Lácteos', 'Limpieza', 'Golosinas', 'Congelados', 'Panificados', 'Perfumería', 'Mascotas']
 
@@ -32,6 +33,10 @@ export function FormularioProducto({
   const [minimo, setMinimo] = useState(producto ? String(producto.stockMinimo) : '3')
   const [stockInicial, setStockInicial] = useState(producto ? String(producto.stock) : '0')
   const [errores, setErrores] = useState<ErroresProducto>({})
+  const base = useId()
+  const idError = { nombre: `${base}-nombre`, dinero: `${base}-dinero`, control: `${base}-control`, stock: `${base}-stock` }
+  /** Un campo con error queda inválido y apunta a su mensaje (3.3.1). */
+  const enlace = (hayError: boolean, id: string) => (hayError ? { 'aria-invalid': true as const, 'aria-describedby': id } : {})
   const [guardando, setGuardando] = useState(false)
   const [aviso, setAviso] = useState<string | null>(null)
   const productos = useLiveQuery(() => repos.productos.todos(), [], [])
@@ -91,7 +96,7 @@ export function FormularioProducto({
       }
       onGuardado?.()
     } catch {
-      setAviso('No se pudo guardar el producto. Revisá los datos y probá de nuevo.')
+      setAviso(noSePudo('guardar', 'el producto'))
     } finally {
       setGuardando(false)
     }
@@ -109,11 +114,11 @@ export function FormularioProducto({
             placeholder="Ej. Yerba Playadito"
             className="f-entrada"
             value={nombre}
-            aria-invalid={Boolean(errores.nombre)}
+            {...enlace(Boolean(errores.nombre), idError.nombre)}
             onChange={(evento) => { setNombre(evento.target.value); setErrores((actuales) => ({ ...actuales, nombre: undefined })); setAviso(null) }}
           />
           <small className="f-stock-ayuda">Un nombre corto y reconocible para encontrarlo rápido.</small>
-          {errores.nombre && <small className="f-stock-error" role="alert">{errores.nombre}</small>}
+          {errores.nombre && <small id={idError.nombre} className="f-stock-error" role="alert">{errores.nombre}</small>}
         </label>
         <label className="f-campo">
           <span>Categoría <em>opcional</em></span>
@@ -149,14 +154,14 @@ export function FormularioProducto({
         <div className="f-stock-fila-campos">
           <label className="f-campo">
             <span>Costo <em>lo que pagás</em></span>
-            <div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label="Costo" inputMode="decimal" placeholder="Ej. 800" className="f-entrada" value={costo} aria-invalid={Boolean(errores.costo)} onChange={(evento) => { setCosto(evento.target.value); setErrores((actuales) => ({ ...actuales, costo: undefined })) }} /></div>
+            <div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label="Costo" inputMode="decimal" placeholder="Ej. 800" className="f-entrada" value={costo} {...enlace(Boolean(errores.costo || errores.precio), idError.dinero)} onChange={(evento) => { setCosto(evento.target.value); setErrores((actuales) => ({ ...actuales, costo: undefined })) }} /></div>
           </label>
           <label className="f-campo">
             <span>Precio <em>lo que cobrás</em></span>
-            <div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label="Precio" inputMode="decimal" placeholder="Ej. 1.200" className="f-entrada" value={precio} aria-invalid={Boolean(errores.precio)} onChange={(evento) => { setPrecio(evento.target.value); setErrores((actuales) => ({ ...actuales, precio: undefined })) }} /></div>
+            <div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label="Precio" inputMode="decimal" placeholder="Ej. 1.200" className="f-entrada" value={precio} {...enlace(Boolean(errores.costo || errores.precio), idError.dinero)} onChange={(evento) => { setPrecio(evento.target.value); setErrores((actuales) => ({ ...actuales, precio: undefined })) }} /></div>
           </label>
         </div>
-        {(errores.costo || errores.precio) && <p className="f-stock-error" role="alert">{errores.costo ?? errores.precio}</p>}
+        {(errores.costo || errores.precio) && <p id={idError.dinero} className="f-stock-error" role="alert">{errores.costo ?? errores.precio}</p>}
       </section>
 
       <section className="f-stock-grupo">
@@ -179,22 +184,22 @@ export function FormularioProducto({
         <div className="f-stock-fila-campos f-stock-fila-ancha">
           <label className="f-campo">
             <span>Código de barras <em>opcional</em></span>
-            <input aria-label="Código de barras" inputMode="numeric" placeholder="Escaneá o escribí el código" className="f-entrada" value={codigo} aria-invalid={Boolean(errores.codigoBarras)} onChange={(evento) => { setCodigo(evento.target.value); setErrores((actuales) => ({ ...actuales, codigoBarras: undefined })) }} />
+            <input aria-label="Código de barras" inputMode="numeric" placeholder="Escaneá o escribí el código" className="f-entrada" value={codigo} {...enlace(Boolean(errores.codigoBarras || errores.stockMinimo), idError.control)} onChange={(evento) => { setCodigo(evento.target.value); setErrores((actuales) => ({ ...actuales, codigoBarras: undefined })) }} />
           </label>
           <label className="f-campo">
             <span>Mínimo <em>unidades</em></span>
-            <input aria-label="Mínimo" inputMode="numeric" placeholder="3" className="f-entrada" value={minimo} aria-invalid={Boolean(errores.stockMinimo)} onChange={(evento) => { setMinimo(evento.target.value); setErrores((actuales) => ({ ...actuales, stockMinimo: undefined })) }} />
+            <input aria-label="Mínimo" inputMode="numeric" placeholder="3" className="f-entrada" value={minimo} {...enlace(Boolean(errores.codigoBarras || errores.stockMinimo), idError.control)} onChange={(evento) => { setMinimo(evento.target.value); setErrores((actuales) => ({ ...actuales, stockMinimo: undefined })) }} />
             <small className="f-stock-ayuda">Te avisamos cuando llegues a este número.</small>
           </label>
         </div>
-        {(errores.codigoBarras || errores.stockMinimo) && <p className="f-stock-error" role="alert">{errores.codigoBarras ?? errores.stockMinimo}</p>}
+        {(errores.codigoBarras || errores.stockMinimo) && <p id={idError.control} className="f-stock-error" role="alert">{errores.codigoBarras ?? errores.stockMinimo}</p>}
 
         {!producto && (
           <label className="f-campo">
             <span>Stock inicial <em>unidades disponibles hoy</em></span>
-            <input aria-label="Stock inicial" inputMode="numeric" placeholder="Ej. 12" className="f-entrada" value={stockInicial} aria-invalid={Boolean(errores.stockInicial)} onChange={(evento) => { setStockInicial(evento.target.value); setErrores((actuales) => ({ ...actuales, stockInicial: undefined })) }} />
+            <input aria-label="Stock inicial" inputMode="numeric" placeholder="Ej. 12" className="f-entrada" value={stockInicial} {...enlace(Boolean(errores.stockInicial), idError.stock)} onChange={(evento) => { setStockInicial(evento.target.value); setErrores((actuales) => ({ ...actuales, stockInicial: undefined })) }} />
             <small className="f-stock-ayuda">Si todavía no tenés unidades, dejá 0. Después podés sumar ingresos.</small>
-            {errores.stockInicial && <small className="f-stock-error" role="alert">{errores.stockInicial}</small>}
+            {errores.stockInicial && <small id={idError.stock} className="f-stock-error" role="alert">{errores.stockInicial}</small>}
           </label>
         )}
       </section>

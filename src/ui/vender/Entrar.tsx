@@ -8,6 +8,7 @@ import { Boton } from '@/ui/sistema/Boton'
 import '@/ui/sistema/acceso.css'
 import { IconoNube } from '@/ui/sistema/iconos'
 import { claveTurnstile, VerificacionHumana, type ControlVerificacion } from '@/ui/sistema/VerificacionHumana'
+import { TEXTOS } from '@/ui/sistema/textos'
 
 /** La puerta de un aparato nuevo: o traés el negocio que ya está en la
  *  nube, o empezás uno nuevo acá. Sólo se muestra con la base vacía. */
@@ -34,7 +35,7 @@ export function Entrar({ onListo }: { onListo: () => void }) {
       await bajarTodo(traerDeSupabase)
       onListo()
     } catch {
-      setAviso('No se pudo traer el negocio. Revisá la señal y probá de nuevo.')
+      setAviso(`No se pudo traer el negocio. ${TEXTOS.revisarSenal}`)
     } finally {
       setTrabajando(false)
     }
