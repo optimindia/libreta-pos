@@ -93,7 +93,7 @@ test('con la última confirmación de hace menos de 72 h y sin red no manda al l
   await page.goto('/vender')
   await expect(page.getByRole('link', { name: /^vender/i }).first()).toBeVisible()
   await expect(page.getByText(TEXTO_LOGIN)).toHaveCount(0)
-  await expect(page.getByText('Conectate para continuar')).toHaveCount(0)
+  await expect(page.getByText(/Conectate para continuar|No pudimos validar tu cuenta/)).toHaveCount(0)
 })
 
 test('pasadas las 72 h sin verificar, sin red pide conectarse (y tampoco muestra el login)', async ({ page, context }) => {
@@ -102,7 +102,8 @@ test('pasadas las 72 h sin verificar, sin red pide conectarse (y tampoco muestra
   await context.setOffline(true)
 
   await page.goto('/vender')
-  await expect(page.getByText('Conectate para continuar')).toBeVisible()
+  // Según cómo falle la red el motivo es sin_red o error_red: ambos piden verificar.
+  await expect(page.getByText(/Conectate para continuar|No pudimos validar tu cuenta/)).toBeVisible({ timeout: 15_000 })
   await expect(page.getByText(TEXTO_LOGIN)).toHaveCount(0)
 })
 
@@ -120,7 +121,7 @@ test('sin red, un token vencido no cierra la sesión del aparato', async ({ page
   await page.goto('/vender')
   await expect(page.getByRole('link', { name: /^vender/i }).first()).toBeVisible()
   await expect(page.getByText(TEXTO_LOGIN)).toHaveCount(0)
-  await expect(page.getByText('Conectate para continuar')).toHaveCount(0)
+  await expect(page.getByText(/Conectate para continuar|No pudimos validar tu cuenta/)).toHaveCount(0)
 })
 
 test('recargar sin red sigue abriendo la app (service worker)', async ({ page, context }) => {
