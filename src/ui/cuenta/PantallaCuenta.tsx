@@ -1,29 +1,43 @@
 'use client'
 
 import Link from 'next/link'
+import { clasesBoton } from '@/ui/sistema/Boton'
+import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { EstadoCuenta } from './EstadoCuenta'
+import './cuenta.css'
 
 export function PantallaCuenta() {
   return (
-    <div className="page-account">
-      <div className="page-module-head account-page-head">
-        <div><span className="page-kicker">Cuenta</span><h1 className="page-title">Tu suscripción</h1><p className="page-description">Consultá tu plan, vencimiento y estado de acceso.</p></div>
-        <Link className="account-back-link" href="/vender">Volver a vender</Link>
+    <div className="page-account f-cuenta">
+      <header className="f-cuenta-encabezado">
+        <div>
+          <span className="f-dato">Cuenta</span>
+          <h1 className="f-titulo">Tu suscripción</h1>
+          <p className="f-texto f-cuenta-subtitulo">Consultá tu plan, vencimiento y estado de acceso.</p>
+        </div>
+        <Link className={clasesBoton('secundario')} href="/vender">Volver a vender</Link>
+      </header>
+      <div className="f-cuenta-cuerpo">
+        <EstadoCuenta destacar />
+        <div className="f-cuenta-lateral">
+          <Tarjeta className="f-cuenta-nota">
+            <IconoCuentaMini />
+            <div><strong className="f-renglon-texto">¿Necesitás renovar?</strong><p className="f-texto">Escribinos por WhatsApp y el administrador actualizará tu cuenta manualmente.</p></div>
+          </Tarjeta>
+          <Tarjeta como="section" className="f-cuenta-legal" aria-labelledby="account-legal-title">
+            <h2 id="account-legal-title" className="f-seccion">Legales</h2>
+            <p className="f-dato">Las reglas del servicio y cómo cuidamos tus datos y los de tus clientes.</p>
+            <ul>
+              <li><Link href="/terminos">Términos y condiciones</Link></li>
+              <li><Link href="/privacidad">Política de privacidad</Link></li>
+            </ul>
+          </Tarjeta>
+        </div>
       </div>
-      <EstadoCuenta />
-      <div className="account-page-note"><IconoCuentaMini /><div><strong>¿Necesitás renovar?</strong><p>Escribinos por WhatsApp y el administrador actualizará tu cuenta manualmente.</p></div></div>
-      <section className="account-legal" aria-labelledby="account-legal-title">
-        <h2 id="account-legal-title">Legales</h2>
-        <p>Las reglas del servicio y cómo cuidamos tus datos y los de tus clientes.</p>
-        <ul>
-          <li><Link href="/terminos">Términos y condiciones</Link></li>
-          <li><Link href="/privacidad">Política de privacidad</Link></li>
-        </ul>
-      </section>
     </div>
   )
 }
 
 function IconoCuentaMini() {
-  return <span className="account-page-note-icon" aria-hidden="true">✓</span>
+  return <span className="f-cuenta-nota-icono" aria-hidden="true">✓</span>
 }

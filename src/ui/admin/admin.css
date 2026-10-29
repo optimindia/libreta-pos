@@ -1,0 +1,402 @@
+/* Panel de administración ("Centro de cuentas") con el sistema F.
+   Celu: una columna, resumen en tarjetas tocables. PC (≥ 900 px): el alta de
+   cuenta a la izquierda y la cartera al lado. El único botón lima de la
+   página es "Crear cuenta y prueba"; dentro de una hoja manda el envío del
+   formulario. Sólo tokens --f-*. */
+
+.f-admin {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-4);
+  font-family: var(--f-letra);
+}
+
+.f-admin h1,
+.f-admin h2,
+.f-admin h3,
+.f-admin p { margin: 0; }
+
+/* ───────────── Botones ───────────── */
+
+.f-boton.f-admin-btn {
+  min-height: 44px;
+  padding: 0 var(--f-4);
+  font-size: 15px;
+}
+
+.f-boton.f-admin-btn svg { width: 20px; height: 20px; flex: 0 0 20px; }
+
+/* Acción de una tarjeta: tinta llena, sin competir con el lima. */
+.f-boton.f-admin-btn-fuerte {
+  border-color: var(--f-elegido);
+  background: var(--f-elegido);
+  color: var(--f-sobre-elegido);
+}
+
+/* ───────────── Encabezado y banner ───────────── */
+
+.f-admin-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-3);
+}
+
+.f-admin-marca { display: flex; min-width: 0; align-items: center; gap: var(--f-3); }
+.f-admin-marca .f-titulo { font-size: 26px; }
+
+.f-admin-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--f-3);
+  padding: var(--f-4);
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-verde-suave);
+  color: var(--f-verde);
+}
+
+.f-admin-banner > div { display: flex; flex-direction: column; gap: 2px; }
+.f-admin-banner .f-renglon-texto { color: var(--f-tinta); }
+.f-admin-banner .f-texto { color: var(--f-tinta-2); }
+.f-admin-banner .f-acceso-icono { background: var(--f-superficie); }
+
+/* ───────────── Resumen (filtros tocables) ───────────── */
+
+.f-admin-resumen {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--f-2);
+}
+
+.f-admin-resumen-item {
+  display: flex;
+  min-height: 96px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--f-3) var(--f-4);
+  border: 0;
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.f-admin-resumen-item:last-child { grid-column: 1 / -1; }
+.f-admin-resumen-item span { font-size: 14px; font-weight: 700; }
+.f-admin-resumen-item small { color: var(--f-tinta-2); font-size: 13px; font-weight: 600; }
+.f-admin-resumen-item:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+
+.f-admin-resumen-item[aria-pressed='true'] {
+  background: var(--f-elegido);
+  color: var(--f-sobre-elegido);
+}
+
+.f-admin-resumen-item[aria-pressed='true'] small { color: inherit; opacity: 0.8; }
+
+/* ───────────── Cuerpo ───────────── */
+
+.f-admin-cuerpo {
+  display: grid;
+  align-items: start;
+  gap: var(--f-4);
+}
+
+.f-admin-crear { display: flex; flex-direction: column; gap: var(--f-4); }
+
+.f-admin-titulo-seccion {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--f-3);
+}
+
+.f-admin-form {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-4);
+}
+
+.f-admin-form > strong { font-size: 16px; font-weight: 800; }
+
+.f-admin .f-entrada { font-size: 16px; }
+.f-admin select.f-entrada { appearance: auto; }
+.f-admin .f-entrada.f-admin-texto { min-height: 88px; padding: 12px 14px; line-height: 1.4; resize: vertical; }
+.f-admin .f-entrada.f-admin-num,
+.f-admin .f-admin-num { font-variant-numeric: tabular-nums; }
+.f-admin .f-entrada.f-admin-pin { font-variant-numeric: tabular-nums; letter-spacing: 0.3em; text-align: center; }
+.f-admin .f-entrada:disabled { opacity: 0.5; }
+
+.f-admin-fila {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--f-3);
+}
+
+.f-admin-grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--f-3);
+}
+
+.f-admin-ancho { grid-column: 1 / -1; }
+
+.f-admin-ayuda {
+  color: var(--f-tinta-2);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.f-admin .f-aviso.f-admin-ok { background: var(--f-verde-suave); color: var(--f-verde); }
+
+/* ───────────── Cartera ───────────── */
+
+.f-admin-cartera {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-3);
+}
+
+.f-admin-fila-titulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--f-3);
+}
+
+.f-admin-filtros { display: flex; flex-wrap: wrap; gap: var(--f-2); }
+.f-admin-filtros .f-buscar { min-width: 220px; flex: 2 1 260px; }
+.f-admin-filtro { display: flex; min-width: 180px; flex: 1 1 180px; }
+
+.f-admin-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--f-1);
+  padding: var(--f-8) var(--f-4);
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-superficie);
+  color: var(--f-tinta-2);
+  font-weight: 600;
+  text-align: center;
+}
+
+.f-admin-vacio svg { width: 28px; height: 28px; }
+.f-admin-vacio strong { color: var(--f-tinta); font-size: 16px; font-weight: 800; }
+
+.f-admin-lista { display: flex; flex-direction: column; gap: var(--f-3); }
+
+.f-admin-cuenta,
+.f-admin-plan {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-3);
+}
+
+.f-admin-cuenta-arriba { display: flex; align-items: center; gap: var(--f-3); }
+.f-admin-cuenta-arriba .f-etiqueta { margin-left: auto; align-self: center; }
+.f-admin-cuenta-copia { min-width: 0; flex: 1 1 auto; }
+.f-admin-cuenta-copia h3 { overflow-wrap: anywhere; }
+
+.f-admin-avatar {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border-radius: var(--f-radio-chip);
+  background: var(--f-superficie-2);
+  color: var(--f-tinta);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.f-admin-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--f-3);
+}
+
+.f-admin-meta > span { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.f-admin-meta small { color: var(--f-tinta-2); font-size: 13px; font-weight: 600; }
+.f-admin-meta strong { font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+
+.f-admin .f-aviso.f-admin-nota-cuenta { display: flex; align-items: flex-start; gap: var(--f-2); }
+.f-admin-nota-cuenta svg { width: 20px; height: 20px; flex: 0 0 20px; }
+
+.f-admin-acciones-cuenta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--f-2);
+}
+
+/* ───────────── Paquetes ───────────── */
+
+.f-admin-planes { display: flex; flex-direction: column; gap: var(--f-3); }
+
+.f-admin-editor { display: flex; flex-direction: column; gap: var(--f-4); }
+
+.f-admin-editor-cabeza {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--f-3);
+}
+
+.f-admin-check {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: var(--f-3);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.f-admin-check input { width: 24px; height: 24px; flex: 0 0 24px; accent-color: var(--f-elegido); }
+
+.f-admin-acciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--f-2);
+}
+
+.f-admin-planes-grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--f-3);
+}
+
+.f-admin-plan[data-archivado='true'] { opacity: 0.7; }
+.f-admin-plan-cabeza { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--f-2); }
+
+/* ───────────── Historial ───────────── */
+
+.f-admin-historial { display: flex; flex-direction: column; gap: var(--f-3); }
+.f-admin-historial-vacio { color: var(--f-tinta-2); }
+.f-admin-historial-lista { display: flex; flex-direction: column; }
+
+.f-admin-punto {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  border-radius: 999px;
+  background: var(--f-verde);
+}
+
+/* ───────────── Credenciales ───────────── */
+
+.f-admin-credenciales {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-3);
+  padding: var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-verde-suave);
+  color: var(--f-tinta);
+}
+
+.f-admin-credencial {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--f-2) var(--f-3);
+}
+
+.f-admin-credencial span { min-width: 64px; color: var(--f-tinta-2); font-size: 14px; font-weight: 700; }
+.f-admin-credencial strong { flex: 1 1 auto; font-size: 18px; font-variant-numeric: tabular-nums; font-weight: 800; overflow-wrap: anywhere; }
+
+/* ───────────── Hojas (renovar, editar, PIN, vendedores) ───────────── */
+
+.f-admin-franja {
+  display: flex;
+  align-items: center;
+  gap: var(--f-3);
+  padding: var(--f-3);
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie-2);
+}
+
+.f-admin-franja > div { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: 2px; }
+.f-admin-franja > div span { color: var(--f-tinta-2); font-size: 13px; font-weight: 600; }
+
+.f-admin-vence {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--f-3);
+  padding: var(--f-3) var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-verde-suave);
+  color: var(--f-verde);
+}
+
+.f-admin-vence svg { width: 22px; height: 22px; flex: 0 0 22px; }
+.f-admin-vence > div { display: flex; flex-direction: column; gap: 2px; }
+.f-admin-vence strong { color: var(--f-tinta); font-size: 16px; font-weight: 800; }
+.f-admin-vence small { color: var(--f-tinta-2); font-size: 13px; font-weight: 600; }
+
+.f-admin-seguridad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-3);
+  padding: var(--f-3) var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie-2);
+}
+
+.f-admin-seguridad > div { min-width: 200px; flex: 1 1 200px; }
+.f-admin-seguridad p { margin-top: 2px; color: var(--f-tinta-2); font-size: 14px; font-weight: 600; }
+
+.f-aviso.f-admin-alerta { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--f-3); }
+.f-admin-alerta > svg { width: 22px; height: 22px; flex: 0 0 22px; }
+.f-admin-alerta > div:not(.f-admin-acciones) { min-width: 0; flex: 1 1 200px; }
+.f-admin-alerta p { margin-top: 2px; font-weight: 600; }
+.f-admin-alerta .f-admin-acciones { width: 100%; }
+
+.f-admin-vendedores {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.f-admin-vendedor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-3);
+  padding-bottom: var(--f-3);
+  border-bottom: 1px solid var(--f-superficie-2);
+}
+
+/* ───────────── PC ───────────── */
+
+@media (min-width: 640px) {
+  .f-admin-meta { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .f-admin-planes-grilla .f-admin-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 900px) {
+  .f-admin-resumen { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .f-admin-resumen-item:last-child { grid-column: auto; }
+  .f-admin-cuerpo { grid-template-columns: minmax(320px, 400px) minmax(0, 1fr); }
+  .f-admin-crear { position: sticky; top: var(--f-4); }
+  .f-admin-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1280px) {
+  .f-admin-meta { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
