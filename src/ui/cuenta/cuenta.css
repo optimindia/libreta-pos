@@ -236,7 +236,4 @@
 
 @media (min-width: 900px) {
   .f-cuenta-cuerpo { grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr); }
-  .f-cuenta-pie { flex-direction: row; align-items: center; justify-content: space-between; }
-  .f-cuenta-pie .f-cuenta-seguro { max-width: 46%; }
-  .f-cuenta-acciones { flex: 0 0 auto; grid-template-columns: repeat(2, auto); }
 }
