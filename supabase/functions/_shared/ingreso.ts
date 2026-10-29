@@ -60,8 +60,9 @@ function leerEntrada(entrada: unknown): { numero: string; pin: string; captchaTo
   return { numero, pin, captchaToken: typeof captchaToken === 'string' ? captchaToken.slice(0, 4096) : '' }
 }
 
-/** Reserva un intento para el teléfono. Devuelve la espera si está bloqueado. */
-async function reservarIntento(almacen: AlmacenIntentos, numero: string, ahora: number): Promise<number> {
+/** Reserva un intento para la clave (un teléfono, o `reset:<usuario>` y
+ *  similares en la recuperación del PIN). Devuelve la espera si está bloqueada. */
+export async function reservarIntento(almacen: AlmacenIntentos, numero: string, ahora: number): Promise<number> {
   for (let vuelta = 0; vuelta < INTENTOS_DE_ESCRITURA; vuelta++) {
     const previo = await almacen.leer(numero)
     const espera = esperaBloqueo(previo, ahora)

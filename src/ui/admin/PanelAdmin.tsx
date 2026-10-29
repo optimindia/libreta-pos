@@ -16,6 +16,7 @@ import { IconoAlerta, IconoBloqueo, IconoBuscar, IconoCalendarioCuenta, IconoCer
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
 import { EstadoError } from '@/ui/sistema/EstadoError'
+import { SeguridadPin } from '@/ui/pin/SeguridadPin'
 import { TEXTOS, noSePudo } from '@/ui/sistema/textos'
 
 const FORMULARIO_INICIAL = { nombre: '', telefono: '', pin: '', diasPrueba: '7', planId: '', nota: '' }
@@ -62,6 +63,10 @@ const NOMBRES_EVENTO: Record<string, string> = {
   cuenta_creada: 'Cuenta creada',
   cuenta_actualizada: 'Datos actualizados',
   credenciales_regeneradas: 'PIN regenerado',
+  pin_vendedor_reiniciado: 'PIN de vendedor restablecido',
+  pin_codigo_generado: 'Código de recuperación generado',
+  pin_cambiado: 'PIN cambiado',
+  pin_recuperado: 'PIN recuperado con código',
   suscripcion_prueba: 'Prueba actualizada',
   suscripcion_activar: 'Suscripción activada',
   suscripcion_extender: 'Suscripción extendida',
@@ -123,12 +128,25 @@ function ModalMarco({ titulo, subtitulo, onClose, children }: { titulo: string; 
   )
 }
 
-function TarjetaCredenciales({ credenciales, copiado, copiar }: { credenciales: { telefono: string; pin: string }; copiado: string | null; copiar: (texto: string, clave: string) => Promise<void> }) {
+type CredencialesVista = { telefono: string; pin: string; codigoRecuperacion?: string | null; debeCambiar?: boolean }
+
+const SIN_PERMISOS = 'No tenés permisos para administrar cuentas.'
+
+function TarjetaCredenciales({ credenciales, copiado, copiar }: { credenciales: CredencialesVista; copiado: string | null; copiar: (texto: string, clave: string) => Promise<void> }) {
   return (
     <div className="f-admin-credenciales" role="status">
       <div><strong className="f-renglon-texto">Acceso listo para enviar</strong><p className="f-dato">Este PIN sólo se muestra durante esta sesión del panel.</p></div>
       <div className="f-admin-credencial"><span>Teléfono</span><strong>{credenciales.telefono}</strong><button type="button" className={BTN} onClick={() => void copiar(credenciales.telefono, 'telefono')}>{copiado === 'telefono' ? 'Copiado' : 'Copiar'}</button></div>
       <div className="f-admin-credencial"><span>PIN</span><strong>{credenciales.pin}</strong><button type="button" className={BTN} onClick={() => void copiar(credenciales.pin, 'pin')}>{copiado === 'pin' ? 'Copiado' : 'Copiar'}</button></div>
+      {credenciales.debeCambiar && <p className="f-dato">Es un PIN temporal: la persona tiene que cambiarlo la primera vez que ingrese.</p>}
+      {credenciales.codigoRecuperacion && (
+        <div className="f-admin-credencial">
+          <span>Código de recuperación</span>
+          <strong>{credenciales.codigoRecuperacion}</strong>
+          <button type="button" className={BTN} onClick={() => void copiar(credenciales.codigoRecuperacion ?? '', 'codigo')}>{copiado === 'codigo' ? 'Copiado' : 'Copiar'}</button>
+        </div>
+      )}
+      {credenciales.codigoRecuperacion && <p className="f-dato">Entregale este código al dueño en mano: si olvida su PIN, lo recupera con él. No se vuelve a mostrar y no lo mandes por WhatsApp.</p>}
       <a className={BTN} href={enlaceWhatsApp(credenciales.telefono, mensajeAcceso(credenciales.telefono, credenciales.pin, window.location.origin))} target="_blank" rel="noreferrer">Abrir WhatsApp con el acceso</a>
     </div>
   )
@@ -146,7 +164,7 @@ export function PanelAdmin() {
   const [formVendedor, setFormVendedor] = useState(FORMULARIO_VENDEDOR)
   const [pinVendedor, setPinVendedor] = useState<{ usuarioId: string; pin: string } | null>(null)
   const [quitando, setQuitando] = useState<string | null>(null)
-  const [credenciales, setCredenciales] = useState<AdminCuentaCreada['credenciales'] | null>(null)
+  const [credenciales, setCredenciales] = useState<CredencialesVista | null>(null)
   const [modal, setModal] = useState<ModalAdmin | null>(null)
   const [planEditorAbierto, setPlanEditorAbierto] = useState(false)
   const [planEditando, setPlanEditando] = useState<AdminPlan | null>(null)
@@ -216,7 +234,7 @@ export function PanelAdmin() {
         planId: formulario.planId || undefined,
         nota: formulario.nota || undefined,
       })
-      setCredenciales(respuesta.credenciales)
+      setCredenciales({ ...respuesta.credenciales, codigoRecuperacion: respuesta.codigoRecuperacion })
       setFormulario(FORMULARIO_INICIAL)
       setAviso('Cuenta creada. Mandale las credenciales al cliente por WhatsApp.')
       await cargar()
@@ -318,7 +336,7 @@ export function PanelAdmin() {
     setError(null)
     try {
       const respuesta = await adminAccion<AdminCredencialesRegeneradas>({ accion: 'cuenta', negocioId: modal.cuenta.id, operacion: 'regenerar_pin', pin: formPin })
-      setCredenciales(respuesta.credenciales)
+      setCredenciales({ ...respuesta.credenciales, codigoRecuperacion: respuesta.codigoRecuperacion })
       setFormPin('')
       setModal(null)
       setAviso('PIN regenerado. Copialo y envialo al cliente por WhatsApp.')
@@ -384,7 +402,7 @@ export function PanelAdmin() {
     const pin = pinVendedor.pin
     void operarVendedor(async () => {
       const respuesta = await adminAccion<AdminCredencialesRegeneradas>({ accion: 'vendedor', negocioId, operacion: 'pin', usuarioId: vendedor.usuarioId, pin })
-      setCredenciales(respuesta.credenciales)
+      setCredenciales({ ...respuesta.credenciales, debeCambiar: respuesta.debeCambiar })
       setPinVendedor(null)
       return `PIN nuevo para ${vendedor.nombre ?? 'el vendedor'}. El anterior ya no funciona.`
     }, noSePudo('cambiar', 'el PIN'))
@@ -517,7 +535,12 @@ export function PanelAdmin() {
             <label className="f-admin-filtro"><span className="f-sr">Filtrar cuentas</span><select className="f-entrada" value={filtro} onChange={(evento) => setFiltro(evento.target.value as FiltroCuenta)}><option value="todas">Todas las cuentas</option><option value="activas">Con acceso</option><option value="por_vencer">Vencen en 7 días</option><option value="vencidas">Vencidas / sin activar</option><option value="suspendidas">Pausadas</option></select></label>
           </div>
           {error && cuentas.length === 0 && !cargando
-            ? <EstadoError titulo="No pudimos cargar las cuentas" texto={error} onReintentar={() => void cargar()} />
+            ? (
+              <>
+                <EstadoError titulo="No pudimos cargar las cuentas" texto={error} onReintentar={() => void cargar()} />
+                {error === SIN_PERMISOS && <SeguridadPin />}
+              </>
+            )
             : error && <p className="f-aviso" role="alert">{error}</p>}
           {aviso && <p className="f-aviso f-admin-ok" role="status">{aviso}</p>}
           {cargando && cuentas.length === 0 && <EstadoCarga texto={TEXTOS.cargandoCuentas} />}
