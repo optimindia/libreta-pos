@@ -113,6 +113,13 @@ export class ErrorVentaNoAnulable extends Error {
   }
 }
 
+export class ErrorCodigoRepetido extends Error {
+  constructor(public readonly codigo: string, public readonly producto: string) {
+    super(`El código ${codigo} ya pertenece a ${producto}.`)
+    this.name = 'ErrorCodigoRepetido'
+  }
+}
+
 export class ErrorClienteConHistorial extends Error {
   constructor(
     public readonly ventas: number,
@@ -148,12 +155,24 @@ export class ErrorProductoConHistorial extends Error {
 export const repos = {
   productos: {
     async guardar(datos: Omit<Producto, 'id' | 'actualizadoEn'> & { id?: UUID }): Promise<Producto> {
+      // Sin código es null, nunca '' (un vacío se encontraría al escanear en
+      // blanco) y nunca dos productos con el mismo código: al escanear
+      // saldría uno cualquiera de los dos.
+      const codigo = datos.codigoBarras?.trim() || null
       const producto: Producto = {
         ...datos,
+        codigoBarras: codigo,
         id: datos.id ?? nuevoId(),
         actualizadoEn: Date.now(),
       }
-      await db.productos.put(producto)
+      await db.transaction('rw', db.productos, async () => {
+        if (codigo) {
+          const otro = (await db.productos.where('codigoBarras').equals(codigo).toArray())
+            .find((existente) => existente.id !== producto.id && !existente.eliminadoEn)
+          if (otro) throw new ErrorCodigoRepetido(codigo, otro.nombre)
+        }
+        await db.productos.put(producto)
+      })
       await encolar('producto', datos.id ? 'actualizar' : 'crear', producto)
       return producto
     },
