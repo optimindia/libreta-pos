@@ -2,7 +2,7 @@ import { cliente } from './cliente'
 import { db } from '@/datos/local/db'
 import { encolar } from '@/datos/local/cola'
 import type { UUID } from '@/dominio/tipos'
-import { accesoSaasObligatorio, notificarCambioAcceso } from './acceso'
+import { accesoSaasObligatorio, notificarCambioAcceso, olvidarAvisoBaja } from './acceso'
 import { limpiarDatosLocales } from '@/datos/local/limpiar'
 import { rolDe } from '@/dominio/roles'
 import { credencialesDesdeTelefono, telefonoNormalizado, validarPin, type Credenciales } from '@/dominio/credenciales'
@@ -206,6 +206,7 @@ export async function cerrarSesion(): Promise<void> {
     await cliente?.auth.signOut()
   } finally {
     await limpiarDatosLocales()
+    olvidarAvisoBaja()
     notificarCambioAcceso()
   }
 }

@@ -115,4 +115,33 @@ describe('PantallaStock', () => {
     expect(await screen.findByText(/no se puede eliminar este producto porque tiene historial: 1 venta/i)).toBeDefined()
     expect(await repos.productos.todos()).toHaveLength(1)
   })
+
+  it('entiende los importes como se escriben acá: "1.200" son mil doscientos y "800,50" ochocientos con cincuenta', async () => {
+    render(<PantallaStock />)
+    fireEvent.click(await screen.findByRole('button', { name: /^cargar$/i }))
+    fireEvent.change(await screen.findByLabelText('Nombre'), { target: { value: 'Aceite' } })
+    fireEvent.change(screen.getByLabelText('Costo'), { target: { value: '800,50' } })
+    fireEvent.change(screen.getByLabelText('Precio'), { target: { value: '1.200' } })
+    fireEvent.change(screen.getByLabelText('Oferta promocional'), { target: { value: '1.050' } })
+    fireEvent.click(screen.getByRole('button', { name: /guardar producto/i }))
+
+    await waitFor(async () => expect(await repos.productos.todos()).toHaveLength(1))
+    const [producto] = await repos.productos.todos()
+    expect(producto.costo).toBe(80050)
+    expect(producto.precio).toBe(120000)
+    expect(producto.precioOferta).toBe(105000)
+  })
+
+  it('un producto sin código de barras se guarda sin código y otro más sin código no choca', async () => {
+    render(<PantallaStock />)
+    for (const nombre of ['Pan lactal', 'Galletitas surtidas']) {
+      fireEvent.click(await screen.findByRole('button', { name: /^cargar$/i }))
+      fireEvent.change(await screen.findByLabelText('Nombre'), { target: { value: nombre } })
+      fireEvent.change(screen.getByLabelText('Precio'), { target: { value: '500' } })
+      fireEvent.click(screen.getByRole('button', { name: /guardar producto/i }))
+      await waitFor(async () => expect((await repos.productos.todos()).some((p) => p.nombre === nombre)).toBe(true))
+    }
+    const productos = await repos.productos.todos()
+    expect(productos.map((p) => p.codigoBarras)).toEqual([null, null])
+  })
 })

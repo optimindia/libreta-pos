@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { escanear, type ControlEscaner } from '@/ui/vender/escaner'
 import { avisarLectura } from './sonido'
+import { pesosDeTexto } from '@/dominio/dinero'
 import { Boton } from '@/ui/sistema/Boton'
 import { IconoCerrar, IconoEscanear } from '@/ui/sistema/iconos'
 import './escaner.css'
@@ -127,8 +128,8 @@ export function VisorCamara({
     evento.preventDefault()
     if (!nuevo || !alCargar) return
     const nombre = nuevo.nombre.trim()
-    const precio = Number(nuevo.precio.replace(',', '.'))
-    const costo = nuevo.costo.trim() === '' ? 0 : Number(nuevo.costo.replace(',', '.'))
+    const precio = pesosDeTexto(nuevo.precio)
+    const costo = nuevo.costo.trim() === '' ? 0 : pesosDeTexto(nuevo.costo)
     const stock = Number(nuevo.stock)
     if (!nombre) return setErrorNuevo('Escribí cómo se llama el producto.')
     if (!(precio > 0)) return setErrorNuevo('Poné el precio de venta (mayor a $0).')

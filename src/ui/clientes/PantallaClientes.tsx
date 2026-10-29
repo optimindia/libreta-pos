@@ -6,7 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import type { Cliente, Venta } from '@/dominio/tipos'
 import { deudaPorCliente } from '@/dominio/fiado'
 import { normalizarTexto } from '@/dominio/validaciones'
-import { formatearPesos, pesosACentavos } from '@/dominio/dinero'
+import { formatearPesos, pesosACentavos, pesosDeTexto } from '@/dominio/dinero'
 import { enlaceWhatsApp, mensajeCobro } from '@/dominio/mensajes'
 import { db } from '@/datos/local/db'
 import { ErrorClienteConHistorial, repos } from '@/datos/local/repos'
@@ -299,7 +299,7 @@ function ClienteForm({ cliente, onCancel, onSave }: { cliente?: Cliente; onCance
   function guardar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     if (nombre.trim().length < 2) { setAviso('Escribí un nombre de al menos 2 caracteres.'); return }
-    const limiteCentavos = limite.trim() ? pesosACentavos(Number(limite.replace(',', '.')) || 0) : undefined
+    const limiteCentavos = limite.trim() ? pesosACentavos(pesosDeTexto(limite)) : undefined
     if (limiteCentavos !== undefined && limiteCentavos < 0) { setAviso('El límite no puede ser negativo.'); return }
     onSave({ nombre: nombre.trim(), telefono: telefono.trim() || null, limiteFiado: limiteCentavos }, cliente?.id)
   }

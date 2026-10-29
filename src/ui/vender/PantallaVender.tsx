@@ -21,6 +21,7 @@ import { Segmentado } from '@/ui/sistema/Segmentado'
 import { formatearPesos } from '@/dominio/dinero'
 import { funcionActiva } from '@/dominio/funciones'
 import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
+import { useMarcarVentaAbierta } from '@/ui/sistema/actualizacionSW'
 
 /** Mientras el almacenero no configure su negocio, el ticket lleva el
  *  mismo nombre provisorio que muestra la cabecera. */
@@ -64,6 +65,9 @@ export function PantallaVender() {
     nubeActiva()
 
   const total = totalTicket(items)
+  // Con una venta a medias (o el ticket recién cobrado en pantalla) la app
+  // no se recarga para actualizarse.
+  useMarcarVentaAbierta(items.length > 0 || cobrando || Boolean(cobrada) || Boolean(sinPrecio))
 
   // El aviso es un cartelito pasajero, como en el celu: se va solo.
   useEffect(() => {

@@ -6,7 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/datos/local/db'
 import { repos } from '@/datos/local/repos'
 import { deudaPorCliente, saldoFiado } from '@/dominio/fiado'
-import { formatearPesos, pesosACentavos } from '@/dominio/dinero'
+import { formatearPesos, pesosACentavos, pesosDeTexto } from '@/dominio/dinero'
 import { estadoVencimiento, etiquetaVencimiento, porcentajeLimite, riesgoFiado, type EstadoVencimiento } from '@/dominio/inteligencia'
 import { normalizarTexto } from '@/dominio/validaciones'
 import type { Cliente, UUID } from '@/dominio/tipos'
@@ -61,13 +61,14 @@ function ClienteForm({
       setAviso('Escribí el nombre del cliente.')
       return
     }
+    const limiteCentavos = pesosACentavos(pesosDeTexto(limite))
     setGuardando(true)
     setAviso(null)
     try {
       if (cliente) {
-        await repos.clientes.actualizar(cliente.id, { nombre: nombre.trim(), telefono: telefono.trim() || null, limiteFiado: Number(limite) > 0 ? pesosACentavos(Number(limite)) : undefined })
+        await repos.clientes.actualizar(cliente.id, { nombre: nombre.trim(), telefono: telefono.trim() || null, limiteFiado: limiteCentavos > 0 ? limiteCentavos : undefined })
       } else {
-        await repos.clientes.guardar({ nombre: nombre.trim(), telefono: telefono.trim() || null, limiteFiado: Number(limite) > 0 ? pesosACentavos(Number(limite)) : undefined })
+        await repos.clientes.guardar({ nombre: nombre.trim(), telefono: telefono.trim() || null, limiteFiado: limiteCentavos > 0 ? limiteCentavos : undefined })
       }
       onSaved()
     } catch {
@@ -318,7 +319,7 @@ export function PantallaFiados() {
   }
 
   async function registrarPago(clienteId: UUID, saldo: number) {
-    const monto = pesosACentavos(Number(montoPago))
+    const monto = pesosACentavos(pesosDeTexto(montoPago))
     if (!Number.isFinite(monto) || monto <= 0) {
       setAvisoPago('Escribí un monto válido.')
       return
