@@ -9,6 +9,7 @@ import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { Respaldo } from './Respaldo'
 import { RespaldoLocal } from './RespaldoLocal'
 import { TemaControl } from './TemaControl'
+import { TicketControl } from './TicketControl'
 import { InstalarApp } from './InstalarApp'
 import { EstadoSincronizacion } from './EstadoSincronizacion'
 import { EstadoCuenta } from '@/ui/cuenta/EstadoCuenta'
@@ -136,6 +137,7 @@ export function PantallaConfig() {
           </Tarjeta>
 
           <TemaControl />
+          <TicketControl />
           <InstalarApp />
         </div>
 

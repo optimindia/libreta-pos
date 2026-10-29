@@ -9,6 +9,9 @@ import { enlaceWhatsApp, mensajeTicket } from '@/dominio/mensajes'
 import { IconoSincronizado } from '@/ui/sistema/iconos'
 import { Hoja } from '@/ui/sistema/Hoja'
 import { Boton, clasesBoton } from '@/ui/sistema/Boton'
+import { BotonesTicket } from '@/ui/ticket/BotonesTicket'
+import { useIdentidad } from '@/ui/sistema/usoVendedor'
+import { etiquetaVendedor } from '@/dominio/turno'
 
 const TEXTO_DEL_MEDIO: Record<Venta['medioPago'], string> = {
   efectivo: 'en efectivo',
@@ -23,16 +26,21 @@ const TEXTO_DEL_MEDIO: Record<Venta['medioPago'], string> = {
 export function Cobrado({
   venta,
   negocio,
+  pagoCon = null,
   onNueva,
 }: {
   venta: Venta
   negocio: Negocio
+  /** Con cuánto pagó, si fue en efectivo: de ahí sale el vuelto del ticket. */
+  pagoCon?: number | null
   onNueva: () => void
 }) {
   const cliente = useLiveQuery(
     async () => (venta.clienteId ? await db.clientes.get(venta.clienteId) : null),
     [],
   )
+  const yo = useIdentidad()
+  const vendedor = venta.vendidoPor && yo ? etiquetaVendedor(venta.vendidoPor, yo) : null
   const link = enlaceWhatsApp(cliente?.telefono ?? '', mensajeTicket(negocio, venta))
 
   return (
@@ -46,6 +54,7 @@ export function Cobrado({
       <a href={link} target="_blank" rel="noopener noreferrer" className={clasesBoton('secundario', 'f-boton-ancho')}>
         Mandar el ticket por WhatsApp
       </a>
+      <BotonesTicket datos={{ negocio: negocio.nombre, venta, vendedor, pagoCon }} />
     </Hoja>
   )
 }

@@ -30,7 +30,7 @@ const TECLAS: TeclaCobro[] = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '000'
 /** Cobro en efectivo: cuánto te dan, cuánto es el vuelto y un teclado grande.
  *  Los botones de arriba ("Justo", $14.000…) resuelven el caso más común en
  *  un solo toque. */
-function Efectivo({ total, onCobrar }: { total: number; onCobrar: () => void }) {
+function Efectivo({ total, onCobrar }: { total: number; onCobrar: (entregado: number) => void }) {
   const [pagoCon, setPagoCon] = useState('')
   const entregado = pesosACentavos(Number(pagoCon) || 0)
   const resto = vuelto(entregado, total)
@@ -41,7 +41,7 @@ function Efectivo({ total, onCobrar }: { total: number; onCobrar: () => void }) 
   return (
     <form
       className="f-cobro"
-      onSubmit={(evento) => { evento.preventDefault(); if (alcanza) onCobrar() }}
+      onSubmit={(evento) => { evento.preventDefault(); if (alcanza) onCobrar(entregado) }}
     >
       <div className="f-cobro-tablero">
         <label className="f-cobro-te-dan">
@@ -321,7 +321,7 @@ export function Cobro({
   total: number
   /** El medio que ya se eligió en el panel de la venta (PC). */
   medioInicial?: MedioCobro
-  onCobrar: (medio: MedioPago, clienteId?: UUID, vence?: number | null, referenciaPago?: string) => void
+  onCobrar: (medio: MedioPago, clienteId?: UUID, vence?: number | null, referenciaPago?: string, pagoCon?: number) => void
   onCancelar: () => void
 }) {
   const [pantalla, setPantalla] = useState<MedioCobro>(medioInicial)
@@ -330,7 +330,7 @@ export function Cobro({
     <Hoja abierta onCerrar={onCancelar} titulo="Cobrar" extra={formatearPesos(total)} etiquetaCerrar="Cancelar el cobro" ancho="angosto">
       <Segmentado etiqueta="Cómo paga" opciones={OPCIONES_PAGO} valor={pantalla} onCambiar={setPantalla} />
 
-      {pantalla === 'efectivo' && <Efectivo total={total} onCobrar={() => onCobrar('efectivo')} />}
+      {pantalla === 'efectivo' && <Efectivo total={total} onCobrar={(entregado) => onCobrar('efectivo', undefined, undefined, undefined, entregado)} />}
       {pantalla === 'fiado' && <Fiado total={total} onCobrar={(clienteId, vence) => onCobrar('fiado', clienteId, vence)} />}
       {(pantalla === 'transferencia' || pantalla === 'qr') && (
         <CobroDigital key={pantalla} medio={pantalla} total={total} onCobrar={(referencia) => onCobrar(pantalla, undefined, undefined, referencia)} />

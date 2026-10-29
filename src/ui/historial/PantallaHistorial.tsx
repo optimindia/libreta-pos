@@ -23,6 +23,7 @@ import { useIdentidad, type Identidad } from '@/ui/sistema/usoVendedor'
 import { FiltroVendedor } from '@/ui/sistema/FiltroVendedor'
 import { etiquetaVendedor, filtrarPorVendedor } from '@/dominio/turno'
 import { CierreTurno } from './CierreTurno'
+import { BotonesTicket } from '@/ui/ticket/BotonesTicket'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 import { TEXTOS, noSePudo } from '@/ui/sistema/textos'
 
@@ -107,6 +108,7 @@ function DetalleVenta({ venta, yo, onAnulada }: { venta: Venta; yo: Identidad; o
           <a className={clasesBoton('principal')} target="_blank" rel="noreferrer" href={enlaceWhatsApp('', mensajeTicket({ id: 'unico', nombre, logo: null, color: null }, venta))}>
             Reenviar ticket por WhatsApp
           </a>
+          <BotonesTicket datos={{ negocio: nombre, venta, vendedor: venta.vendidoPor ? etiquetaVendedor(venta.vendidoPor, yo) : null }} />
           {anula && <Boton variante="cuidado" onClick={() => { setConfirmando(true); setAviso(null) }}>Anular venta</Boton>}
         </div>
       )}

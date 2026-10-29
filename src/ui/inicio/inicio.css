@@ -282,3 +282,52 @@
   .fi-ultimas { grid-column: auto; padding: var(--f-6); }
   .fi-atajos { grid-template-columns: repeat(2, minmax(0, 260px)); }
 }
+
+/* ───────────── Primeros pasos: guía descartable ───────────── */
+
+.fi-guia {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-2);
+  padding: var(--f-4);
+  border-radius: var(--f-radio-tarjeta);
+  border: 1px solid currentColor;
+}
+
+.fi-guia-cabeza { display: flex; align-items: center; justify-content: space-between; gap: var(--f-3); }
+.fi-guia-cabeza .f-seccion { margin: 0; }
+.fi-guia-conteo { margin: 0; }
+
+.fi-guia-ocultar,
+.fi-guia-enlace {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 var(--f-2);
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.fi-guia-ocultar:focus-visible,
+.fi-guia-enlace:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+
+.fi-guia-barra { width: 100%; height: 8px; }
+
+.fi-guia-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--f-2); }
+.fi-guia-paso { display: flex; align-items: center; gap: var(--f-3); flex-wrap: wrap; }
+.fi-guia-marca {
+  width: 24px; height: 24px; flex: none; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; border: 2px solid currentColor; font-weight: 800; font-size: 14px;
+}
+.fi-guia-texto { display: flex; flex-direction: column; flex: 1 1 180px; min-width: 0; }
+.fi-guia-texto small { opacity: 0.75; }
+.fi-guia-paso[data-hecho='true'] .fi-guia-texto strong { text-decoration: line-through; opacity: 0.7; }
+.fi-guia-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.fi-vacio { grid-column: 1 / -1; }
