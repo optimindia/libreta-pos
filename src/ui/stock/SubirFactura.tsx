@@ -3,7 +3,8 @@
 import { useRef, useState } from 'react'
 import { repos } from '@/datos/local/repos'
 import { cliente } from '@/datos/nube/cliente'
-import { formatearPesos } from '@/dominio/dinero'
+import { formatearPesos, pesosACentavos, pesosDeTexto } from '@/dominio/dinero'
+import { normalizarTexto } from '@/dominio/validaciones'
 import { Boton } from '@/ui/sistema/Boton'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { Hoja } from '@/ui/sistema/Hoja'
@@ -13,6 +14,8 @@ interface ItemLeido {
   nombre: string
   cantidad: number
   costoUnitario: number
+  /** Lo que se está escribiendo en el costo ("12," todavía no es un número). */
+  costoTexto?: string
 }
 
 /** La foto nunca escribe sola en el stock: el almacenero revisa fila por
@@ -91,19 +94,23 @@ export function SubirFactura() {
         return
       }
       for (const item of items) {
+        // Mismo criterio que el alta a mano: sin acentos, mayúsculas ni
+        // espacios de más. Lo recién creado entra a la lista para que otro
+        // renglón del mismo producto no cree un segundo.
         const existente = productos.find(
-          (producto) => producto.nombre.toLowerCase() === item.nombre.toLowerCase(),
+          (producto) => normalizarTexto(producto.nombre) === normalizarTexto(item.nombre),
         )
         const producto =
           existente ??
           (await repos.productos.guardar({
-            nombre: item.nombre,
+            nombre: item.nombre.trim(),
             codigoBarras: null,
             costo: item.costoUnitario,
             precio: 0,
             stock: 0,
             stockMinimo: 0,
           }))
+        if (!existente) productos.push(producto)
 
         ingresos.push({ productoId: producto.id, cantidad: item.cantidad, costoUnitario: item.costoUnitario })
       }
@@ -122,9 +129,11 @@ export function SubirFactura() {
 
   function cambiar(indice: number, campo: 'cantidad' | 'costoUnitario', valor: string) {
     setItems((actuales) =>
-      actuales!.map((item, i) =>
-        i === indice ? { ...item, [campo]: Number(valor) || 0 } : item,
-      ),
+      actuales!.map((item, i) => {
+        if (i !== indice) return item
+        if (campo === 'cantidad') return { ...item, cantidad: Number(valor) || 0 }
+        return { ...item, costoTexto: valor, costoUnitario: pesosACentavos(pesosDeTexto(valor)) }
+      }),
     )
   }
 
@@ -165,7 +174,7 @@ export function SubirFactura() {
               <li key={`${item.nombre}-${indice}`} className="f-stock-item">
                 <span className="f-renglon-titulo">{item.nombre}</span>
                 <label className="f-campo"><span>Unidades</span><input aria-label={`Cantidad de ${item.nombre}`} inputMode="numeric" className="f-entrada" value={item.cantidad} onChange={(evento) => cambiar(indice, 'cantidad', evento.target.value)} /></label>
-                <label className="f-campo"><span>Costo unitario</span><div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label={`Costo de ${item.nombre}`} inputMode="decimal" className="f-entrada" value={item.costoUnitario / 100} onChange={(evento) => cambiar(indice, 'costoUnitario', String(Number(evento.target.value) * 100))} /></div></label>
+                <label className="f-campo"><span>Costo unitario</span><div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label={`Costo de ${item.nombre}`} inputMode="decimal" className="f-entrada" value={item.costoTexto ?? String(item.costoUnitario / 100)} onChange={(evento) => cambiar(indice, 'costoUnitario', evento.target.value)} /></div></label>
               </li>
             ))}
           </ul>
