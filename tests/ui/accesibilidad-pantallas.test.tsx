@@ -94,14 +94,14 @@ const CASOS: Caso[] = [
   {
     nombre: 'Pedidos',
     pantalla: () => <PantallaPedidos />,
-    listo: () => boton(/Nuevo pedido/),
-    hojas: [{ nombre: 'nuevo pedido', abrir: () => abrirY(/Nuevo pedido/) }],
+    listo: () => boton(/\+ Agregar pedido/),
+    hojas: [{ nombre: 'nuevo pedido', abrir: () => abrirY(/\+ Agregar pedido/) }],
   },
   {
     nombre: 'Clientes',
     pantalla: () => <PantallaClientes />,
     listo: () => screen.findAllByText('Raúl'),
-    hojas: [{ nombre: 'nuevo cliente', abrir: () => abrirY(/Nuevo cliente/) }],
+    hojas: [{ nombre: 'nuevo cliente', abrir: () => abrirY(/\+ Agregar cliente/) }],
   },
   { nombre: 'Historial', pantalla: () => <PantallaHistorial />, listo: () => screen.findByText(/\$4\.200/) },
   { nombre: 'Ajustes', pantalla: () => <PantallaConfig />, listo: () => boton('Guardar cambios') },
