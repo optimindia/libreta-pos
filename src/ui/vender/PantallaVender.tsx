@@ -22,6 +22,7 @@ import { formatearPesos } from '@/dominio/dinero'
 import { funcionActiva } from '@/dominio/funciones'
 import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
 import { useMarcarVentaAbierta } from '@/ui/sistema/actualizacionSW'
+import { AnuncioVivo } from '@/ui/sistema/AnuncioVivo'
 
 /** Mientras el almacenero no configure su negocio, el ticket lleva el
  *  mismo nombre provisorio que muestra la cabecera. */
@@ -318,8 +319,12 @@ export function PantallaVender() {
         )}
       </div>
 
-      {avisoStock && <p className="f-aviso-flotante" role="status">{avisoStock}</p>}
-      {!avisoStock && lecturaOk && <p className="f-aviso-flotante" data-tono="ok" role="status">{lecturaOk}</p>}
+      {/* Las regiones vivas están siempre montadas (se anuncia lo que se escribe
+          adentro); los carteles de abajo son sólo para la vista. */}
+      <AnuncioVivo nombre="venta" mensaje={hayItems ? `${textoUnidades}. Total ${formatearPesos(total)}` : ''} />
+      <AnuncioVivo nombre="avisos" mensaje={avisoStock ?? lecturaOk ?? ''} />
+      {avisoStock && <p className="f-aviso-flotante" aria-hidden="true">{avisoStock}</p>}
+      {!avisoStock && lecturaOk && <p className="f-aviso-flotante" data-tono="ok" aria-hidden="true">{lecturaOk}</p>}
 
       {sinPrecio && (
         <PonerPrecio

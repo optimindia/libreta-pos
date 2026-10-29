@@ -9,6 +9,7 @@ import '../ui/sistema/legal.css'
 import '../ui/sistema/f/tokens.css'
 import '../ui/sistema/f/componentes.css'
 import '../ui/sistema/f/navegacion.css'
+import '../ui/sistema/f/accesibilidad.css'
 import '../ui/vender/vender.css'
 import '../ui/inicio/inicio.css'
 import '../ui/plata/plata.css'
@@ -17,6 +18,7 @@ import { RegistrarSW } from '@/ui/sistema/RegistrarSW'
 import { Sincronizador } from '@/ui/sistema/Sincronizador'
 import { TemaInicial } from '@/ui/sistema/TemaInicial'
 import { ControlAcceso } from '@/ui/sistema/ControlAcceso'
+import { SaltarAlContenido } from '@/ui/sistema/SaltarAlContenido'
 
 // Una sola letra en toda la app. Si no carga, queda la del sistema.
 const figtree = Figtree({
@@ -51,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es-AR" data-tema="claro" className={figtree.variable}>
       <body className={figtree.className}>
+        <SaltarAlContenido />
         <RegistrarSW />
         <Sincronizador />
         <TemaInicial />

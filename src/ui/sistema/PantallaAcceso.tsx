@@ -53,7 +53,7 @@ export function PantallaAcceso({ modo = 'negocio' }: { modo?: 'negocio' | 'admin
   }
 
   return (
-    <div className="f-acceso">
+    <main id="contenido" tabIndex={-1} className="f-acceso">
       <Tarjeta como="section" relleno="grande" className="f-acceso-tarjeta">
         <div className="f-acceso-marca-fila">
           <span className="f-acceso-marca" aria-hidden="true">L</span>
@@ -92,6 +92,6 @@ export function PantallaAcceso({ modo = 'negocio' }: { modo?: 'negocio' | 'admin
           <a className={clasesBoton('secundario')} href={enlaceWhatsApp('', 'Hola, quiero solicitar acceso a Libreta.')} target="_blank" rel="noreferrer">Solicitar acceso por WhatsApp</a>
         </div>
       </Tarjeta>
-    </div>
+    </main>
   )
 }

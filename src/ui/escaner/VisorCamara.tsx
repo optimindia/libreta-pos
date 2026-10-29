@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { escanear, type ControlEscaner } from '@/ui/vender/escaner'
 import { avisarLectura } from './sonido'
 import { pesosDeTexto } from '@/dominio/dinero'
@@ -58,6 +58,9 @@ export function VisorCamara({
   const [nuevo, setNuevo] = useState<{ codigo: string; nombre: string; precio: string; costo: string; stock: string } | null>(null)
   const [guardando, setGuardando] = useState(false)
   const [errorNuevo, setErrorNuevo] = useState<string | null>(null)
+  // Qué campo causó el error, para marcarlo y enlazarlo con el mensaje.
+  const [campoError, setCampoError] = useState<'nombre' | 'precio' | 'costo' | 'stock' | null>(null)
+  const idErrorNuevo = useId()
 
   async function procesar(codigo: string, deLaCamara: boolean) {
     const ahora = Date.now()
@@ -124,6 +127,18 @@ export function VisorCamara({
     }
   }
 
+  function falla(campo: NonNullable<typeof campoError>, mensaje: string) {
+    setCampoError(campo)
+    setErrorNuevo(mensaje)
+  }
+
+  /** Atributos del campo que causó el error: inválido y descrito por el mensaje. */
+  function enlaceError(campo: NonNullable<typeof campoError>) {
+    return errorNuevo && campoError === campo
+      ? { 'aria-invalid': true as const, 'aria-describedby': idErrorNuevo }
+      : {}
+  }
+
   async function guardarNuevo(evento: React.FormEvent) {
     evento.preventDefault()
     if (!nuevo || !alCargar) return
@@ -131,10 +146,10 @@ export function VisorCamara({
     const precio = pesosDeTexto(nuevo.precio)
     const costo = nuevo.costo.trim() === '' ? 0 : pesosDeTexto(nuevo.costo)
     const stock = Number(nuevo.stock)
-    if (!nombre) return setErrorNuevo('Escribí cómo se llama el producto.')
-    if (!(precio > 0)) return setErrorNuevo('Poné el precio de venta (mayor a $0).')
-    if (!(costo >= 0)) return setErrorNuevo('El costo no puede ser negativo.')
-    if (!Number.isInteger(stock) || stock < 1) return setErrorNuevo('Poné cuántas unidades tenés (al menos 1).')
+    if (!nombre) return falla('nombre', 'Escribí cómo se llama el producto.')
+    if (!(precio > 0)) return falla('precio', 'Poné el precio de venta (mayor a $0).')
+    if (!(costo >= 0)) return falla('costo', 'El costo no puede ser negativo.')
+    if (!Number.isInteger(stock) || stock < 1) return falla('stock', 'Poné cuántas unidades tenés (al menos 1).')
     setGuardando(true)
     setErrorNuevo(null)
     try {
@@ -148,6 +163,7 @@ export function VisorCamara({
         onCerrarRef.current()
       }
     } catch {
+      setCampoError(null)
       setErrorNuevo('No se pudo guardar el producto. Probá de nuevo.')
     } finally {
       setGuardando(false)
@@ -207,21 +223,21 @@ export function VisorCamara({
             <p className="f-visor-nuevo-titulo">Producto nuevo · código {nuevo.codigo}</p>
             <label className="f-visor-campo f-visor-campo-ancho">
               <span>Nombre</span>
-              <input className="f-entrada" autoFocus autoComplete="off" placeholder="Ej. Yerba Playadito 1 kg" value={nuevo.nombre} onChange={(evento) => setNuevo({ ...nuevo, nombre: evento.target.value })} />
+              <input className="f-entrada" autoFocus autoComplete="off" placeholder="Ej. Yerba Playadito 1 kg" {...enlaceError('nombre')} value={nuevo.nombre} onChange={(evento) => setNuevo({ ...nuevo, nombre: evento.target.value })} />
             </label>
             <label className="f-visor-campo">
               <span>Precio de venta ($)</span>
-              <input className="f-entrada" inputMode="decimal" autoComplete="off" value={nuevo.precio} onChange={(evento) => setNuevo({ ...nuevo, precio: evento.target.value })} />
+              <input className="f-entrada" inputMode="decimal" autoComplete="off" {...enlaceError('precio')} value={nuevo.precio} onChange={(evento) => setNuevo({ ...nuevo, precio: evento.target.value })} />
             </label>
             <label className="f-visor-campo">
               <span>¿Cuántas tenés?</span>
-              <input className="f-entrada" inputMode="numeric" autoComplete="off" value={nuevo.stock} onChange={(evento) => setNuevo({ ...nuevo, stock: evento.target.value.replace(/\D/g, '') })} />
+              <input className="f-entrada" inputMode="numeric" autoComplete="off" {...enlaceError('stock')} value={nuevo.stock} onChange={(evento) => setNuevo({ ...nuevo, stock: evento.target.value.replace(/\D/g, '') })} />
             </label>
             <label className="f-visor-campo f-visor-campo-ancho">
               <span>Costo ($) <em>opcional, para ver tu ganancia</em></span>
-              <input className="f-entrada" inputMode="decimal" autoComplete="off" value={nuevo.costo} onChange={(evento) => setNuevo({ ...nuevo, costo: evento.target.value })} />
+              <input className="f-entrada" inputMode="decimal" autoComplete="off" {...enlaceError('costo')} value={nuevo.costo} onChange={(evento) => setNuevo({ ...nuevo, costo: evento.target.value })} />
             </label>
-            {errorNuevo && <p className="f-visor-estado f-visor-campo-ancho" data-tipo="falta" role="alert">{errorNuevo}</p>}
+            {errorNuevo && <p id={idErrorNuevo} className="f-visor-estado f-visor-campo-ancho" data-tipo="falta" role="alert">{errorNuevo}</p>}
             <div className="f-visor-nuevo-acciones f-visor-campo-ancho">
               <Boton variante="secundario" onClick={() => { setNuevo(null); setErrorNuevo(null) }}>Cancelar</Boton>
               <Boton variante="principal" type="submit" disabled={guardando}>{guardando ? 'Guardando…' : continuo ? 'Guardar y sumar' : 'Guardar'}</Boton>

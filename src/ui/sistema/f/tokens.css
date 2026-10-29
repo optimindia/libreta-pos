@@ -20,7 +20,9 @@
   --f-superficie: #FFFFFF;
   --f-superficie-2: #E7ECE9;
   --f-linea: #D5DDD9;
-  --f-borde: #C3CEC9;
+  /* Borde de un control (campo, buscador, interruptor): 3:1 sobre fondo y
+     superficie, como pide WCAG 1.4.11. --f-linea queda para separadores. */
+  --f-borde: #7A8983;
 
   /* Texto */
   --f-tinta: #111A17;
@@ -59,6 +61,8 @@
   --f-aviso: #111A17;
   --f-sobre-aviso: #FFFFFF;
   --f-foco: #111A17;
+  /* Foco sobre la barra oscura (tinta sobre tinta no se vería). */
+  --f-foco-nav: #C6EE4A;
 
   /* Formas: sólo tres (y la hoja, que sube desde abajo). */
   --f-radio-chip: 999px;
@@ -89,7 +93,7 @@
   --f-superficie: #17211E;
   --f-superficie-2: #1F2B27;
   --f-linea: #2C3A35;
-  --f-borde: #3A4A44;
+  --f-borde: #6F8078;
 
   --f-tinta: #EAF1EE;
   --f-tinta-2: #A9BAB3;
