@@ -176,7 +176,24 @@
   font-weight: 700;
 }
 
+/* Marco del panel de administración (ControlAcceso): sin menú del POS. */
+.f-admin-marco {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--f-fondo);
+  color: var(--f-tinta);
+  font-family: var(--f-letra);
+}
+
+.f-admin-principal {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(32px + env(safe-area-inset-bottom, 0px));
+}
+
 @media (min-width: 900px) {
+  .f-admin-principal { padding: 32px clamp(24px, 3vw, 48px) 48px; }
   .f-acceso-tarjeta { max-width: 480px; }
   .f-acceso-entrar { max-width: 520px; }
 }
