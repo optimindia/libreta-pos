@@ -28,4 +28,7 @@ jobs:
       - run: npx vitest run
       - run: npx next build
       - run: npx playwright install --with-deps chromium
+      # El build de arriba es el de producción: esta suite lo sirve con
+      # `next start`. Va antes que la otra porque `next dev` reescribe .next.
+      - run: npx playwright test -c playwright.produccion.config.ts
       - run: npx playwright test

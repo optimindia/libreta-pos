@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:prod": "NEXT_PUBLIC_SUPABASE_URL=https://falso.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=falsa next build && playwright test -c playwright.produccion.config.ts",
     "verificar:aislamiento": "node scripts/verificar-aislamiento.mjs",
     "deploy": "vercel deploy --prod --yes"
   },
