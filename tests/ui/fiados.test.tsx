@@ -36,6 +36,17 @@ describe('PantallaFiados', () => {
     })
   })
 
+  it('un pago escrito "2.000" son dos mil pesos, no dos', async () => {
+    render(<PantallaFiados />)
+    fireEvent.click(await screen.findByRole('button', { name: /registrar pago/i }))
+    fireEvent.change(await screen.findByLabelText(/pago de marta/i), { target: { value: '2.000' } })
+    fireEvent.click(screen.getByRole('button', { name: /confirmar pago/i }))
+
+    await waitFor(async () => {
+      expect((await repos.fiados.abiertos())[0].saldo).toBe(300000)
+    })
+  })
+
   it('muestra el enlace de WhatsApp con el mensaje ya escrito', async () => {
     render(<PantallaFiados />)
     const enlace = (await screen.findByRole('link', { name: /mandar mensaje/i })) as HTMLAnchorElement
@@ -52,5 +63,18 @@ describe('PantallaFiados', () => {
 
     expect(await screen.findByRole('heading', { name: /movimientos/i })).toBeDefined()
     expect(await screen.findByText(/todavía no hay movimientos/i)).toBeDefined()
+  })
+
+  it('el límite de fiado "30.000" son treinta mil pesos y "30,5" no se pierde', async () => {
+    render(<PantallaFiados />)
+    fireEvent.click(await screen.findByRole('button', { name: /editar cliente/i }))
+    fireEvent.change(await screen.findByLabelText('Límite de fiado'), { target: { value: '30.000' } })
+    fireEvent.click(screen.getByRole('button', { name: /guardar cliente/i }))
+    await waitFor(async () => expect((await repos.clientes.todos())[0].limiteFiado).toBe(3000000))
+
+    fireEvent.click(await screen.findByRole('button', { name: /editar cliente/i }))
+    fireEvent.change(await screen.findByLabelText('Límite de fiado'), { target: { value: '30,5' } })
+    fireEvent.click(screen.getByRole('button', { name: /guardar cliente/i }))
+    await waitFor(async () => expect((await repos.clientes.todos())[0].limiteFiado).toBe(3050))
   })
 })
