@@ -65,8 +65,7 @@ textarea {
 
 /* ───────────── Rótulos: sin mayúsculas espaciadas ───────────── */
 
-.page-kicker,
-.form-section-heading {
+.page-kicker {
   text-transform: none !important;
   letter-spacing: 0 !important;
 }
@@ -83,7 +82,6 @@ textarea {
 
 /* ───────────── Título de pantalla (estilo nativo) ───────────── */
 
-.page-module-head,
 .app-header {
   position: relative;
   display: flex;
@@ -103,136 +101,18 @@ textarea {
   overflow: visible;
 }
 
-.page-module-head::before,
-.page-module-head::after,
 .app-header::before,
 .app-header::after {
   display: none;
   content: none;
 }
 
-.page-module-head > :first-child {
-  min-width: 0;
-  flex: 1 1 16rem;
-}
-
-.page-module-head :where(div, span, strong, p, small) {
-  color: inherit;
-}
-
-.page-module-head .page-kicker {
-  display: block;
-  color: var(--tenue);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.page-module-head .page-title {
-  margin: 2px 0 0;
-  color: var(--tinta);
-  font-size: clamp(30px, 7vw, 40px);
-  font-weight: 800;
-  letter-spacing: -0.035em;
-  line-height: 1.05;
-}
-
-.page-module-head .page-description {
-  max-width: 40rem;
-  margin-top: 6px;
-  color: var(--tenue);
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 1.45;
-}
-
 /* Importe destacado dentro del título (Fiados: "Te deben"). */
-.page-module-head .tabular.text-4xl {
-  display: block;
-  margin-top: 2px;
-  color: var(--tinta);
-  font-size: clamp(34px, 9vw, 44px);
-  font-weight: 800;
-}
 
 /* La acción principal del título: botón verde sólido, al alcance del pulgar. */
-.page-module-head > .libreta-button,
-.page-module-head > a,
-.page-module-head > button {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 18px !important;
-  border: 0 !important;
-  border-radius: 999px !important;
-  background: var(--verde) !important;
-  color: var(--verde-texto) !important;
-  box-shadow: var(--sombra-pop-chica) !important;
-  font-size: 15px !important;
-  font-weight: 700 !important;
-  white-space: nowrap;
-}
-
-.page-module-head > :is(.libreta-button, a, button):hover {
-  filter: brightness(1.06);
-}
-
-.page-head-stat,
-.page-module-head .page-head-stat {
-  display: inline-flex;
-  min-width: 0;
-  min-height: 0;
-  flex-direction: row;
-  align-items: baseline;
-  gap: 6px;
-  padding: 8px 14px;
-  border: 1px solid var(--linea);
-  border-radius: 999px;
-  background: var(--hueso-2);
-  box-shadow: none;
-  color: var(--tinta);
-}
-
-.page-module-head .page-head-stat strong {
-  color: var(--tinta);
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.page-module-head .page-head-stat span {
-  color: var(--tenue);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-}
 
 /* ───────────── Campos ───────────── */
 
-.form-input,
-input.form-input,
-select.form-input,
-textarea.form-input,
-.form-input-with-prefix,
-.form-input-with-suffix {
-  min-height: 48px;
-  border: 1px solid var(--contorno) !important;
-  border-radius: var(--radio-boton) !important;
-  background: var(--hueso-2) !important;
-  box-shadow: none !important;
-  color: var(--tinta);
-}
-
-.form-input:focus,
-.form-input-with-prefix:focus-within,
-.form-input-with-suffix:focus-within {
-  border-color: var(--verde) !important;
-  outline: 2px solid var(--verde);
-  outline-offset: 0;
-}
-
-.form-input::placeholder,
 input::placeholder,
 textarea::placeholder {
   color: var(--tenue);
@@ -240,14 +120,6 @@ textarea::placeholder {
 }
 
 /* ───────────── Tarjetas ───────────── */
-
-.form-card {
-  border: 1px solid var(--linea) !important;
-  border-radius: var(--radio-tarjeta) !important;
-  background: var(--hueso-2) !important;
-  background-image: none !important;
-  box-shadow: var(--sombra-pop) !important;
-}
 
 /* ───────────── Acentos: VENDER y COBRAR conservan el relieve ───────────── */
 
@@ -283,33 +155,6 @@ textarea::placeholder {
 /* El armazón ya da los márgenes: las páginas del estilo Mosaico no suman otros. */
 
 /* Títulos: el rótulo de arriba se va; el título solo dice dónde estás. */
-.page-module-head .page-kicker {
-  display: none;
-}
-
-.page-module-head {
-  min-height: 0 !important;
-  margin-top: 0 !important;
-  flex-direction: row !important;
-  align-items: flex-end !important;
-}
-
-.page-module-head > span:not(.page-head-stat) {
-  color: var(--tenue) !important;
-  font-size: 14px !important;
-  font-weight: 600;
-}
-
-.page-module-head > div:first-child > a {
-  display: inline-flex;
-  min-height: 40px;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
-  color: var(--verde) !important;
-  font-size: 15px;
-  font-weight: 700;
-}
 
 /* Centro Pro usa su propio encabezado: mismo idioma que el resto. */
 
@@ -443,39 +288,11 @@ textarea::placeholder {
 /* ───────────── Marca y pantalla de acceso ───────────── */
 
 /* El mismo ícono que se instala en el celu, en vez de una "L" suelta. */
-.access-brand-mark {
-  background: #0A6F5A url('/icon-192.png') center / cover no-repeat !important;
-  color: transparent !important;
-  box-shadow: none !important;
-}
 
 @media (max-width: 599px) {
   /* En el celu el acceso ocupa la pantalla entera, como el login de una app. */
-  .access-page {
-    align-items: stretch !important;
-    padding: 0 !important;
-    background: var(--hueso-2) !important;
-  }
-
-  .access-card {
-    width: 100% !important;
-    max-width: none !important;
-    min-height: 100vh;
-    min-height: 100dvh;
-    margin: 0 !important;
-    padding: calc(28px + env(safe-area-inset-top, 0px)) 20px calc(24px + env(safe-area-inset-bottom, 0px)) !important;
-    border: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    align-content: start !important;
-    justify-content: stretch;
-  }
 }
 
 /* ───────────── Plata: resumen del período ───────────── */
 
 /* Panel admin · vendedores de una cuenta */
-.admin-vendedores { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.admin-vendedor { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: var(--radio-boton, 14px); background: var(--superficie-2, var(--hueso)); }
-.admin-vendedor .admin-account-actions { justify-content: flex-end; }
-.admin-vendedor-pin { display: flex; flex-direction: column; gap: 10px; }

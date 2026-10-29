@@ -110,48 +110,5 @@
 }
 
 /* Pantalla de acceso: aviso de aceptación. */
-.access-legal {
-  color: var(--tenue);
-  font-size: 0.75rem;
-  line-height: 1.45;
-  text-align: center;
-}
-
-.access-legal a {
-  color: var(--verde);
-  font-weight: 750;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
 
 /* Cuenta: sección de documentos legales. */
-.account-legal {
-  display: grid;
-  gap: 0.35rem;
-  padding: 0.9rem;
-  border: 1px solid var(--linea);
-  border-radius: 1rem;
-  background: var(--hueso-2);
-  color: var(--tenue);
-  font-size: 0.75rem;
-  line-height: 1.4;
-}
-
-.account-legal h2 {
-  color: var(--tinta);
-  font-size: 0.8125rem;
-  font-weight: 800;
-}
-
-.account-legal ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem 1rem;
-  margin-top: 0.15rem;
-}
-
-.account-legal a {
-  color: var(--verde);
-  font-size: 0.8125rem;
-  font-weight: 750;
-}
