@@ -23,9 +23,17 @@ function copyEstado(estado: ReturnType<typeof estadoSuscripcion>, verificadoRemo
   return { etiqueta: 'Acceso restringido', titulo: 'No pudimos habilitar el negocio', texto: 'Revisá el estado de tu cuenta con el administrador de Libreta.' }
 }
 
+const COPY_VENDEDOR_QUITADO = {
+  etiqueta: 'Acceso retirado',
+  titulo: 'Ya no tenés acceso a este negocio',
+  texto: 'El dueño te quitó del negocio, así que borramos los datos de este aparato. Si fue un error, pedile que te vuelva a agregar y entrá de nuevo.',
+}
+
 export function PantallaEstadoAcceso({ estado }: { estado: EstadoAcceso }) {
   const efectivo = estadoSuscripcion(estado.suscripcion)
-  const copy = copyEstado(efectivo, estado.verificadoRemoto, estado.motivoVerificacion)
+  const copy = estado.motivoSinNegocio === 'vendedor_quitado'
+    ? COPY_VENDEDOR_QUITADO
+    : copyEstado(efectivo, estado.verificadoRemoto, estado.motivoVerificacion)
   const fecha = estado.suscripcion
     ? fechaSuscripcion(estado.suscripcion.venceEn)
     : null
@@ -66,7 +74,7 @@ export function PantallaEstadoAcceso({ estado }: { estado: EstadoAcceso }) {
         <Boton variante="secundario" className="button-with-icon w-full" onClick={() => void salir()}>
           <IconoCerrar /> Cerrar sesión en este aparato
         </Boton>
-        <p className="form-field-help">Tus datos no se borran por vencer o cerrar sesión.</p>
+        {estado.motivoSinNegocio !== 'vendedor_quitado' && <p className="form-field-help">Tus datos no se borran por vencer o cerrar sesión.</p>}
       </div>
     </div>
   )
