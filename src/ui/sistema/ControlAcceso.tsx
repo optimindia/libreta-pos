@@ -18,6 +18,8 @@ import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
  *  de privacidad tienen que poder consultarse antes de aceptarlos. */
 const RUTAS_PUBLICAS = ['/terminos', '/privacidad'] as const
 
+const MAXIMO_TIMER_MS = 2_147_483_647
+
 function esRutaPublica(ruta: string): boolean {
   return RUTAS_PUBLICAS.some((publica) => ruta === publica || ruta.startsWith(`${publica}/`))
 }
@@ -120,13 +122,23 @@ export function ControlAcceso({ children }: { children: React.ReactNode }) {
         : actual)
       void cargarEstadoAcceso().then((siguiente) => setEstado(siguiente))
     }
-    const espera = venceEn - Date.now()
-    if (espera <= 0) {
-      const inmediato = window.setTimeout(bloquear, 0)
-      return () => window.clearTimeout(inmediato)
+    let reloj: number | undefined
+    const programar = () => {
+      const espera = venceEn - Date.now()
+      if (espera <= 0) {
+        reloj = window.setTimeout(bloquear, 0)
+        return
+      }
+      // setTimeout no admite más de 2^31-1 ms (~24,8 días): con más, el
+      // navegador lo dispara enseguida y bloquearía una cuenta vigente (una
+      // suscripción mensual tiene 30 días). Se espera por tramos.
+      const demora = espera + 50
+      reloj = demora > MAXIMO_TIMER_MS
+        ? window.setTimeout(programar, MAXIMO_TIMER_MS)
+        : window.setTimeout(bloquear, demora)
     }
-    const relojVencimiento = window.setTimeout(bloquear, espera + 50)
-    return () => window.clearTimeout(relojVencimiento)
+    programar()
+    return () => window.clearTimeout(reloj)
   }, [saas, estado?.verificadoRemoto, estado?.suscripcion])
 
   // Sin menú del POS ni chequeo de sesión: sólo el texto, legible para

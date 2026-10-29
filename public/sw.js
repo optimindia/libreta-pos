@@ -3,9 +3,26 @@
 const CACHE = 'libreta-v2'
 const ARMAZON = ['/', '/vender', '/fiados', '/stock', '/plata', '/manifest.webmanifest', '/icon-192.png']
 
+/** Guarda la pantalla y los archivos con huella que ella pide (/_next/static).
+ *  Sin esto, una pantalla que nunca se abrió con señal tiene su HTML guardado
+ *  pero no su código, y sin internet termina en "This page couldn't load". */
+async function guardarPantalla(cache, ruta) {
+  try {
+    const respuesta = await fetch(ruta)
+    if (!respuesta.ok) return
+    await cache.put(ruta, respuesta.clone())
+    if (!(respuesta.headers.get('content-type') || '').includes('text/html')) return
+    const html = await respuesta.text()
+    const archivos = new Set(html.match(/\/_next\/static\/[^"'\\\s)<>]+/g) || [])
+    await Promise.all([...archivos].map((archivo) => cache.add(archivo).catch(() => undefined)))
+  } catch {
+    // sin señal durante la instalación: se guardará al visitarla
+  }
+}
+
 self.addEventListener('install', (evento) => {
   evento.waitUntil(
-    caches.open(CACHE).then((cache) => Promise.all(ARMAZON.map((ruta) => cache.add(ruta).catch(() => undefined)))),
+    caches.open(CACHE).then((cache) => Promise.all(ARMAZON.map((ruta) => guardarPantalla(cache, ruta)))),
   )
   // La versión nueva no se activa sola acá: espera a que la
   // pantalla avise ("Hay una versión nueva" → Actualizar), así nunca cambia
