@@ -4,6 +4,9 @@
 // service role) y, tras 5 fallos en 15 minutos, deja el teléfono bloqueado
 // 15 minutos. Las respuestas no dicen si el teléfono existe.
 //
+// También atiende `{ accion: 'recuperar', telefono, codigo, pinNuevo }`: el
+// dueño que olvidó su PIN lo recupera con su código de un solo uso (SEG-04).
+//
 // Secretos opcionales (supabase secrets set ...):
 //   LIBRETA_PIN_PEPPER    -> contraseñas v2 (HMAC), incalculables desde afuera.
 //                            Tiene que ser el mismo que usa la función `admin`.
@@ -12,8 +15,10 @@
 // Desplegar con: supabase functions deploy ingresar --no-verify-jwt
 // (la valida ella misma: no hay sesión todavía cuando alguien intenta entrar).
 import { createClient } from 'npm:@supabase/supabase-js@2.112.4'
-import { procesarIngreso, type AlmacenIntentos, type ResultadoAuth } from '../_shared/ingreso.ts'
-import type { EstadoIntentos } from '../_shared/limiteIngreso.ts'
+import { procesarIngreso, type ResultadoAuth } from '../_shared/ingreso.ts'
+import { crearAlmacenIntentos } from '../_shared/almacenIntentos.ts'
+import { crearDatosPin } from '../_shared/depsPin.ts'
+import { procesarRecuperacion } from '../_shared/recuperacionPin.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -25,58 +30,7 @@ const admin = createClient(supabaseUrl, serviceKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 })
 
-interface FilaIntentos {
-  telefono: string
-  fallos: number
-  desde: string
-  bloqueado_hasta: string | null
-  version: number
-}
-
-const almacen: AlmacenIntentos = {
-  async leer(telefono) {
-    const { data, error } = await admin
-      .from('intentos_ingreso')
-      .select('telefono,fallos,desde,bloqueado_hasta,version')
-      .eq('telefono', telefono)
-      .maybeSingle<FilaIntentos>()
-    if (error) throw error
-    if (!data) return null
-    const estado: EstadoIntentos = {
-      fallos: data.fallos,
-      desde: new Date(data.desde).getTime(),
-      bloqueadoHasta: data.bloqueado_hasta ? new Date(data.bloqueado_hasta).getTime() : null,
-      version: Number(data.version),
-    }
-    return estado
-  },
-  async guardar(telefono, previo, nuevo) {
-    const fila = {
-      fallos: nuevo.fallos,
-      desde: new Date(nuevo.desde).toISOString(),
-      bloqueado_hasta: nuevo.bloqueadoHasta === null ? null : new Date(nuevo.bloqueadoHasta).toISOString(),
-      actualizado_en: new Date().toISOString(),
-    }
-    if (!previo) {
-      const { error } = await admin.from('intentos_ingreso').insert({ telefono, ...fila, version: 1 })
-      if (!error) return true
-      if (error.code === '23505') return false // otro pedido la creó primero
-      throw error
-    }
-    const { data, error } = await admin
-      .from('intentos_ingreso')
-      .update({ ...fila, version: previo.version + 1 })
-      .eq('telefono', telefono)
-      .eq('version', previo.version)
-      .select('telefono')
-    if (error) throw error
-    return (data ?? []).length === 1
-  },
-  async limpiar(telefono) {
-    const { error } = await admin.from('intentos_ingreso').delete().eq('telefono', telefono)
-    if (error) throw error
-  },
-}
+const almacen = crearAlmacenIntentos(admin)
 
 /** Pide la sesión a Auth con la clave de servicio: así, si se activa el
  *  captcha de Supabase Auth para cerrar la puerta directa, esta función
@@ -144,6 +98,17 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Recuperación del PIN del dueño con su código (SEG-04). Va por esta
+    // función porque no hay sesión todavía y ya está desplegada sin JWT.
+    if (entrada && typeof entrada === 'object' && (entrada as Record<string, unknown>).accion === 'recuperar') {
+      const { status, cuerpo } = await procesarRecuperacion(entrada, {
+        datos: crearDatosPin(admin, supabaseUrl, serviceKey),
+        almacen,
+        pepper,
+        verificarCaptcha: turnstileSecret ? verificarTurnstile : undefined,
+      })
+      return json(cuerpo, status)
+    }
     const { status, cuerpo } = await procesarIngreso(entrada, {
       almacen,
       autenticar,

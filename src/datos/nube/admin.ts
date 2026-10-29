@@ -82,6 +82,9 @@ export interface AdminCuentaCreada {
   ok: true
   cuenta: { id: string; nombre: string; telefono: string }
   credenciales: { telefono: string; pin: string }
+  /** Código de recuperación del dueño (se muestra una sola vez). Puede faltar
+   *  si la migración SEG-04 todavía no está aplicada. */
+  codigoRecuperacion?: string | null
   suscripcion: AdminSuscripcion | null
 }
 
@@ -98,6 +101,10 @@ export interface AdminCuentaActualizada {
 export interface AdminCredencialesRegeneradas {
   ok: true
   credenciales: { telefono: string; pin: string }
+  /** Código de recuperación nuevo si se regeneró el PIN del dueño. */
+  codigoRecuperacion?: string | null
+  /** PIN de vendedor: true si tendrá que cambiarlo al primer ingreso. */
+  debeCambiar?: boolean
 }
 
 export interface AdminPlanGuardado {

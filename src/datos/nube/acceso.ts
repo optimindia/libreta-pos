@@ -184,9 +184,24 @@ export async function cargarEstadoAcceso(): Promise<EstadoAcceso> {
   const online = hayRed()
   if (!cliente) return { autenticado: false, usuarioId: null, negocio: null, suscripcion: null, online, verificadoRemoto: false }
 
+  // Renovar un token vencido sin señal (o con señal mala) reintenta con esperas
+  // cada vez más largas: no se espera a Supabase, se sigue con el usuario de
+  // este aparato.
+  const cacheLocal = await db.negocio.get('unico')
   let sesion
   try {
-    sesion = await cliente.auth.getSession()
+    const pedida = cliente.auth.getSession()
+    if (cacheLocal?.usuarioId && cacheLocal.negocioId) {
+      const limite = new Promise<null>((resolver) => { setTimeout(() => resolver(null), 2500) })
+      const primera = await Promise.race([pedida, limite])
+      if (!primera) {
+        pedida.catch(() => undefined)
+        return estadoSinVerificar(cacheLocal.usuarioId, cacheLocal, online, online ? 'error_red' : 'sin_red')
+      }
+      sesion = primera
+    } else {
+      sesion = await pedida
+    }
   } catch {
     return { autenticado: false, usuarioId: null, negocio: null, suscripcion: null, online, verificadoRemoto: false, motivoVerificacion: 'error_red' }
   }

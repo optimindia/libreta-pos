@@ -184,3 +184,24 @@
   .f-config-interruptor,
   .f-config-interruptor i { transition: none; }
 }
+
+.f-config-rango {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--f-2);
+}
+
+.f-config-resumen {
+  margin: 0;
+  padding-left: var(--f-4);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.f-config-casilla {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--f-2);
+  min-height: 44px;
+}
