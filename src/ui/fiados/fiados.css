@@ -257,3 +257,34 @@
   .f-fiados-dato:first-child { grid-column: 1 / -1; }
   .f-fiados-acciones .f-boton { gap: 8px; padding: 0 10px; font-size: 15px; }
 }
+
+/* Sin cuentas abiertas, el lado derecho explica cómo se usa en vez de
+   quedar vacío. */
+.f-fiados-guia { display: flex; flex-direction: column; gap: var(--f-3); min-height: 0; }
+.f-fiados-guia .f-texto { margin: 0; color: var(--f-tinta-2); font-size: 16px; line-height: 1.5; }
+
+.f-fiados-pasos { display: flex; flex-direction: column; gap: var(--f-3); margin: var(--f-2) 0 0; padding: 0; list-style: none; }
+
+.f-fiados-pasos li {
+  display: flex;
+  align-items: center;
+  gap: var(--f-3);
+  padding: var(--f-3) var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie-2);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.f-fiados-paso-icono {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--f-coral-suave);
+  color: var(--f-coral);
+}
+
+.f-fiados-paso-icono svg { width: 22px; height: 22px; }

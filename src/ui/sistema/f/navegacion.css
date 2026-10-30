@@ -479,3 +479,85 @@
 }
 
 .f-salir-acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--f-3); }
+
+/* ───────────── Lista que se desliza: avisa que hay más ───────────── */
+
+.f-lateral-desliza {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.f-lateral-desliza::before,
+.f-lateral-desliza::after {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  height: 40px;
+  content: '';
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.16s ease;
+}
+
+.f-lateral-desliza::before { top: 0; background: linear-gradient(var(--f-nav), transparent); }
+.f-lateral-desliza::after { bottom: 0; height: 64px; background: linear-gradient(transparent, var(--f-nav) 70%); }
+.f-lateral-desliza[data-mas-arriba='true']::before,
+.f-lateral-desliza[data-mas-abajo='true']::after { opacity: 1; }
+
+.f-lateral-mas {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  z-index: 2;
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  border: 1px solid var(--f-nav-borde);
+  border-radius: 999px;
+  background: var(--f-nav-activo);
+  color: var(--f-nav-texto-activo);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transform: translateX(-50%);
+  animation: f-lateral-rebote 1.6s ease-in-out 2;
+}
+
+.f-lateral-mas svg { width: 16px; height: 16px; }
+.f-lateral[data-compacta='true'] .f-lateral-mas { padding: 0 8px; }
+
+@keyframes f-lateral-rebote {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, 3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f-lateral-mas { animation: none; }
+}
+
+/* Pantallas bajas: los botones se achican para que entren todas las
+   secciones sin tener que deslizar. */
+@media (min-width: 900px) and (max-height: 920px) {
+  .f-lateral { padding: 14px 0 12px; }
+  .f-lateral-marca { margin-bottom: 10px; }
+  .f-logo { width: 42px; height: 42px; font-size: 21px; }
+  .f-lateral-lista { gap: 2px; }
+  .f-nav-item { min-height: 54px; gap: 3px; padding: 4px; }
+  .f-lateral[data-compacta='true'] .f-nav-item { min-height: 46px; }
+  .f-lateral-pie { gap: 4px; padding-top: 8px; }
+  .f-nav-salir { min-height: 50px; }
+}
+
+@media (min-width: 900px) and (max-height: 760px) {
+  .f-nav-item { min-height: 48px; }
+  .f-nav-item .f-nav-icono svg { width: 20px; height: 20px; }
+  .f-lateral[data-compacta='true'] .f-nav-item { min-height: 42px; }
+}

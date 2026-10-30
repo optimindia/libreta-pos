@@ -554,3 +554,4 @@
 .fi-guia-paso[data-hecho='true'] .fi-guia-texto strong { text-decoration: line-through; opacity: 0.7; }
 .fi-guia-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .fi-vacio { grid-column: 1 / -1; }
+.fi-vacio.f-estado-vacio { min-height: 0; padding: var(--f-5); }

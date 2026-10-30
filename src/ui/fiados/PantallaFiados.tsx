@@ -17,7 +17,7 @@ import { Chip, Chips } from '@/ui/sistema/Chip'
 import { Etiqueta, type TonoEtiqueta } from '@/ui/sistema/Etiqueta'
 import { Hoja } from '@/ui/sistema/Hoja'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
-import { IconoEditar, IconoWhatsApp } from '@/ui/sistema/iconos'
+import { IconoCobrar, IconoEditar, IconoFiados, IconoVender, IconoWhatsApp } from '@/ui/sistema/iconos'
 import { usePantallaAncha } from './usoPantallaAncha'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
@@ -402,6 +402,7 @@ export function PantallaFiados() {
         {deudas.length === 0 ? (
           datos.deudas.length === 0 ? (
             <EstadoVacio
+              icono={<IconoFiados />}
               titulo="No te debe nadie"
               texto="Cuando anotes una venta fiada, acá vas a ver quién debe, cuánto y desde cuándo."
               accion={{ etiqueta: TEXTOS.agregarCliente, alTocar: () => setFormularioCliente('nuevo'), variante: 'principal' }}
@@ -437,6 +438,26 @@ export function PantallaFiados() {
         {deudas.length > 0 && <p className="f-texto f-fiados-pista">Tocá un cliente para cobrarle, ver su cuenta o recordarle por WhatsApp.</p>}
       </div>
 
+      {!abierta && ancha && (
+        <Tarjeta como="section" relleno="grande" className="f-fiados-detalle f-fiados-guia" aria-labelledby="fiados-guia-titulo">
+          <h2 id="fiados-guia-titulo" className="f-seccion">Cómo funciona el fiado</h2>
+          <p className="f-texto">Cuando alguien se lleva algo y paga después, Libreta lo anota y te avisa cuándo cobrar.</p>
+          <ol className="f-fiados-pasos">
+            <li>
+              <span className="f-fiados-paso-icono" aria-hidden="true"><IconoVender /></span>
+              <span><b>Vendé como siempre</b> y al cobrar elegí <b>Fiado</b> y el cliente.</span>
+            </li>
+            <li>
+              <span className="f-fiados-paso-icono" aria-hidden="true"><IconoFiados /></span>
+              <span><b>Acá ves quién te debe</b>, cuánto y desde cuándo; los vencidos aparecen primero.</span>
+            </li>
+            <li>
+              <span className="f-fiados-paso-icono" aria-hidden="true"><IconoCobrar /></span>
+              <span><b>Cobrá todo o una parte</b>, o mandale un recordatorio por WhatsApp.</span>
+            </li>
+          </ol>
+        </Tarjeta>
+      )}
       {abierta && ancha && (
         <Tarjeta como="section" relleno="grande" className="f-fiados-detalle" aria-label={`Cuenta de ${abierta.cliente.nombre}`}>
           {detalle}

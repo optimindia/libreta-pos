@@ -15,7 +15,7 @@ import { Chip, Chips } from '@/ui/sistema/Chip'
 import { Etiqueta, type TonoEtiqueta } from '@/ui/sistema/Etiqueta'
 import { Hoja } from '@/ui/sistema/Hoja'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
-import { IconoCalendario, IconoCerrar, IconoCobrar, IconoConfirmar, IconoEntrega, IconoNota, IconoQR, IconoTransferencia, IconoUbicacion } from '@/ui/sistema/iconos'
+import { IconoPedidos, IconoCalendario, IconoCerrar, IconoCobrar, IconoConfirmar, IconoEntrega, IconoNota, IconoQR, IconoTransferencia, IconoUbicacion } from '@/ui/sistema/iconos'
 import { FormularioPedido } from './FormularioPedido'
 import './pedidos.css'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
@@ -158,6 +158,7 @@ export function PantallaPedidos() {
       {visibles.length === 0 ? (
         datos.pedidos.length === 0 ? (
           <EstadoVacio
+            icono={<IconoPedidos />}
             titulo="Todavía no tenés pedidos"
             texto="Anotá los encargos de WhatsApp, teléfono o mostrador y seguí cada paso sin perder nada."
             accion={{ etiqueta: TEXTOS.agregarPedido, alTocar: () => setFormulario(true) }}

@@ -122,6 +122,7 @@ export function PantallaInicio() {
         {esDueno && productos.length === 0 && (
           <EstadoVacio
             className="fi-vacio"
+            icono={<IconoStock />}
             titulo="Todavía no cargaste productos"
             texto="Cargá el primero o importá tu lista para empezar a vender."
             accion={{ etiqueta: 'Cargar producto', href: '/stock' }}

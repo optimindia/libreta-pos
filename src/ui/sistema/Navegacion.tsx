@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/datos/local/db'
 import { repos } from '@/datos/local/repos'
@@ -190,6 +190,22 @@ export function Navegacion() {
   // Sólo hay sesión que cerrar si el aparato está vinculado a una cuenta.
   const conCuenta = Boolean(negocio?.negocioId)
 
+  // ¿Quedan secciones fuera de la vista? Se muestra "Más" y un degradado.
+  const lista = useRef<HTMLElement>(null)
+  const [masArriba, setMasArriba] = useState(false)
+  const [masAbajo, setMasAbajo] = useState(false)
+  const medirLista = useCallback(() => {
+    const nodo = lista.current
+    if (!nodo) return
+    setMasArriba(nodo.scrollTop > 4)
+    setMasAbajo(nodo.scrollTop + nodo.clientHeight < nodo.scrollHeight - 4)
+  }, [])
+  useEffect(() => {
+    medirLista()
+    window.addEventListener('resize', medirLista)
+    return () => window.removeEventListener('resize', medirLista)
+  }, [medirLista, visibles.length, compacta])
+
   // Ctrl/Cmd + B achica o agranda la barra lateral, como en un programa de PC.
   useEffect(() => {
     const tecla = (evento: KeyboardEvent) => {
@@ -219,7 +235,8 @@ export function Navegacion() {
           <span className="f-sr">{nombre}</span>
         </div>
 
-        <nav className="f-lateral-lista" aria-label="Secciones">
+        <div className="f-lateral-desliza" data-mas-arriba={masArriba ? 'true' : undefined} data-mas-abajo={masAbajo ? 'true' : undefined}>
+        <nav className="f-lateral-lista" aria-label="Secciones" ref={lista} onScroll={medirLista}>
           {visibles.map((id) => {
             const { href, texto, Icono } = SECCIONES[id]
             return (
@@ -229,6 +246,13 @@ export function Navegacion() {
             )
           })}
         </nav>
+        {masAbajo && (
+          // Para el mouse: avisa que hay más secciones abajo. Con teclado se llega con Tab.
+          <button type="button" className="f-lateral-mas" tabIndex={-1} aria-hidden="true" onClick={() => lista.current?.scrollBy({ top: 240, behavior: 'smooth' })}>
+            <IconoAbajo /><span className="f-nav-texto">Más</span>
+          </button>
+        )}
+        </div>
 
         <div className="f-lateral-pie">
           <InstalarApp estilo="lateral" />

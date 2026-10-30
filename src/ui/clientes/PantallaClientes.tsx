@@ -17,7 +17,7 @@ import { Etiqueta } from '@/ui/sistema/Etiqueta'
 import { Hoja } from '@/ui/sistema/Hoja'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { usePuede } from '@/ui/sistema/usoRol'
-import { IconoCerrar, IconoEditar, IconoEliminar, IconoFlechaDerecha, IconoFiados, IconoPedidos, IconoWhatsApp } from '@/ui/sistema/iconos'
+import { IconoCerrar, IconoClientes, IconoEditar, IconoEliminar, IconoFlechaDerecha, IconoFiados, IconoPedidos, IconoWhatsApp } from '@/ui/sistema/iconos'
 import './clientes.css'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 import { TEXTOS, noSePudo } from '@/ui/sistema/textos'
@@ -194,6 +194,7 @@ export function PantallaClientes() {
       {visibles.length === 0 ? (
         datos.perfiles.length === 0 ? (
           <EstadoVacio
+            icono={<IconoClientes />}
             titulo="Todavía no tenés clientes"
             texto="Guardá un nombre y un teléfono para reconocer a quien vuelve y resolver sus pedidos más rápido."
             accion={{ etiqueta: TEXTOS.agregarCliente, alTocar: () => setFormulario('nuevo') }}
