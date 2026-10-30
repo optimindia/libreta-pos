@@ -1,5 +1,6 @@
 'use client'
 
+import { Portada } from '@/ui/sistema/Portada'
 import Link from 'next/link'
 import { clasesBoton } from '@/ui/sistema/Boton'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
@@ -10,14 +11,13 @@ import './cuenta.css'
 export function PantallaCuenta() {
   return (
     <div className="page-account f-cuenta">
-      <header className="f-cuenta-encabezado">
-        <div>
-          <span className="f-dato">Cuenta</span>
-          <h1 className="f-titulo">Tu suscripción</h1>
-          <p className="f-texto f-cuenta-subtitulo">Consultá tu plan, vencimiento y estado de acceso.</p>
-        </div>
-        <Link className={clasesBoton('secundario')} href="/vender">Volver a vender</Link>
-      </header>
+      <Portada
+        id="cuenta"
+        contexto="Cuenta"
+        titulo="Tu suscripción"
+        subtitulo="Consultá tu plan, vencimiento y estado de acceso."
+        accion={<Link className={clasesBoton('secundario')} href="/vender">Volver a vender</Link>}
+      />
       <div className="f-cuenta-cuerpo">
         <EstadoCuenta destacar />
         <div className="f-cuenta-lateral">

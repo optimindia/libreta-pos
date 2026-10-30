@@ -103,7 +103,7 @@ const CASOS: Caso[] = [
     listo: () => screen.findAllByText('Raúl'),
     hojas: [{ nombre: 'nuevo cliente', abrir: () => abrirY(/\+ Agregar cliente/) }],
   },
-  { nombre: 'Historial', pantalla: () => <PantallaHistorial />, listo: () => screen.findByText(/\$4\.200/) },
+  { nombre: 'Historial', pantalla: () => <PantallaHistorial />, listo: () => screen.findAllByText(/\$4\.200/) },
   { nombre: 'Ajustes', pantalla: () => <PantallaConfig />, listo: () => boton('Guardar cambios') },
   { nombre: 'Cuenta', pantalla: () => <PantallaCuenta />, listo: () => screen.findByRole('link', { name: /volver a vender/i }) },
   { nombre: 'Control Pro', pantalla: () => <CentroPro />, listo: () => boton('Compartir resumen') },

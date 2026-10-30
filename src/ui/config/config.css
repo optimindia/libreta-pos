@@ -209,3 +209,7 @@
   gap: var(--f-2);
   min-height: 44px;
 }
+
+/* La portada ocupa todo el ancho, aunque los estilos viejos de Ajustes
+   armen una grilla de dos columnas. */
+.page-config > .f-portada { grid-column: 1 / -1; width: 100%; }

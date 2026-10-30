@@ -5,7 +5,6 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { repos } from '@/datos/local/repos'
 import { faltantes } from '@/dominio/stock'
 import { valorStock } from '@/dominio/reportes'
-import { formatearPesos } from '@/dominio/dinero'
 import { Boton } from '@/ui/sistema/Boton'
 import { Chip, Chips } from '@/ui/sistema/Chip'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
@@ -18,6 +17,7 @@ import { EscanearCodigoProducto } from './EscanearCodigoProducto'
 import { funcionActiva } from '@/dominio/funciones'
 import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
 import { usePuede } from '@/ui/sistema/usoRol'
+import { Portada } from '@/ui/sistema/Portada'
 import './stock.css'
 
 type Pestaña = 'catalogo' | 'cargar' | 'precios'
@@ -41,18 +41,22 @@ export function PantallaStock() {
 
   return (
     <div className="page-stock f-stock">
-      <header className="f-stock-cabecera">
-        <div className="f-stock-titulo">
-          <h1 className="f-titulo">Stock</h1>
-          <p className="f-texto f-stock-subtitulo">
-            {cuantos}
-            {editaCatalogo && productos.length > 0 && <> · mercadería por {formatearPesos(inventario.costo)} a costo</>}
-          </p>
-        </div>
-        {editaCatalogo && vista === 'catalogo' && productos.length > 0 && (
-          <Boton variante="principal" className="f-stock-llego" onClick={() => setPestaña('cargar')}>+ Llegó mercadería</Boton>
+      <Portada
+        id="stock"
+        titulo="Stock"
+        rotulo={editaCatalogo ? 'Mercadería que tenés, a costo' : 'Productos cargados'}
+        valor={editaCatalogo ? inventario.costo : productos.length}
+        formato={editaCatalogo ? 'pesos' : 'numero'}
+        detalle={(
+          <>
+            <p>{cuantos}</p>
+            {faltan.length > 0 && <p data-tenue="">{faltan.length} para reponer</p>}
+          </>
         )}
-      </header>
+        accion={editaCatalogo && vista === 'catalogo' && productos.length > 0
+          ? <Boton variante="principal" className="f-stock-llego" onClick={() => setPestaña('cargar')}>+ Llegó mercadería</Boton>
+          : undefined}
+      />
 
       {vista === 'catalogo' && faltan.length > 0 && (
         <p className="f-aviso" data-tono="ambar">

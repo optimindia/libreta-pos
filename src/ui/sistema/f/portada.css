@@ -1,0 +1,102 @@
+/* Sistema F · Portada: la cabecera oscura de cada sección (src/ui/sistema/
+   Portada.tsx). Lo único decorado de cada pantalla es el renglonado de
+   libreta del fondo y el margen rojo; el resto es tipografía. */
+
+.f-portada {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-4);
+  overflow: hidden;
+  padding: var(--f-5);
+  border-radius: var(--f-radio-tarjeta);
+  background-color: var(--f-nav);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 31px, rgb(255 255 255 / 0.05) 31px 32px);
+  color: var(--f-nav-texto-activo);
+}
+
+.f-portada::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 44px;
+  width: 1px;
+  background: rgb(255 120 100 / 0.22);
+  content: '';
+  pointer-events: none;
+}
+
+.f-portada-texto { position: relative; min-width: 0; padding-left: 40px; }
+.f-portada-contexto { margin: 0 0 2px; color: var(--f-nav-texto); font-size: 15px; font-weight: 600; }
+.f-portada-titulo { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+.f-portada-subtitulo { margin: 4px 0 0; color: var(--f-nav-texto); font-size: 15px; font-weight: 500; line-height: 1.4; }
+.f-portada-rotulo { margin: var(--f-4) 0 0; color: var(--f-nav-texto); font-size: 16px; font-weight: 600; }
+
+.f-portada-valor {
+  margin: 0;
+  color: var(--f-lima);
+  font-size: clamp(40px, 11vw, 64px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  overflow-wrap: anywhere;
+}
+
+.f-portada-valor[data-tono='coral'] { color: #ff9b85; }
+.f-portada-valor[data-tono='ambar'] { color: #ffd36b; }
+.f-portada-valor small { margin-left: 4px; color: var(--f-nav-texto); font-size: 0.4em; letter-spacing: 0; }
+
+.f-portada-detalle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: var(--f-2);
+  color: var(--f-nav-texto-activo);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.f-portada-detalle > * { margin: 0; }
+.f-portada-detalle [data-tenue] { color: var(--f-nav-texto); font-weight: 500; }
+
+.f-portada-accion { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: var(--f-3); }
+
+/* Botones dentro de la portada: el principal en lima, el secundario
+   claro sobre el fondo oscuro. */
+.f-portada-accion .f-boton { min-height: 52px; justify-content: center; }
+.f-portada-accion .f-boton-secundario { border-color: rgb(255 255 255 / 0.35); background: transparent; color: var(--f-nav-texto-activo); }
+.f-portada-accion .f-boton-secundario:hover { border-color: var(--f-nav-texto-activo); }
+.f-portada .f-boton:focus-visible,
+.f-portada a:focus-visible { outline: 3px solid var(--f-lima); outline-offset: 3px; }
+
+@keyframes f-portada-aparecer {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+.f-portada[data-entrada='true'] { animation: f-portada-aparecer 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+@media (hover: none) {
+  .f-portada-accion :is(.f-boton, a) { transition: transform 0.12s ease; -webkit-tap-highlight-color: transparent; }
+  .f-portada-accion :is(.f-boton, a):active { transform: scale(0.97); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f-portada[data-entrada='true'] { animation: none; }
+}
+
+@media (min-width: 900px) {
+  .f-portada {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 340px);
+    align-items: center;
+    gap: var(--f-6);
+    padding: var(--f-6) var(--f-7);
+    background-image: repeating-linear-gradient(to bottom, transparent 0 39px, rgb(255 255 255 / 0.05) 39px 40px);
+  }
+
+  .f-portada::before { left: 56px; }
+  .f-portada-titulo { font-size: 30px; }
+  .f-portada-valor { font-size: 72px; }
+  .f-portada:not(:has(.f-portada-accion)) { grid-template-columns: minmax(0, 1fr); }
+}

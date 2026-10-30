@@ -24,6 +24,8 @@
 .fh-subtitulo { margin: 4px 0 0; color: var(--f-tinta-2); font-size: 16px; }
 
 .fh-herramientas { display: flex; flex-direction: column; gap: var(--f-3); }
+/* En columna, el buscador no se encoge: mantiene su alto de 48 px. */
+.fh-herramientas .f-buscar { flex: 0 0 auto; }
 .fh-herramientas .f-chips { margin-inline: -16px; padding-inline: 16px; }
 .fh-exportar { min-height: 48px; font-size: 15px; }
 

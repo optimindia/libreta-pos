@@ -1,5 +1,6 @@
 'use client'
 
+import { Portada } from '@/ui/sistema/Portada'
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/datos/local/db'
@@ -136,13 +137,19 @@ export function PantallaHistorial() {
 
   return (
     <div className="fh-pagina">
-      <header className="fh-cabeza">
-        <div className="fh-cabeza-texto">
-          <h1 className="f-titulo">Historial de ventas</h1>
-          <p className="f-texto fh-subtitulo">Todas tus ventas: buscá, mirá el detalle o anulá una.</p>
-        </div>
-        <span className="f-dato fh-cuenta">{filtradas.length} {filtradas.length === 1 ? 'venta' : 'ventas'}</span>
-      </header>
+      <Portada
+        id="historial"
+        titulo="Historial de ventas"
+        subtitulo="Todas tus ventas: buscá, mirá el detalle o anulá una."
+        rotulo={`Vendido · ${etiquetaPeriodo(periodo).toLowerCase()}`}
+        valor={filtradas.filter((venta) => venta.estado !== 'anulada').reduce((suma, venta) => suma + venta.total, 0)}
+        detalle={<p>{filtradas.length} {filtradas.length === 1 ? 'venta' : 'ventas'}</p>}
+        accion={(
+          <Boton variante="secundario" className="fh-exportar" onClick={() => descargarCsv(`ventas-${new Date().toISOString().slice(0, 10)}.csv`, ventasACsv(filtradas))}>
+            Exportar estas ventas a CSV
+          </Boton>
+        )}
+      />
 
       <div className="fh-herramientas">
         <CampoBusqueda etiqueta="Buscar en historial" placeholder="Buscar producto o medio de pago…" valor={busqueda} onCambiar={setBusqueda} />
@@ -153,9 +160,6 @@ export function PantallaHistorial() {
         </Chips>
         {yo?.rol === 'dueno' && <FiltroVendedor filas={todas} valor={vendedor} onCambiar={setVendedor} yo={yo} />}
         {yo?.rol === 'vendedor' && yo.usuarioId && <CierreTurno usuarioId={yo.usuarioId} />}
-        <Boton variante="secundario" className="fh-exportar" onClick={() => descargarCsv(`ventas-${new Date().toISOString().slice(0, 10)}.csv`, ventasACsv(filtradas))}>
-          Exportar estas ventas a CSV
-        </Boton>
       </div>
 
       {filtradas.length === 0 ? (

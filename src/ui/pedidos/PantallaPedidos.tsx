@@ -1,5 +1,6 @@
 'use client'
 
+import { Portada } from '@/ui/sistema/Portada'
 import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { Cliente, EstadoPedido, MedioPago, Pedido } from '@/dominio/tipos'
@@ -108,32 +109,25 @@ export function PantallaPedidos() {
 
   return (
     <div className="page-pedidos f-pedidos">
-      <header className="f-pedidos-cabeza">
-        <div>
-          <h1 className="f-titulo">Pedidos</h1>
-          <p className="f-pedidos-sub">Guardá encargos, reservá mercadería y cobrá cuando estén listos.</p>
-        </div>
-        <Boton variante="principal" onClick={() => { setEditando(null); setFormulario(true); setAviso(null) }}>
-          + {TEXTOS.agregarPedido}
-        </Boton>
-      </header>
-
-      <section className="f-pedidos-resumen" aria-label="Resumen de pedidos">
-        <div className="f-pedidos-agenda">
-          <span className="f-pedidos-agenda-texto">
-            <span className="f-pedidos-agenda-rotulo">Valor en agenda</span>
-            <span className="f-dato">
-              {activos.length === 0 ? 'Tu agenda está despejada' : `${activos.length} ${activos.length === 1 ? 'pedido activo' : 'pedidos activos'}`}
-              {paraHoy > 0 ? ` · ${paraHoy} para hoy` : ''}
-            </span>
-          </span>
-          <b className="f-plata f-pedidos-agenda-monto">{formatearPesos(valorActivo)}</b>
-        </div>
-        <div className="f-pedidos-reserva">
-          <b>{reservadas}</b>
-          <span className="f-dato">{reservadas === 1 ? 'unidad reservada' : 'unidades reservadas'}</span>
-        </div>
-      </section>
+      <Portada
+        id="pedidos"
+        titulo="Pedidos"
+        subtitulo="Guardá encargos, reservá mercadería y cobrá cuando estén listos."
+        rotulo="Valor de los pedidos por entregar"
+        valor={valorActivo}
+        detalle={(
+          <>
+            <p>{activos.length === 0 ? 'Tu agenda está despejada' : `${activos.length} ${activos.length === 1 ? 'pedido activo' : 'pedidos activos'}`}</p>
+            {paraHoy > 0 && <p>{paraHoy} para hoy</p>}
+            <p data-tenue="">{reservadas} {reservadas === 1 ? 'unidad reservada' : 'unidades reservadas'}</p>
+          </>
+        )}
+        accion={(
+          <Boton variante="principal" onClick={() => { setEditando(null); setFormulario(true); setAviso(null) }}>
+            + {TEXTOS.agregarPedido}
+          </Boton>
+        )}
+      />
 
       {aviso && (
         <div className="f-aviso f-pedidos-aviso" role="status" data-tono="ambar">
