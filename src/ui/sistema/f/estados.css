@@ -93,3 +93,16 @@
 @media (prefers-reduced-motion: reduce) {
   .f-estado-barra { animation: none; }
 }
+
+/* El vacío grande va centrado: en una tarjeta ancha de PC no queda pegado
+   a la izquierda con media tarjeta en blanco. */
+.f-estado-vacio:not([data-compacto='true']) {
+  min-height: 260px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.f-estado-vacio:not([data-compacto='true']) .f-estado-icono { width: 64px; height: 64px; border-radius: 50%; }
+.f-estado-vacio:not([data-compacto='true']) .f-estado-icono svg { width: 30px; height: 30px; }
+.f-estado-vacio:not([data-compacto='true']) .f-estado-titulo { font-size: 22px; }
