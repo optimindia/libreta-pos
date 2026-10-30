@@ -381,3 +381,11 @@
 
 .f-pedidos .f-buscar { flex: 0 0 auto; }
 .f-pedidos-lista { align-items: stretch; }
+
+/* Celu: lo que vale la agenda y las unidades reservadas en una sola fila. */
+@media (max-width: 899px) {
+  .f-pedidos-resumen { grid-template-columns: minmax(0, 1fr) auto; }
+  .f-pedidos-reserva { padding: var(--f-3) var(--f-4); text-align: center; }
+  .f-pedidos-reserva b { font-size: 24px; }
+  .f-pedidos-reserva .f-dato { font-size: 13px; }
+}

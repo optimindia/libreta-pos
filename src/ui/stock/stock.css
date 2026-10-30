@@ -550,3 +550,10 @@
 .f-stock-accion svg { width: 20px; height: 20px; }
 .f-stock-accion:hover { border-color: var(--f-tinta); }
 .f-stock-filtros .f-chip svg { width: 16px; height: 16px; }
+
+/* Celu: el filtro de categorías ocupa todo el ancho y el orden no parte
+   sus textos en dos líneas. */
+@media (max-width: 899px) {
+  .f-stock-categoria { flex: 1 1 100%; max-width: none; }
+  .f-stock-orden .f-segmento { padding: 0 2px; font-size: 13px; white-space: nowrap; }
+}

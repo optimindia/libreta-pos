@@ -312,3 +312,10 @@
   .f-pro-paneles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--f-6); }
   .f-pro-funciones { gap: var(--f-3); }
 }
+
+/* Celu: las treinta herramientas en tarjetas compactas. */
+@media (max-width: 899px) {
+  .f-pro-funcion.f-tarjeta { gap: 2px; padding: var(--f-3) var(--f-4); }
+  .f-pro-funcion .f-renglon-texto { margin-top: 0; }
+  .f-pro-funcion-accion { padding-top: 0; }
+}
