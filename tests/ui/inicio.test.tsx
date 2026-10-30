@@ -44,7 +44,8 @@ describe('PantallaInicio', () => {
 
     // $4.200 vendidos, $1.200 de ganancia, todo en efectivo
     expect((await screen.findAllByText('$4.200')).length).toBeGreaterThanOrEqual(2)
-    expect(screen.getByText('Ganaste $1.200')).toBeTruthy()
+    expect(screen.getByText('Ganaste hoy')).toBeTruthy()
+    expect(screen.getByText('$1.200')).toBeTruthy()
     expect(screen.getByText('1 venta')).toBeTruthy()
     // un faltante, con el nombre del producto
     expect(screen.getByText('Fideos')).toBeTruthy()
@@ -110,7 +111,7 @@ describe('PantallaInicio: gráfico por horario', () => {
   it('cada barra dice su horario, la plata y las ventas, y la línea de abajo lo repite al señalarla', async () => {
     await vender(420000, 300000)
     render(<PantallaInicio />)
-    await screen.findByText('Ganaste $1.200')
+    await screen.findByText('Ganaste hoy')
     const barras = screen.getAllByRole('button', { name: /^\d+ a \d+ h · /i })
     expect(barras).toHaveLength(8)
     const conVentas = barras.filter((barra) => /\$4\.200 · 1 venta$/.test(barra.getAttribute('aria-label') ?? ''))
@@ -132,13 +133,15 @@ describe('PantallaInicio: gráfico por horario', () => {
     await vender(100, 5000, 'Aceite')
     render(<PantallaInicio />)
     expect(await screen.findByText(/Vendiste por debajo del costo: Aceite/)).toBeTruthy()
-    expect(screen.queryByText(/^Ganaste/)).toBeNull()
+    // el aviso lleva a revisar los costos en Stock
+    expect(screen.getByRole('link', { name: /^ganancia/i }).getAttribute('href')).toBe('/stock')
+    expect(screen.queryByText('Lo que te queda después de pagar la mercadería')).toBeNull()
   })
 
   it('no tiene violaciones de accesibilidad', async () => {
     await vender(420000, 300000)
     const { container } = render(<PantallaInicio />)
-    await screen.findByText('Ganaste $1.200')
+    await screen.findByText('Ganaste hoy')
     expect(await violacionesAxe(container)).toEqual([])
   })
 })

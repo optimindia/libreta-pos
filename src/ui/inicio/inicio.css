@@ -1,43 +1,46 @@
-/* Inicio con el sistema F (src/ui/inicio). Celu: una columna, VENDER arriba
-   en lima. PC (≥ 900 px): tres columnas, como en el diseño aprobado. Todo
-   el color sale de los tokens --f-*. */
+/* Inicio con el sistema F (src/ui/inicio). Orden de importancia: VENDER;
+   cuatro números del día; el día por horario junto a la caja; últimas
+   ventas y atajos. Celu: una columna. PC: grilla de 12 con ancho máximo,
+   para que nada se estire de más en pantallas grandes. */
 
 .fi-pagina {
   display: flex;
+  width: 100%;
+  max-width: 1280px;
   flex-direction: column;
   gap: var(--f-4);
+  margin: 0 auto;
 }
 
 .fi-cabeza {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: var(--f-4);
+  gap: var(--f-2) var(--f-4);
   padding-top: var(--f-2);
 }
 
 .fi-cabeza-texto { min-width: 0; }
-.fi-cabeza-texto .f-dato { margin: 0; }
+.fi-fecha { margin: 0; color: var(--f-tinta-2); font-size: 16px; font-weight: 600; }
 .fi-cabeza-texto .f-titulo { margin-top: 2px; }
+.fi-cabeza .f-etiqueta { min-height: 36px; font-size: 15px; }
 
 .fi-grilla {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--f-3);
 }
 
 .fi-grilla > * { min-width: 0; }
 
-/* ───────────── Vender: el único lima de la pantalla ───────────── */
+/* ───────────── Vender: franja lima, la acción principal ───────────── */
 
 .fi-vender {
-  grid-column: 1 / -1;
   display: flex;
-  min-height: 132px;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--f-3);
-  padding: var(--f-5);
+  align-items: center;
+  gap: var(--f-4);
+  padding: var(--f-4) var(--f-5);
   border-radius: var(--f-radio-tarjeta);
   background: var(--f-lima);
   color: var(--f-sobre-lima);
@@ -49,57 +52,140 @@
 .fi-vender:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
 .fi-vender:active { transform: translateY(1px); }
 
-.fi-vender-texto {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.fi-vender-texto strong {
-  font-size: 40px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1;
-}
-
-.fi-vender-texto small { font-size: 15px; font-weight: 600; }
-
 .fi-vender-icono {
-  order: 2;
   display: grid;
-  width: 52px;
-  height: 52px;
-  flex: 0 0 52px;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
   place-items: center;
-  border-radius: var(--f-radio-control);
+  border-radius: 16px;
   background: var(--f-sobre-lima);
   color: var(--f-lima);
 }
 
-.fi-vender-icono svg { width: 26px; height: 26px; }
-.fi-vender-flecha { display: none; }
+.fi-vender-icono svg { width: 28px; height: 28px; }
 
-/* ───────────── Vendiste hoy ───────────── */
+.fi-vender-texto { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 2px; }
+.fi-vender-texto strong { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; }
+.fi-vender-texto small { font-size: 16px; font-weight: 600; line-height: 1.3; }
 
-.fi-hoy {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  color: var(--f-tinta);
-  text-decoration: none;
+.fi-vender-ir {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 var(--f-5);
+  border-radius: 999px;
+  background: var(--f-sobre-lima);
+  color: var(--f-lima);
+  font-size: 17px;
+  font-weight: 800;
 }
 
-.fi-hoy-monto { display: block; }
-.fi-hoy-detalle { color: var(--f-tinta-2); font-weight: 600; }
+.fi-vender-ir svg { width: 20px; height: 20px; transition: transform 0.16s ease; }
 
-.fi-grafico { position: relative; margin: var(--f-2) 0 var(--f-1); }
+/* ───────────── Los cuatro números del día ───────────── */
+
+.fi-numeros {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--f-3);
+}
+
+.fi-indicador {
+  --tono: var(--f-verde);
+  --tono-suave: var(--f-verde-suave);
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--f-4);
+  border: 1px solid var(--f-borde);
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+.fi-indicador[data-tono='coral'] { --tono: var(--f-coral); --tono-suave: var(--f-coral-suave); }
+.fi-indicador[data-tono='ambar'] { --tono: var(--f-ambar); --tono-suave: var(--f-ambar-suave); }
+.fi-indicador:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+
+.fi-indicador-cabeza { display: flex; align-items: center; gap: var(--f-2); margin-bottom: var(--f-1); }
+
+.fi-indicador-icono {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--tono-suave);
+  color: var(--tono);
+}
+
+.fi-indicador-icono svg { width: 22px; height: 22px; }
+.fi-indicador-etiqueta { min-width: 0; flex: 1; font-size: 16px; font-weight: 700; line-height: 1.25; }
+.fi-indicador-ir { display: grid; color: var(--f-tinta-2); transition: transform 0.16s ease, color 0.16s ease; }
+.fi-indicador-ir svg { width: 20px; height: 20px; }
+
+.fi-indicador-valor {
+  font-size: 30px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.fi-indicador:not([data-tono='verde']) .fi-indicador-valor { color: var(--tono); }
+.fi-indicador-valor-texto { font-size: 20px; letter-spacing: 0; }
+.fi-indicador-nota { color: var(--f-tinta); font-size: 15px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+
+.fi-indicador-nota[data-urgente='true'] {
+  align-self: flex-start;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--tono-suave);
+  color: var(--tono);
+  font-weight: 800;
+}
+
+.fi-indicador[data-tono='ambar'] .fi-indicador-nota:not([data-urgente]) { color: var(--f-tinta); }
+.fi-indicador-extra { color: var(--f-tinta-2); font-size: 14px; font-weight: 500; line-height: 1.35; }
+
+/* ───────────── Bloques con título, ícono y ayuda ───────────── */
+
+.fi-bloque-cabeza { display: flex; align-items: flex-start; gap: var(--f-3); margin-bottom: var(--f-3); }
+.fi-bloque-cabeza > div { min-width: 0; flex: 1; }
+.fi-bloque-cabeza .f-seccion { font-size: 20px; }
+
+.fi-bloque-icono {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--f-superficie-2);
+  color: var(--f-tinta);
+}
+
+.fi-bloque-icono[data-tono='verde'] { background: var(--f-verde-suave); color: var(--f-verde); }
+.fi-bloque-icono svg { width: 22px; height: 22px; }
+.fi-bloque-ayuda { margin: 2px 0 0; color: var(--f-tinta-2); font-size: 15px; line-height: 1.4; }
+
+/* ───────────── Ventas por horario ───────────── */
+
+.fi-grafico { position: relative; padding-top: 64px; }
 
 .fi-barras {
   display: flex;
-  height: 72px;
+  height: 140px;
   align-items: flex-end;
-  gap: 6px;
+  gap: 8px;
+  border-bottom: 2px solid var(--f-superficie-2);
 }
 
 .fi-barra-boton {
@@ -117,196 +203,269 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.fi-barra-boton:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; border-radius: 6px; }
+.fi-barra-boton:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; border-radius: 8px; }
 
 .fi-barra {
   display: block;
   width: 100%;
   height: var(--alto);
-  min-height: 4px;
-  border-radius: 6px 6px 3px 3px;
+  min-height: 6px;
+  border-radius: 8px 8px 2px 2px;
   background: var(--f-superficie-2);
   transform-origin: bottom;
-  transition: transform 0.16s ease, background-color 0.16s ease;
+  transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .fi-barra-boton[data-fuerte='true'] .fi-barra { background: var(--f-verde); }
-.fi-barra-boton:hover .fi-barra,
-.fi-barra-boton[data-activa='true'] .fi-barra { background: var(--f-lima); transform: scaleY(1.06) scaleX(1.08); }
-.fi-barra-boton[data-fuerte='true']:hover .fi-barra,
-.fi-barra-boton[data-fuerte='true'][data-activa='true'] .fi-barra { background: var(--f-verde); }
 
-/* Globo con el detalle: aparece sobre la barra señalada. */
+.fi-barra-boton:hover .fi-barra,
+.fi-barra-boton[data-activa='true'] .fi-barra {
+  background: var(--f-lima);
+  box-shadow: 0 0 0 2px var(--f-sobre-lima) inset;
+  transform: scaleY(1.04);
+}
+
+.fi-barra-boton[data-fuerte='true']:hover .fi-barra,
+.fi-barra-boton[data-fuerte='true'][data-activa='true'] .fi-barra { background: var(--f-verde); box-shadow: none; }
+
+/* Globo con el detalle, siempre dentro del espacio reservado arriba. */
 .fi-barra-globo {
   position: absolute;
-  bottom: calc(var(--alto) + 8px);
+  bottom: calc(var(--alto) + 10px);
   left: 50%;
   z-index: 2;
   display: flex;
-  min-width: 112px;
+  min-width: 120px;
   flex-direction: column;
   gap: 1px;
-  padding: 6px 10px;
-  border-radius: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
   background: var(--f-tinta);
   color: var(--f-superficie);
   text-align: center;
   white-space: nowrap;
   pointer-events: none;
+  visibility: hidden;
   opacity: 0;
   transform: translate(-50%, 4px);
-  transition: opacity 0.14s ease, transform 0.14s ease;
+  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0s linear 0.12s;
 }
 
-.fi-barra-globo strong { font-size: 15px; font-weight: 800; }
-.fi-barra-globo small { font-size: 12px; font-weight: 600; opacity: 0.85; }
-.fi-barra-boton[data-activa='true'] .fi-barra-globo { opacity: 1; transform: translate(-50%, 0); }
+.fi-barra-globo::after {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  border: 6px solid transparent;
+  border-top-color: var(--f-tinta);
+  content: '';
+  transform: translateX(-50%);
+}
+
+.fi-barra-globo strong { font-size: 17px; font-weight: 800; }
+.fi-barra-globo small { font-size: 13px; font-weight: 600; opacity: 0.9; }
+
+.fi-barra-boton[data-activa='true'] .fi-barra-globo {
+  visibility: visible;
+  opacity: 1;
+  transform: translate(-50%, 0);
+  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0s;
+}
+
 .fi-barra-boton:first-child .fi-barra-globo { left: 0; transform: translate(0, 4px); }
+.fi-barra-boton:first-child .fi-barra-globo::after { left: 20px; }
 .fi-barra-boton:first-child[data-activa='true'] .fi-barra-globo { transform: translate(0, 0); }
 .fi-barra-boton:last-child .fi-barra-globo { left: auto; right: 0; transform: translate(0, 4px); }
+.fi-barra-boton:last-child .fi-barra-globo::after { left: auto; right: 14px; transform: none; }
 .fi-barra-boton:last-child[data-activa='true'] .fi-barra-globo { transform: translate(0, 0); }
 
-.fi-horas { display: flex; gap: 6px; margin-top: 4px; }
-.fi-horas span { flex: 1; color: var(--f-tinta-2); font-size: 12px; font-weight: 600; text-align: left; }
-.fi-grafico-lectura { min-height: 1.4em; margin: var(--f-1) 0 0; color: var(--f-tinta-2); font-weight: 600; }
+.fi-horas { display: flex; gap: 8px; margin-top: 6px; }
+.fi-horas span { flex: 1; color: var(--f-tinta-2); font-size: 13px; font-weight: 700; text-align: center; }
 
-.fi-ganancia { display: flex; flex-wrap: wrap; align-items: center; gap: var(--f-2) var(--f-3); }
-.fi-ganancia-nota { color: var(--f-ambar); font-size: 14px; font-weight: 700; }
-.fi-ganancia .fi-enlace { margin-left: auto; }
-
-.fi-aviso-ayuda { font-size: 13px; font-weight: 600; opacity: 0.85; }
-.fi-seccion-ayuda { margin: 0; color: var(--f-tinta-2); font-size: 14px; }
-.fi-medio-pct { color: var(--f-tinta-2); font-weight: 700; }
-.fi-medio-barra > span { transition: width 0.3s ease, filter 0.16s ease; }
-.fi-medio:hover .fi-medio-barra > span { filter: brightness(1.12); }
-.fi-medio { padding: 4px 6px; margin: 0 -6px; border-radius: 10px; transition: background-color 0.16s ease; }
-.fi-medio:hover { background: var(--f-superficie-2); }
-
-.fi-ultimas-lista .f-renglon { border-radius: 10px; transition: background-color 0.16s ease; }
-.fi-ultimas-lista .f-renglon:hover { background: var(--f-superficie-2); }
-
-/* Levantan un poco al pasar el cursor: se nota que se pueden abrir. */
-@media (hover: hover) {
-  .fi-vender, .fi-aviso { transition: transform 0.16s ease, box-shadow 0.16s ease; }
-  .fi-vender:hover, .fi-aviso:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgb(0 0 0 / 0.12); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fi-barra, .fi-barra-globo, .fi-vender, .fi-aviso, .fi-medio-barra > span { transition: none; }
-  .fi-vender:hover, .fi-aviso:hover { transform: none; }
-}
-
-.fi-hoy .f-etiqueta { min-height: 32px; font-size: 14px; }
-
-/* ───────────── Te deben / Por reponer ───────────── */
-
-.fi-aviso {
+.fi-grafico-lectura {
   display: flex;
-  min-height: 112px;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--f-4);
-  border-radius: var(--f-radio-tarjeta);
-  text-decoration: none;
-  touch-action: manipulation;
+  align-items: center;
+  min-height: 44px;
+  margin: var(--f-3) 0 0;
+  padding: 0 var(--f-3);
+  border-radius: 12px;
+  background: var(--f-superficie-2);
+  color: var(--f-tinta);
+  font-size: 16px;
+  font-weight: 700;
 }
-
-.fi-aviso:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
-.fi-aviso[data-tono='coral'] { background: var(--f-coral-suave); color: var(--f-coral); }
-.fi-aviso[data-tono='ambar'] { background: var(--f-ambar-suave); color: var(--f-ambar); }
-.fi-aviso .f-dato { color: inherit; font-size: 14px; font-weight: 700; }
-
-.fi-aviso-monto { display: block; font-size: 26px; line-height: 1.15; }
-.fi-aviso-texto { font-size: 18px; line-height: 1.2; letter-spacing: 0; }
-.fi-aviso-nota { font-size: 14px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
-.fi-aviso-ir { display: none; }
 
 /* ───────────── Caja de hoy ───────────── */
 
-.fi-caja {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--f-3);
-}
+.fi-caja { display: flex; flex-direction: column; gap: var(--f-2); }
 
-.fi-medio { display: flex; flex-direction: column; gap: 6px; }
+.fi-medio { display: flex; flex-direction: column; gap: 8px; margin: 0 -8px; padding: 8px; border-radius: 12px; transition: background-color 0.16s ease; }
+.fi-medio:hover { background: var(--f-superficie-2); }
 
-.fi-medio-fila {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--f-3);
-}
+.fi-medio-fila { display: flex; align-items: center; gap: var(--f-2); }
 
-.fi-medio .f-texto { color: var(--f-tinta-2); font-weight: 600; }
-.fi-medio-monto { font-size: 18px; }
+.fi-medio-icono { display: grid; color: var(--f-verde); }
+.fi-medio[data-tono='tinta'] .fi-medio-icono { color: var(--f-tinta); }
+.fi-medio[data-tono='coral'] .fi-medio-icono { color: var(--f-coral); }
+.fi-medio-icono svg { width: 20px; height: 20px; }
+
+.fi-medio-nombre { min-width: 0; flex: 1; color: var(--f-tinta); font-size: 16px; font-weight: 600; }
+.fi-medio-pct { color: var(--f-tinta-2); font-size: 14px; font-weight: 700; }
+.fi-medio-monto { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .fi-medio[data-tono='coral'] .fi-medio-monto { color: var(--f-coral); }
 
-.fi-medio-barra {
-  display: flex;
-  height: 8px;
-  overflow: hidden;
-  border-radius: var(--f-radio-chip);
-  background: var(--f-superficie-2);
-}
-
-.fi-medio-barra > span { display: block; height: 100%; background: var(--f-verde); }
+.fi-medio-barra { display: flex; height: 10px; overflow: hidden; border-radius: 999px; background: var(--f-superficie-2); }
+.fi-medio:hover .fi-medio-barra { background: var(--f-superficie); }
+.fi-medio-barra > span { display: block; height: 100%; border-radius: 999px; background: var(--f-verde); transition: width 0.3s ease; }
 .fi-medio[data-tono='tinta'] .fi-medio-barra > span { background: var(--f-tinta); }
 .fi-medio[data-tono='coral'] .fi-medio-barra > span { background: var(--f-coral); }
 
-.fi-caja-boton { margin-top: var(--f-1); }
-
-/* ───────────── Últimas ventas ───────────── */
-
-.fi-ultimas { grid-column: 1 / -1; }
-
-.fi-ultimas-cabeza {
+.fi-caja-cerrar {
   display: flex;
+  min-height: 52px;
   align-items: center;
   justify-content: space-between;
-  gap: var(--f-3);
-  margin-bottom: var(--f-1);
+  gap: var(--f-2);
+  margin-top: auto;
+  padding: 0 var(--f-4);
+  border: 2px solid var(--f-tinta);
+  border-radius: var(--f-radio-control);
+  color: var(--f-tinta);
+  font-size: 17px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: background-color 0.16s ease, color 0.16s ease;
 }
+
+.fi-caja-cerrar svg { width: 20px; height: 20px; }
+.fi-caja-cerrar:hover { background: var(--f-tinta); color: var(--f-superficie); }
+.fi-caja-cerrar:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+
+/* ───────────── Últimas ventas ───────────── */
 
 .fi-enlace {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
   color: var(--f-verde);
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .fi-enlace:hover { text-decoration: underline; }
 .fi-enlace:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; border-radius: 4px; }
 
-.fi-ultimas-lista { margin: 0; padding: 0; list-style: none; }
-.fi-ultimas-lista .f-renglon { align-items: flex-start; }
-.fi-ultimas-lista .f-renglon-titulo { white-space: nowrap; }
-.fi-ultimas-lista .f-renglon-detalle[data-tono='coral'] { color: var(--f-coral); font-weight: 700; }
-.fi-ultimas-lista .f-renglon-fin { font-size: 16px; }
+.fi-ultimas-lista { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+
+.fi-venta {
+  display: flex;
+  align-items: center;
+  gap: var(--f-3);
+  margin: 0 -8px;
+  padding: 10px 8px;
+  border-radius: 12px;
+  transition: background-color 0.16s ease;
+}
+
+.fi-venta:hover { background: var(--f-superficie-2); }
+
+.fi-venta-icono {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--f-verde-suave);
+  color: var(--f-verde);
+}
+
+.fi-venta-icono[data-tono='coral'] { background: var(--f-coral-suave); color: var(--f-coral); }
+.fi-venta-icono svg { width: 20px; height: 20px; }
+.fi-venta-cuerpo { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 2px; }
+.fi-venta-titulo { overflow: hidden; font-size: 16px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.fi-venta-detalle { color: var(--f-tinta-2); font-size: 14px; font-weight: 600; }
+.fi-venta-detalle[data-tono='coral'] { color: var(--f-coral); font-weight: 700; }
+.fi-venta-monto { font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* ───────────── Atajos ───────────── */
 
-.fi-atajos .f-boton { padding: 0 10px; font-size: 15px; gap: 8px; }
-.fi-atajos .f-boton svg { width: 20px; height: 20px; flex-basis: 20px; }
+.fi-atajos { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--f-3); align-content: start; }
 
-.fi-atajos {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+.fi-atajo {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
   gap: var(--f-3);
+  padding: var(--f-3) var(--f-4);
+  border: 1px solid var(--f-borde);
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+  text-decoration: none;
+}
+
+.fi-atajo:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+
+.fi-atajo-icono {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--f-superficie-2);
+}
+
+.fi-atajo-icono svg { width: 22px; height: 22px; }
+.fi-atajo-texto { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 2px; }
+.fi-atajo-texto strong { font-size: 17px; font-weight: 800; }
+.fi-atajo-texto small { color: var(--f-tinta-2); font-size: 14px; font-weight: 600; }
+.fi-atajo-ir { display: grid; color: var(--f-tinta-2); transition: transform 0.16s ease; }
+.fi-atajo-ir svg { width: 20px; height: 20px; }
+
+/* Lo que se puede abrir se levanta un poco al pasar el cursor. */
+@media (hover: hover) {
+  .fi-vender, .fi-indicador, .fi-atajo { transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease; }
+  .fi-vender:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgb(0 0 0 / 0.14); }
+  .fi-vender:hover .fi-vender-ir svg { transform: translateX(4px); }
+  a.fi-indicador:hover, .fi-atajo:hover { border-color: var(--tono, var(--f-tinta)); transform: translateY(-2px); box-shadow: 0 10px 24px rgb(0 0 0 / 0.1); }
+  .fi-atajo:hover { --tono: var(--f-tinta); }
+  a.fi-indicador:hover .fi-indicador-ir { color: var(--tono); transform: translateX(3px); }
+  .fi-atajo:hover .fi-atajo-ir { transform: translateX(3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fi-barra, .fi-barra-globo, .fi-vender, .fi-indicador, .fi-atajo, .fi-medio-barra > span { transition: none; }
+  .fi-vender:hover, a.fi-indicador:hover, .fi-atajo:hover { transform: none; }
 }
 
 @media (max-width: 899px) {
-  .fi-ultimas-lista .f-renglon:nth-child(n + 3) { display: none; }
+  .fi-ultimas-lista .fi-venta:nth-child(n + 4) { display: none; }
+  .fi-indicador-extra { display: none; }
+}
 
-  /* En el celu, los dos avisos van lado a lado y después lo demás. */
-  .fi-caja { order: 2; }
-  .fi-ultimas { order: 3; }
-  .fi-atajos { order: 4; }
+/* Celu: dos indicadores por fila, sin flecha y con el ícono más chico para
+   que el título entre en una línea. */
+@media (max-width: 639px) {
+  .fi-indicador { padding: var(--f-3); }
+  .fi-indicador-cabeza { gap: 8px; }
+  .fi-indicador-icono { width: 32px; height: 32px; flex-basis: 32px; border-radius: 10px; }
+  .fi-indicador-icono svg { width: 18px; height: 18px; }
+  .fi-indicador-etiqueta { font-size: 15px; }
+  .fi-indicador-ir { display: none; }
+  .fi-indicador-valor { font-size: 26px; }
+  .fi-indicador-nota { font-size: 14px; }
+  .fi-vender { padding: var(--f-4); }
+  .fi-vender-texto strong { font-size: 30px; }
+  .fi-vender-texto small { font-size: 15px; }
+}
+
+/* ───────────── Tablet ───────────── */
+
+@media (min-width: 640px) {
+  .fi-vender-ir { display: inline-flex; }
 }
 
 /* ───────────── PC ───────────── */
@@ -316,57 +475,34 @@
   .fi-cabeza { padding-top: 0; }
 
   .fi-grilla {
-    grid-template-columns: 1.25fr 1fr 1fr;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
     gap: var(--f-4);
   }
 
-  .fi-vender {
-    grid-column: auto;
-    min-height: 236px;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: space-between;
-    padding: var(--f-7);
-  }
+  .fi-grilla > * { grid-column: 1 / -1; }
 
-  .fi-vender-icono {
-    order: 0;
-    width: 56px;
-    height: 56px;
-    flex-basis: auto;
-  }
+  .fi-vender { padding: var(--f-5) var(--f-6); }
+  .fi-vender-icono { width: 64px; height: 64px; flex-basis: 64px; border-radius: 18px; }
+  .fi-vender-icono svg { width: 32px; height: 32px; }
+  .fi-vender-texto strong { font-size: 40px; }
+  .fi-vender-texto small { font-size: 17px; }
 
-  .fi-vender-icono svg { width: 28px; height: 28px; }
-  .fi-vender-texto strong { font-size: 48px; }
-  .fi-vender-texto small { font-size: 16px; }
+  .fi-numeros { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--f-4); }
+  .fi-indicador { padding: var(--f-5); }
+  .fi-indicador-valor { font-size: 34px; }
 
-  .fi-hoy { grid-column: auto; padding: var(--f-6); }
-  .fi-ganancia { margin-top: auto; }
-  .fi-barras { height: 104px; }
+  .fi-grilla > .fi-horario { grid-column: span 8; padding: var(--f-6); }
+  .fi-grilla > .fi-caja { grid-column: span 4; padding: var(--f-6); }
+  .fi-grilla > .fi-ultimas { grid-column: span 8; padding: var(--f-6); }
+  .fi-grilla > .fi-atajos { grid-column: span 4; }
+  .fi-barras { height: 180px; gap: 10px; }
+  .fi-horas { gap: 10px; }
 
-  .fi-deben { min-height: 0; padding: var(--f-6); }
-  .fi-aviso-monto { font-size: 36px; line-height: 1.1; }
-  .fi-aviso-texto { font-size: 24px; }
-  .fi-aviso .f-dato { font-size: 15px; }
-  .fi-aviso-nota { font-size: 15px; }
-
-  .fi-aviso-ir {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: auto;
-    padding-top: var(--f-3);
-    font-size: 15px;
-    font-weight: 800;
-  }
-
-  .fi-aviso-ir svg { width: 18px; height: 18px; }
-
-  .fi-caja { grid-column: auto; padding: var(--f-6); }
-  .fi-caja-boton { margin-top: auto; }
-  .fi-reponer { min-height: 0; padding: var(--f-6); }
-  .fi-ultimas { grid-column: auto; padding: var(--f-6); }
-  .fi-atajos { grid-template-columns: repeat(2, minmax(0, 260px)); }
+  /* Si falta un bloque (vendedor, funciones apagadas), el otro ocupa todo. */
+  .fi-grilla > .fi-horario:not(:has(+ .fi-caja)) { grid-column: 1 / -1; }
+  .fi-grilla > .fi-ultimas:last-child { grid-column: 1 / -1; }
+  .fi-grilla > .fi-ultimas + .fi-atajos { grid-column: span 4; }
+  .fi-grilla > .fi-atajos:not(.fi-ultimas + .fi-atajos) { grid-column: 1 / -1; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 }
 
 /* ───────────── Primeros pasos: guía descartable ───────────── */
