@@ -165,7 +165,7 @@ describe('Ventas abiertas', () => {
     for (let i = 0; i < 4; i++) await sumar('Morcilla')
     // sólo entran 2: las otras 3 están en la Venta 1
     expect(screen.getByRole('button', { name: /Quitar uno de Morcilla/ })).toBeTruthy()
-    expect(screen.getByLabelText('2 unidades')).toBeTruthy()
+    expect(screen.getByLabelText(/^2 unidades de /)).toBeTruthy()
   })
 
   it('si el stock se acaba con algo ya en el ticket, avisa, no deja cobrar y se puede ajustar', async () => {
@@ -177,7 +177,7 @@ describe('Ventas abiertas', () => {
     expect(await screen.findByText(/Solo quedan 1/)).toBeTruthy()
     for (const boton of screen.getAllByRole('button', { name: /^Cobrar/ })) expect(boton).toHaveProperty('disabled', true)
     fireEvent.click(screen.getByRole('button', { name: 'Ajustar el ticket' }))
-    await waitFor(() => expect(screen.getByLabelText('1 unidades')).toBeTruthy())
+    await waitFor(() => expect(screen.getByLabelText(/^1 unidades de /)).toBeTruthy())
     expect(screen.queryByText(/Solo quedan 1/)).toBeNull()
     expect(screen.getAllByRole('button', { name: /^Cobrar/ }).some((boton) => !(boton as HTMLButtonElement).disabled)).toBe(true)
   })

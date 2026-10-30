@@ -1,3 +1,4 @@
+import { CODIGO_VARIOS, esProductoVarios, MINIMO_VARIOS, NOMBRE_VARIOS, STOCK_VARIOS } from '@/dominio/varios'
 import { db } from './db'
 import { encolar } from './cola'
 import type {
@@ -187,12 +188,22 @@ export const repos = {
       return (await db.productos.where('codigoBarras').equals(codigo).filter((producto) => !producto.eliminadoEn).first()) ?? null
     },
     async todos(): Promise<Producto[]> {
-      return db.productos.filter((producto) => !producto.eliminadoEn).toArray()
+      return db.productos.filter((producto) => !producto.eliminadoEn && !esProductoVarios(producto)).toArray()
+    },
+    /** El producto interno "Varios" (ver dominio/varios). Se crea la primera
+     *  vez que se usa y se repone solo para que nunca falte stock. */
+    async varios(): Promise<Producto> {
+      const existente = await repos.productos.porCodigoBarras(CODIGO_VARIOS)
+      if (existente && existente.stock >= MINIMO_VARIOS) return existente
+      return repos.productos.guardar({
+        ...(existente ?? { codigoBarras: CODIGO_VARIOS, nombre: NOMBRE_VARIOS, costo: 0, precio: 0, stockMinimo: 0 }),
+        stock: STOCK_VARIOS,
+      })
     },
     async buscar(texto: string): Promise<Producto[]> {
       const aguja = normalizar(texto)
       const todos = await db.productos.toArray()
-      return todos.filter((producto) => !producto.eliminadoEn && (
+      return todos.filter((producto) => !producto.eliminadoEn && !esProductoVarios(producto) && (
         normalizar(producto.nombre).includes(aguja) ||
         (producto.codigoBarras ? producto.codigoBarras.includes(texto.trim()) : false)
       ))
