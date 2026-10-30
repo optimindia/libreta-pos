@@ -455,3 +455,27 @@
   background: var(--f-verde-suave);
   color: var(--f-verde);
 }
+
+/* ───────────── Cerrar sesión ───────────── */
+
+/* En la barra lateral dice "Salir" para entrar en 80 px; el nombre accesible
+   sigue siendo "Cerrar sesión". */
+.f-nav-salir { min-height: 56px; }
+
+.f-fila-salir { color: var(--f-coral); }
+
+.f-salir { display: flex; flex-direction: column; gap: var(--f-4); }
+.f-salir .f-texto { margin: 0; font-size: 16px; line-height: 1.5; }
+
+.f-salir-aviso {
+  margin: 0;
+  padding: var(--f-3) var(--f-4);
+  border-radius: var(--f-radio-control);
+  background: var(--f-ambar-suave);
+  color: var(--f-ambar);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.f-salir-acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--f-3); }

@@ -15,6 +15,7 @@ import { useMenu } from './usoMenu'
 import { instalarApp, useInstalacion } from './instalacion'
 import { aplicarTema, guardarPreferenciaTema, leerPreferenciaTema, type PreferenciaTema } from './tema'
 import { Hoja } from './Hoja'
+import { CerrarSesion } from './CerrarSesion'
 import { Segmentado } from './Segmentado'
 import {
   IconoAgregarInicio, IconoAbajo, IconoClientes, IconoCompartirIos, IconoConfig, IconoCuenta, IconoDesplegar,
@@ -186,6 +187,8 @@ export function Navegacion() {
   const masActivo = enHoja.some((id) => esActiva(ruta, SECCIONES[id].href))
   const nombre = negocio?.nombre?.trim() || 'Tu almacén'
   const compacta = menu.compacta
+  // Sólo hay sesión que cerrar si el aparato está vinculado a una cuenta.
+  const conCuenta = Boolean(negocio?.negocioId)
 
   // Ctrl/Cmd + B achica o agranda la barra lateral, como en un programa de PC.
   useEffect(() => {
@@ -229,6 +232,7 @@ export function Navegacion() {
 
         <div className="f-lateral-pie">
           <InstalarApp estilo="lateral" />
+          {conCuenta && <CerrarSesion estilo="lateral" />}
           <div className="f-lateral-herramientas">
             <button type="button" className="f-nav-mini" onClick={() => setEditor(true)} aria-label="Editar menú" title="Editar menú">
               <IconoEditarMenu />
@@ -291,6 +295,7 @@ export function Navegacion() {
             <span className="f-nav-icono"><IconoEditarMenu /></span><span>Editar menú</span>
           </button>
           <InstalarApp estilo="fila" />
+          {conCuenta && <CerrarSesion estilo="fila" />}
         </div>
       </Hoja>
 
