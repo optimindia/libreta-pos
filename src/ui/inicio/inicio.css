@@ -93,22 +93,108 @@
 .fi-hoy-monto { display: block; }
 .fi-hoy-detalle { color: var(--f-tinta-2); font-weight: 600; }
 
+.fi-grafico { position: relative; margin: var(--f-2) 0 var(--f-1); }
+
 .fi-barras {
   display: flex;
-  height: 44px;
+  height: 72px;
   align-items: flex-end;
   gap: 6px;
-  margin: var(--f-2) 0 var(--f-3);
 }
+
+.fi-barra-boton {
+  position: relative;
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  flex: 1;
+  align-items: flex-end;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fi-barra-boton:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; border-radius: 6px; }
 
 .fi-barra {
-  flex: 1;
+  display: block;
+  width: 100%;
+  height: var(--alto);
   min-height: 4px;
-  border-radius: 4px 4px 2px 2px;
+  border-radius: 6px 6px 3px 3px;
   background: var(--f-superficie-2);
+  transform-origin: bottom;
+  transition: transform 0.16s ease, background-color 0.16s ease;
 }
 
-.fi-barra[data-fuerte='true'] { background: var(--f-verde); }
+.fi-barra-boton[data-fuerte='true'] .fi-barra { background: var(--f-verde); }
+.fi-barra-boton:hover .fi-barra,
+.fi-barra-boton[data-activa='true'] .fi-barra { background: var(--f-lima); transform: scaleY(1.06) scaleX(1.08); }
+.fi-barra-boton[data-fuerte='true']:hover .fi-barra,
+.fi-barra-boton[data-fuerte='true'][data-activa='true'] .fi-barra { background: var(--f-verde); }
+
+/* Globo con el detalle: aparece sobre la barra señalada. */
+.fi-barra-globo {
+  position: absolute;
+  bottom: calc(var(--alto) + 8px);
+  left: 50%;
+  z-index: 2;
+  display: flex;
+  min-width: 112px;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--f-tinta);
+  color: var(--f-superficie);
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.fi-barra-globo strong { font-size: 15px; font-weight: 800; }
+.fi-barra-globo small { font-size: 12px; font-weight: 600; opacity: 0.85; }
+.fi-barra-boton[data-activa='true'] .fi-barra-globo { opacity: 1; transform: translate(-50%, 0); }
+.fi-barra-boton:first-child .fi-barra-globo { left: 0; transform: translate(0, 4px); }
+.fi-barra-boton:first-child[data-activa='true'] .fi-barra-globo { transform: translate(0, 0); }
+.fi-barra-boton:last-child .fi-barra-globo { left: auto; right: 0; transform: translate(0, 4px); }
+.fi-barra-boton:last-child[data-activa='true'] .fi-barra-globo { transform: translate(0, 0); }
+
+.fi-horas { display: flex; gap: 6px; margin-top: 4px; }
+.fi-horas span { flex: 1; color: var(--f-tinta-2); font-size: 12px; font-weight: 600; text-align: left; }
+.fi-grafico-lectura { min-height: 1.4em; margin: var(--f-1) 0 0; color: var(--f-tinta-2); font-weight: 600; }
+
+.fi-ganancia { display: flex; flex-wrap: wrap; align-items: center; gap: var(--f-2) var(--f-3); }
+.fi-ganancia-nota { color: var(--f-ambar); font-size: 14px; font-weight: 700; }
+.fi-ganancia .fi-enlace { margin-left: auto; }
+
+.fi-aviso-ayuda { font-size: 13px; font-weight: 600; opacity: 0.85; }
+.fi-seccion-ayuda { margin: 0; color: var(--f-tinta-2); font-size: 14px; }
+.fi-medio-pct { color: var(--f-tinta-2); font-weight: 700; }
+.fi-medio-barra > span { transition: width 0.3s ease, filter 0.16s ease; }
+.fi-medio:hover .fi-medio-barra > span { filter: brightness(1.12); }
+.fi-medio { padding: 4px 6px; margin: 0 -6px; border-radius: 10px; transition: background-color 0.16s ease; }
+.fi-medio:hover { background: var(--f-superficie-2); }
+
+.fi-ultimas-lista .f-renglon { border-radius: 10px; transition: background-color 0.16s ease; }
+.fi-ultimas-lista .f-renglon:hover { background: var(--f-superficie-2); }
+
+/* Levantan un poco al pasar el cursor: se nota que se pueden abrir. */
+@media (hover: hover) {
+  .fi-vender, .fi-aviso { transition: transform 0.16s ease, box-shadow 0.16s ease; }
+  .fi-vender:hover, .fi-aviso:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgb(0 0 0 / 0.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fi-barra, .fi-barra-globo, .fi-vender, .fi-aviso, .fi-medio-barra > span { transition: none; }
+  .fi-vender:hover, .fi-aviso:hover { transform: none; }
+}
 
 .fi-hoy .f-etiqueta { min-height: 32px; font-size: 14px; }
 
@@ -255,8 +341,8 @@
   .fi-vender-texto small { font-size: 16px; }
 
   .fi-hoy { grid-column: auto; padding: var(--f-6); }
-  .fi-hoy .f-etiqueta { margin-top: auto; }
-  .fi-barras { height: 36px; margin: var(--f-3) 0; }
+  .fi-ganancia { margin-top: auto; }
+  .fi-barras { height: 104px; }
 
   .fi-deben { min-height: 0; padding: var(--f-6); }
   .fi-aviso-monto { font-size: 36px; line-height: 1.1; }

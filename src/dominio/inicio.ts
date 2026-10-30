@@ -80,3 +80,45 @@ export function listaCorta(nombres: string[]): string {
   if (cortos.length <= 1) return cortos.join('')
   return `${cortos.slice(0, -1).join(', ')} y ${cortos[cortos.length - 1]}`
 }
+
+export interface DetalleFranja {
+  desde: number
+  hasta: number
+  etiqueta: string
+  monto: Centavos
+  cantidad: number
+}
+
+/** Lo mismo que `ventasPorFranja`, pero con el horario escrito y cuántas
+ *  ventas hubo en cada franja: lo que se muestra al pasar por una barra. */
+export function detalleFranjas(
+  ventas: Venta[],
+  dia: Date,
+  franjas = 8,
+  desdeHora = 6,
+  horasPorFranja = 2,
+): DetalleFranja[] {
+  const montos = ventasPorFranja(ventas, dia, franjas, desdeHora, horasPorFranja)
+  const cantidades: number[] = Array.from({ length: franjas }, () => 0)
+  for (const venta of ventas) {
+    if (venta.estado === 'anulada' || !mismoDia(venta.fecha, dia)) continue
+    const franja = Math.floor((new Date(venta.fecha).getHours() - desdeHora) / horasPorFranja)
+    cantidades[Math.min(franjas - 1, Math.max(0, franja))] += 1
+  }
+  return montos.map((monto, i) => {
+    const desde = desdeHora + i * horasPorFranja
+    const hasta = desde + horasPorFranja
+    return { desde, hasta, etiqueta: `${desde} a ${hasta} h`, monto, cantidad: cantidades[i] }
+  })
+}
+
+/** Productos vendidos hoy por menos de lo que cuestan (sin repetir). Explica
+ *  una ganancia negativa: o hubo un descuento grande o el costo está mal cargado. */
+export function porDebajoDelCosto(ventas: Venta[], dia: Date): string[] {
+  const nombres = new Set<string>()
+  for (const venta of ventas) {
+    if (venta.estado === 'anulada' || !mismoDia(venta.fecha, dia)) continue
+    for (const item of venta.items) if (item.costo > item.precio) nombres.add(item.nombre)
+  }
+  return [...nombres]
+}

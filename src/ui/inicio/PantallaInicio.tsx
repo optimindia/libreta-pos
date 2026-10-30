@@ -13,7 +13,7 @@ import { rolDe } from '@/dominio/roles'
 import { deudaPorCliente } from '@/dominio/fiado'
 import { compararConLaSemanaPasada, fechaLarga } from '@/dominio/comparar'
 import {
-  alturasDeBarras, fiadosVencidos, listaCorta, mejorFranja, porReponer, saludo, ventasPorFranja,
+  detalleFranjas, fiadosVencidos, listaCorta, porDebajoDelCosto, porReponer, saludo,
 } from '@/dominio/inicio'
 import { funcionActiva } from '@/dominio/funciones'
 import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
@@ -25,12 +25,11 @@ import { IconoCamara, IconoFlechaDerecha, IconoMasCantidad, IconoVender } from '
 import type { Venta } from '@/dominio/tipos'
 import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
+import { GraficoHoras } from './GraficoHoras'
 import { PrimerosPasos, pasosDeLaGuia } from './PrimerosPasos'
 
 const MEDIO: Record<Venta['medioPago'], string> = { efectivo: 'efectivo', transferencia: 'transferencia', qr: 'QR', fiado: 'fiado' }
 const HORA = new Intl.DateTimeFormat('es-AR', { hour: 'numeric', minute: '2-digit', hour12: false })
-
-const HORAS_DE_LAS_FRANJAS = ['6 a 8', '8 a 10', '10 a 12', '12 a 14', '14 a 16', '16 a 18', '18 a 20', '20 a 22']
 
 /** Lo primero que ve el almacenero al abrir: arriba de todo, VENDER, grande y
  *  inconfundible; abajo, lo que necesita saber de un vistazo (cuánto lleva,
@@ -60,9 +59,8 @@ export function PantallaInicio() {
 
   const ahora = new Date()
   const resumen = resumenDelDia(ventas, ahora)
-  const franjas = ventasPorFranja(ventas, ahora)
-  const alturas = alturasDeBarras(franjas)
-  const mejor = mejorFranja(franjas)
+  const franjas = detalleFranjas(ventas, ahora)
+  const bajoCosto = porDebajoDelCosto(ventas, ahora)
   const contraSemanaPasada = compararConLaSemanaPasada(ventas, ahora)
   const teDeben = deudaPorCliente(fiados, pagos, ahora.getTime()).reduce((total, deuda) => total + deuda.saldo, 0)
   const vencidos = fiadosVencidos(fiados, pagos, ahora.getTime())
@@ -133,7 +131,7 @@ export function PantallaInicio() {
           })}
         />
 
-        <Tarjeta como={hayPlata ? Link : 'div'} {...(hayPlata ? { href: '/plata' } : {})} className="fi-hoy">
+        <Tarjeta como="section" className="fi-hoy" aria-label="Resumen de hoy">
           <span className="f-dato">Vendiste hoy</span>
           <span className="f-plata f-plata-36 fi-hoy-monto">{formatearPesos(resumen.vendido)}</span>
           <span className="f-texto fi-hoy-detalle">
@@ -141,17 +139,28 @@ export function PantallaInicio() {
               ? 'Todavía no vendiste nada hoy'
               : `${resumen.cantidadVentas} ${resumen.cantidadVentas === 1 ? 'venta' : 'ventas'}${comparacion ? ` · ${comparacion}` : ''}`}
           </span>
-          <span className="fi-barras" role="img" aria-label={mejor === null ? 'Sin ventas todavía' : `Lo que más vendiste fue entre las ${HORAS_DE_LAS_FRANJAS[mejor]}`}>
-            {alturas.map((alto, i) => (
-              <span key={i} className="fi-barra" data-fuerte={i === mejor ? 'true' : undefined} style={{ height: `${alto}%` }} />
-            ))}
-          </span>
-          {esDueno && <Etiqueta tono="verde">Ganaste {formatearPesos(resumen.ganancia)}</Etiqueta>}
+          <GraficoHoras franjas={franjas} />
+          {esDueno && (
+            <div className="fi-ganancia">
+              {bajoCosto.length > 0 ? (
+                <>
+                  <Etiqueta tono="ambar">Ganancia {formatearPesos(resumen.ganancia)}</Etiqueta>
+                  <Link href="/stock" className="fi-ganancia-nota">
+                    Vendiste por debajo del costo: {listaCorta(bajoCosto)}. Revisá los costos.
+                  </Link>
+                </>
+              ) : (
+                <Etiqueta tono="verde">Ganaste {formatearPesos(resumen.ganancia)}</Etiqueta>
+              )}
+              {hayPlata && <Link href="/plata" className="fi-enlace">Ver mi plata</Link>}
+            </div>
+          )}
         </Tarjeta>
 
         {hayFiados && (
           <Link href="/fiados" className="fi-aviso fi-deben" data-tono="coral">
             <span className="f-dato">Te deben</span>
+            <span className="fi-aviso-ayuda">Lo que tus clientes todavía no pagaron</span>
             <span className="f-plata f-plata-36 fi-aviso-monto">{formatearPesos(teDeben)}</span>
             <span className="fi-aviso-nota">
               {vencidos.cantidad > 0
@@ -165,6 +174,7 @@ export function PantallaInicio() {
         {hayPlata && (
           <Tarjeta como="section" className="fi-caja" aria-label="Caja de hoy">
             <h2 className="f-seccion">Caja de hoy</h2>
+            <p className="fi-seccion-ayuda f-texto">Cómo entró la plata: en mano, por QR o transferencia, o anotada en fiado.</p>
             <FilaMedio nombre="Efectivo" monto={medios.efectivo} ancho={porcentajeDe(medios.efectivo)} tono="verde" />
             <FilaMedio nombre="QR y transferencia" monto={qrYTransferencia} ancho={porcentajeDe(qrYTransferencia)} tono="tinta" />
             <FilaMedio nombre="Fiado" monto={medios.fiado} ancho={porcentajeDe(medios.fiado)} tono="coral" />
@@ -175,6 +185,7 @@ export function PantallaInicio() {
         {hayStock && (
           <Link href="/stock" className="fi-aviso fi-reponer" data-tono="ambar">
             <span className="f-dato">{productos.length === 0 ? 'Mercadería' : 'Por reponer'}</span>
+            <span className="fi-aviso-ayuda">{productos.length === 0 ? 'Lo que tenés para vender' : 'Productos que se están por acabar'}</span>
             <span className={`f-plata f-plata-36 fi-aviso-monto${productos.length === 0 ? ' fi-aviso-texto' : ''}`}>{productos.length === 0 ? 'Cargá tus productos' : reponer.cantidad}</span>
             <span className="fi-aviso-nota">
               {productos.length === 0
@@ -232,7 +243,7 @@ function FilaMedio({ nombre, monto, ancho, tono }: { nombre: string; monto: numb
   return (
     <div className="fi-medio" data-tono={tono}>
       <span className="fi-medio-fila">
-        <span className="f-texto">{nombre}</span>
+        <span className="f-texto">{nombre}{monto > 0 && <small className="fi-medio-pct"> {Math.min(100, ancho)}%</small>}</span>
         <span className="f-plata f-plata-16 fi-medio-monto">{formatearPesos(monto)}</span>
       </span>
       <span className="fi-medio-barra" aria-hidden="true"><span style={{ width: `${ancho}%` }} /></span>

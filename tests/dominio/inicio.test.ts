@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  alturasDeBarras, fiadosVencidos, listaCorta, mejorFranja, porReponer, saludo, ventasPorFranja,
+  alturasDeBarras, detalleFranjas, fiadosVencidos, listaCorta, mejorFranja, porDebajoDelCosto, porReponer, saludo, ventasPorFranja,
 } from '@/dominio/inicio'
 import type { Fiado, FiadoPago, Producto, Venta } from '@/dominio/tipos'
 
@@ -126,5 +126,43 @@ describe('porReponer y listaCorta', () => {
     expect(listaCorta(['Leche 1 L', 'Pan lactal'])).toBe('Leche y Pan')
     expect(listaCorta(['Yerba'])).toBe('Yerba')
     expect(listaCorta([])).toBe('')
+  })
+})
+
+describe('detalleFranjas', () => {
+  it('cada franja dice su horario, cuánto se vendió y en cuántas ventas', () => {
+    const ventas = [venta({ fecha: A_LAS(9), total: 250 }), venta({ fecha: A_LAS(9, 59), total: 50 }), venta({ fecha: A_LAS(13), total: 70 })]
+    const detalle = detalleFranjas(ventas, HOY)
+    expect(detalle).toHaveLength(8)
+    expect(detalle[1]).toEqual({ desde: 8, hasta: 10, etiqueta: '8 a 10 h', monto: 300, cantidad: 2 })
+    expect(detalle[3]).toMatchObject({ etiqueta: '12 a 14 h', monto: 70, cantidad: 1 })
+    expect(detalle[0]).toMatchObject({ etiqueta: '6 a 8 h', monto: 0, cantidad: 0 })
+  })
+
+  it('coincide con ventasPorFranja, incluidas las ventas fuera de horario y sin contar anuladas', () => {
+    const ventas = [venta({ fecha: A_LAS(3), total: 10 }), venta({ fecha: A_LAS(23), total: 20 }), venta({ total: 99, estado: 'anulada' })]
+    const detalle = detalleFranjas(ventas, HOY)
+    expect(detalle.map((f) => f.monto)).toEqual(ventasPorFranja(ventas, HOY))
+    expect(detalle[0].cantidad).toBe(1)
+    expect(detalle[7].cantidad).toBe(1)
+  })
+})
+
+describe('porDebajoDelCosto', () => {
+  const item = (nombre: string, precio: number, costo: number) => ({ productoId: nombre, nombre, cantidad: 1, precio, costo })
+  it('nombra una sola vez los productos vendidos hoy por menos de lo que cuestan', () => {
+    const ventas = [
+      venta({ items: [item('Yerba', 100, 300), item('Pan', 100, 50)] }),
+      venta({ items: [item('Yerba', 100, 300)] }),
+    ]
+    expect(porDebajoDelCosto(ventas, HOY)).toEqual(['Yerba'])
+  })
+  it('ignora anuladas y otros días; sin problemas devuelve vacío', () => {
+    const ventas = [
+      venta({ estado: 'anulada', items: [item('A', 1, 9)] }),
+      venta({ fecha: new Date(2026, 9, 26, 10).getTime(), items: [item('B', 1, 9)] }),
+      venta({ items: [item('C', 10, 9)] }),
+    ]
+    expect(porDebajoDelCosto(ventas, HOY)).toEqual([])
   })
 })
