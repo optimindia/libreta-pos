@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
+import { violacionesAxe } from './axe'
 import { db } from '@/datos/local/db'
 import { repos } from '@/datos/local/repos'
 import { PantallaInicio } from '@/ui/inicio/PantallaInicio'
@@ -94,5 +95,50 @@ describe('PantallaInicio para un vendedor', () => {
     await repos.productos.guardar({ codigoBarras: null, nombre: 'Yerba', costo: 300000, precio: 420000, stock: 10, stockMinimo: 3 })
     render(<PantallaInicio />)
     expect(await screen.findByRole('link', { name: /foto de factura/i })).toBeTruthy()
+  })
+})
+
+describe('PantallaInicio: gráfico por horario', () => {
+  const vender = async (precio: number, costo: number, nombre = 'Yerba') => {
+    const producto = await repos.productos.guardar({ codigoBarras: null, nombre, costo, precio, stock: 10, stockMinimo: 1 })
+    await repos.ventas.registrar({
+      medioPago: 'efectivo', clienteId: null,
+      items: [{ productoId: producto.id, nombre, cantidad: 1, precio, costo }],
+    })
+  }
+
+  it('cada barra dice su horario, la plata y las ventas, y la línea de abajo lo repite al señalarla', async () => {
+    await vender(420000, 300000)
+    render(<PantallaInicio />)
+    await screen.findByText('Ganaste $1.200')
+    const barras = screen.getAllByRole('button', { name: /^\d+ a \d+ h · /i })
+    expect(barras).toHaveLength(8)
+    const conVentas = barras.filter((barra) => /\$4\.200 · 1 venta$/.test(barra.getAttribute('aria-label') ?? ''))
+    expect(conVentas).toHaveLength(1)
+
+    expect(screen.getByText(/^Tu mejor horario: \d+ a \d+ h$/)).toBeTruthy()
+    fireEvent.mouseEnter(conVentas[0])
+    expect(screen.getByText(/^\d+ a \d+ h · \$4\.200 · 1 venta$/)).toBeTruthy()
+    fireEvent.mouseLeave(conVentas[0].parentElement!.parentElement!)
+    expect(screen.getByText(/^Tu mejor horario/)).toBeTruthy()
+  })
+
+  it('sin ventas explica para qué sirve el gráfico', async () => {
+    render(<PantallaInicio />)
+    expect(await screen.findByText(/acá ves a qué hora se vende más/i)).toBeTruthy()
+  })
+
+  it('si se vendió por debajo del costo no festeja: avisa y manda a revisar los costos', async () => {
+    await vender(100, 5000, 'Aceite')
+    render(<PantallaInicio />)
+    expect(await screen.findByText(/Vendiste por debajo del costo: Aceite/)).toBeTruthy()
+    expect(screen.queryByText(/^Ganaste/)).toBeNull()
+  })
+
+  it('no tiene violaciones de accesibilidad', async () => {
+    await vender(420000, 300000)
+    const { container } = render(<PantallaInicio />)
+    await screen.findByText('Ganaste $1.200')
+    expect(await violacionesAxe(container)).toEqual([])
   })
 })
