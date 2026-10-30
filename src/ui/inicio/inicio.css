@@ -490,6 +490,7 @@
   .fi-numeros { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--f-4); }
   .fi-indicador { padding: var(--f-5); }
   .fi-indicador-valor { font-size: 34px; }
+  .fi-indicador-valor-texto { font-size: 22px; }
 
   .fi-grilla > .fi-horario { grid-column: span 8; padding: var(--f-6); }
   .fi-grilla > .fi-caja { grid-column: span 4; padding: var(--f-6); }

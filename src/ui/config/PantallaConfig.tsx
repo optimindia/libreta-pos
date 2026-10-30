@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { db } from '@/datos/local/db'
 import { repos } from '@/datos/local/repos'
-import { cerrarSesion } from '@/datos/nube/sesion'
+import { CerrarSesion } from '@/ui/sistema/CerrarSesion'
 import { Boton } from '@/ui/sistema/Boton'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { Respaldo } from './Respaldo'
@@ -27,7 +27,6 @@ export function PantallaConfig() {
   const [guardando, setGuardando] = useState(false)
   const [guardado, setGuardado] = useState(false)
   const [aviso, setAviso] = useState<string | null>(null)
-  const [saliendo, setSaliendo] = useState(false)
   const { funciones } = useFuncionesNegocio()
 
   useEffect(() => {
@@ -58,12 +57,6 @@ export function PantallaConfig() {
     const lector = new FileReader()
     lector.onload = () => setLogo(String(lector.result))
     lector.readAsDataURL(archivo)
-  }
-
-  async function salir() {
-    if (!window.confirm('Se va a cerrar la sesión y quitar la copia local de este aparato. Los datos de tu cuenta no se borran.')) return
-    setSaliendo(true)
-    await cerrarSesion()
   }
 
   return (
@@ -154,9 +147,7 @@ export function PantallaConfig() {
           <h2 id="config-sesion" className="f-seccion">Sesión de este aparato</h2>
           <p className="f-dato">Cerrá sesión si vas a cambiar de negocio o entregar el dispositivo.</p>
         </div>
-        <Boton variante="secundario" disabled={saliendo} onClick={() => void salir()}>
-          {saliendo ? 'Cerrando…' : 'Cerrar sesión'}
-        </Boton>
+        <div className="f-config-salir"><CerrarSesion estilo="fila" /></div>
       </Tarjeta>
     </div>
   )
