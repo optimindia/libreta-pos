@@ -23,7 +23,7 @@
 
 .f-cuenta-cuerpo {
   display: grid;
-  align-items: start;
+  align-items: stretch;
   gap: var(--f-4);
 }
 
@@ -33,6 +33,10 @@
   flex-direction: column;
   gap: var(--f-4);
 }
+
+/* Las dos columnas terminan a la misma altura: la última tarjeta de cada
+   una se estira hasta el final. */
+.f-cuenta-lateral > :last-child { flex: 1 0 auto; }
 
 /* ───────────── Tarjeta de estado ───────────── */
 

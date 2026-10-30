@@ -231,17 +231,32 @@
 /* ───────────── PC ───────────── */
 
 @media (min-width: 900px) {
+  /* Lista y cuenta ocupan el alto de la pantalla y cada una se desliza por
+     su cuenta: con 0 o con 100 clientes, las dos columnas terminan juntas. */
   .f-fiados {
     display: grid;
+    height: calc(100dvh - 76px);
+    min-height: 560px;
     grid-template-columns: minmax(360px, 488px) minmax(0, 1fr);
-    align-items: start;
+    align-items: stretch;
     gap: var(--f-6);
   }
 
+  .f-fiados-lista-col {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .f-fiados-lista-col > .f-fiados-lista,
+  .f-fiados-lista-col > .f-estado { flex: 1 0 auto; }
+
   .f-fiados-detalle {
-    position: sticky;
-    top: var(--f-6);
-    min-height: 480px;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
   }
 
   .f-fiados-pista { display: none; }

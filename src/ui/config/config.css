@@ -16,7 +16,7 @@
 
 .f-config-cuerpo {
   display: grid;
-  align-items: start;
+  align-items: stretch;
   gap: var(--f-4);
 }
 
@@ -26,6 +26,10 @@
   flex-direction: column;
   gap: var(--f-4);
 }
+
+/* Las dos columnas terminan a la misma altura: la última tarjeta de cada
+   una se estira hasta el final. */
+.f-config-col > :last-child { flex: 1 0 auto; }
 
 .f-config-bloque,
 .f-config-form {
