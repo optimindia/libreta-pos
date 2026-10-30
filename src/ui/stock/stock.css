@@ -460,7 +460,7 @@
 
 @media (min-width: 640px) {
   .f-stock-resumen { gap: var(--f-3); }
-  .f-stock-ficha { min-height: 84px; flex-direction: row-reverse; align-items: center; justify-content: space-between; padding: var(--f-4) var(--f-5); }
+  .f-stock-ficha { min-height: 84px; flex-direction: row-reverse; align-items: center; justify-content: flex-end; gap: var(--f-4); padding: var(--f-4) var(--f-5); }
   .f-stock-ficha .f-plata { font-size: 28px; }
   .f-stock-ficha-texto { font-size: 16px; }
   .f-stock-ficha-texto span { display: block; }
@@ -535,3 +535,18 @@
 @media (max-width: 560px) {
   .f-stock-fila-ancha { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Acciones de cada producto: "Editar" con texto y el resto con ícono (con
+   nombre accesible y globo al pasar el cursor), para que la fila respire. */
+.f-stock-accion {
+  width: 40px;
+  height: 40px;
+  border: 1.5px solid var(--f-borde);
+  border-radius: var(--f-radio-control);
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+}
+
+.f-stock-accion svg { width: 20px; height: 20px; }
+.f-stock-accion:hover { border-color: var(--f-tinta); }
+.f-stock-filtros .f-chip svg { width: 16px; height: 16px; }

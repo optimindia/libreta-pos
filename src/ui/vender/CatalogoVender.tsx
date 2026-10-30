@@ -5,7 +5,7 @@ import type { Producto } from '@/dominio/tipos'
 import { formatearPesos } from '@/dominio/dinero'
 import { repos } from '@/datos/local/repos'
 import { precioVigente, tieneOfertaVigente } from '@/dominio/ticket'
-import { IconoFavorito, IconoStock } from '@/ui/sistema/iconos'
+import { IconoFavorito, IconoFiltro, IconoGanancia, IconoStock } from '@/ui/sistema/iconos'
 import { CampoBusqueda } from '@/ui/sistema/CampoBusqueda'
 import { Chip, Chips } from '@/ui/sistema/Chip'
 import { Etiqueta } from '@/ui/sistema/Etiqueta'
@@ -92,6 +92,8 @@ export function CatalogoVender({
       )}
 
       {masVendidos.length > 0 && categoria === '' && (
+        <div className="f-catalogo-fila">
+        <p className="f-catalogo-rotulo" aria-hidden="true"><IconoGanancia /> Lo que más sale · tocá para sumar</p>
         <Chips etiqueta="Más vendidos" className="f-mas-vendidos">
           {masVendidos.map((producto) => (
             <Chip key={producto.id} activo={false} onClick={() => onElegir(producto)} aria-label={`Sumar ${producto.nombre}, más vendido`}>
@@ -99,9 +101,12 @@ export function CatalogoVender({
             </Chip>
           ))}
         </Chips>
+        </div>
       )}
 
       {(categorias.length > 0 || hayFavoritos) && (
+        <div className="f-catalogo-fila">
+        <p className="f-catalogo-rotulo" aria-hidden="true"><IconoFiltro /> Categorías</p>
         <Chips etiqueta="Categorías">
           <Chip activo={categoria === ''} onClick={() => setCategoria('')}>Todo</Chip>
           {hayFavoritos && (
@@ -113,6 +118,7 @@ export function CatalogoVender({
             <Chip key={opcion} activo={categoria === opcion} onClick={() => setCategoria(opcion)}>{opcion}</Chip>
           ))}
         </Chips>
+        </div>
       )}
 
       {visibles.length === 0 ? (
@@ -159,7 +165,7 @@ export function CatalogoVender({
                         <Etiqueta tono="blanco">Sin stock</Etiqueta>
                       ) : (
                         <span className="f-producto-nota" data-poco={poco ? 'true' : 'false'}>
-                          {oferta ? `Oferta · quedan ${stock}` : `quedan ${stock}`}
+                          <IconoStock />{oferta ? `Oferta · quedan ${stock}` : `quedan ${stock}`}
                         </span>
                       )}
                     </span>
