@@ -8,13 +8,13 @@ import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 
 /** "Vaciar" la venta, con una confirmación en el lugar: un toque de más no
  *  borra todo. */
-export function VaciarVenta({ onVaciar }: { onVaciar: () => void }) {
+export function VaciarVenta({ onVaciar, etiqueta = 'Vaciar venta', confirmar = 'Sí, vaciar' }: { onVaciar: () => void; etiqueta?: string; confirmar?: string }) {
   const [confirmando, setConfirmando] = useState(false)
 
   if (!confirmando) {
     return (
       <button type="button" className="f-boton f-boton-secundario" data-tamano="chico" onClick={() => setConfirmando(true)}>
-        Vaciar venta
+        {etiqueta}
       </button>
     )
   }
@@ -22,7 +22,7 @@ export function VaciarVenta({ onVaciar }: { onVaciar: () => void }) {
     <div className="f-venta-vaciar" role="group" aria-label="¿Borrar todo?">
       <span>¿Borrar todo?</span>
       <button type="button" className="f-boton f-boton-cuidado" data-tamano="chico" onClick={() => { onVaciar(); setConfirmando(false) }}>
-        Sí, vaciar
+        {confirmar}
       </button>
       <button type="button" className="f-boton f-boton-secundario" data-tamano="chico" onClick={() => setConfirmando(false)}>
         No
@@ -38,8 +38,14 @@ export function Ticket({
   onCambiarCantidad,
   stockPorProducto,
   onSinStock,
+  cobrables,
+  onDescuento,
 }: {
   items: ItemVenta[]
+  /** Los mismos renglones con los descuentos aplicados, tal como se cobran. */
+  cobrables?: ItemVenta[]
+  /** Abre el descuento de un renglón. */
+  onDescuento?: (productoId: string) => void
   onCambiarCantidad: (productoId: string, cantidad: number) => void
   stockPorProducto: Record<string, number>
   onSinStock?: (productoId: string) => void
@@ -54,11 +60,20 @@ export function Ticket({
     <ul className="f-venta-renglones">
       {items.map((item) => {
         const sinMas = item.cantidad >= (stockPorProducto[item.productoId] ?? 0)
+        const final = cobrables?.find((candidato) => candidato.productoId === item.productoId) ?? item
+        const rebajado = final.precio !== item.precio
         return (
           <li key={item.productoId} className="f-renglon f-venta-renglon">
             <span className="f-renglon-cuerpo">
               <strong className="f-renglon-titulo">{item.nombre}</strong>
-              <span className="f-renglon-detalle f-plata">{formatearPesos(item.precio)} c/u</span>
+              <span className="f-renglon-detalle f-plata">
+                {rebajado && <s>{formatearPesos(item.precio)}</s>} {formatearPesos(final.precio)} c/u
+              </span>
+              {onDescuento && (
+                <button type="button" className="f-venta-descuento" onClick={() => onDescuento(item.productoId)} aria-label={`${rebajado ? 'Cambiar el descuento de' : 'Descuento para'} ${item.nombre}`}>
+                  {rebajado ? 'Cambiar descuento' : 'Descuento'}
+                </button>
+              )}
             </span>
             <span className="f-paso">
               <button
@@ -83,7 +98,7 @@ export function Ticket({
                 <IconoMasCantidad />
               </button>
             </span>
-            <span className="f-renglon-fin f-venta-subtotal">{formatearPesos(item.precio * item.cantidad)}</span>
+            <span className="f-renglon-fin f-venta-subtotal">{formatearPesos(final.precio * item.cantidad)}</span>
           </li>
         )
       })}

@@ -6,7 +6,7 @@
 /** Versión del formato del archivo. La 1 era la copia sin número de esquema. */
 export const VERSION_COPIA = 2
 /** Última versión de las tablas de Dexie (db.version en datos/local/db.ts). */
-export const ESQUEMA_ACTUAL = 6
+export const ESQUEMA_ACTUAL = 7
 
 export const TABLAS_DATOS = [
   'productos', 'ventas', 'clientes', 'fiados', 'fiadoPagos', 'ingresos', 'cierres', 'movimientosCaja', 'pedidos',

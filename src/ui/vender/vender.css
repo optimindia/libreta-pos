@@ -732,3 +732,51 @@
   70%, 100% { transform: scale(2.6); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .f-lector-punto::after { animation: none; opacity: 0; } }
+
+/* ───────────── Ventas abiertas, descuento y nombre ───────────── */
+
+.f-ventas-tira { margin-bottom: 12px; }
+
+.f-venta-pestana {
+  display: inline-block;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.f-venta-nombre {
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: 10px;
+  padding: 0 14px;
+  border: 1.5px solid var(--f-borde, currentColor);
+  border-radius: 12px;
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+  font: inherit;
+  font-size: 15px;
+}
+
+.f-venta-descuento {
+  align-self: flex-start;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--f-tinta);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.f-venta-descuento-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.f-mas-vendidos { margin-bottom: 2px; }
