@@ -780,3 +780,9 @@
 }
 
 .f-mas-vendidos { margin-bottom: 2px; }
+
+.f-venta-falta {
+  color: var(--f-coral);
+  font-size: 13px;
+  font-weight: 800;
+}

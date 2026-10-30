@@ -69,6 +69,9 @@ export function Ticket({
               <span className="f-renglon-detalle f-plata">
                 {rebajado && <s>{formatearPesos(item.precio)}</s>} {formatearPesos(final.precio)} c/u
               </span>
+              {item.cantidad > (stockPorProducto[item.productoId] ?? 0) && (
+                <span className="f-venta-falta" role="status">Solo quedan {stockPorProducto[item.productoId] ?? 0}</span>
+              )}
               {onDescuento && (
                 <button type="button" className="f-venta-descuento" onClick={() => onDescuento(item.productoId)} aria-label={`${rebajado ? 'Cambiar el descuento de' : 'Descuento para'} ${item.nombre}`}>
                   {rebajado ? 'Cambiar descuento' : 'Descuento'}

@@ -113,8 +113,10 @@ describe('PWA-02: aviso de versión nueva', () => {
     montarSW({ espera: true, controlado: true })
     render(<RegistrarSW />)
     await screen.findByText(/hay una versión nueva/i)
+    // Deja que los efectos terminen de engancharse antes de mandar el evento.
+    await act(async () => {})
     act(() => visibilidad('hidden'))
-    expect(registro.waiting?.postMessage).toHaveBeenCalledWith({ tipo: 'SKIP_WAITING' })
+    await waitFor(() => expect(registro.waiting?.postMessage).toHaveBeenCalledWith({ tipo: 'SKIP_WAITING' }))
   })
 
   it('con venta abierta nunca se activa sola, ni en segundo plano', async () => {
