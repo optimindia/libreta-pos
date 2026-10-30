@@ -2,7 +2,7 @@ import type { Centavos, Fiado, FiadoPago, Producto, Venta } from './tipos'
 import { saldoFiado } from './fiado'
 import { estadoVencimiento } from './inteligencia'
 import { faltantes } from './stock'
-import { sumar } from './dinero'
+import { formatearPesos, sumar } from './dinero'
 
 /** El saludo de la pantalla de inicio, según la hora del aparato. */
 export function saludo(hora: number): string {
@@ -121,4 +121,69 @@ export function porDebajoDelCosto(ventas: Venta[], dia: Date): string[] {
     for (const item of venta.items) if (item.costo > item.precio) nombres.add(item.nombre)
   }
   return [...nombres]
+}
+
+export interface Tarea {
+  id: 'fiados-vencidos' | 'fiado-viejo' | 'bajo-costo' | 'reponer' | 'sin-productos'
+  tono: 'coral' | 'ambar' | 'verde'
+  texto: string
+  detalle: string
+  accion: string
+  href: string
+}
+
+export interface DatosTareas {
+  esDueno: boolean
+  hayFiados: boolean
+  hayStock: boolean
+  cantidadProductos: number
+  vencidos: FiadosVencidos
+  /** Deudas ordenadas de mayor a menor, con el nombre del cliente. */
+  deudas: Array<{ nombre: string; saldo: Centavos; diasDelMasViejo: number }>
+  reponer: PorReponer
+  bajoCosto: string[]
+}
+
+const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`
+
+/** Lo que conviene hacer ahora, de lo más urgente a lo menos, dicho en
+ *  palabras y con la acción que lo resuelve. Vacío = todo en orden. */
+export function tareasDeHoy(datos: DatosTareas): Tarea[] {
+  const tareas: Tarea[] = []
+  const [mayor] = datos.deudas
+
+  if (datos.esDueno && datos.hayStock && datos.cantidadProductos === 0) {
+    tareas.push({
+      id: 'sin-productos', tono: 'verde', texto: 'Cargá tus productos para empezar a vender',
+      detalle: 'Con el precio y cuántos tenés, Libreta controla el stock sola.', accion: 'Cargar productos', href: '/stock',
+    })
+  }
+  if (datos.hayFiados && datos.vencidos.cantidad > 0) {
+    tareas.push({
+      id: 'fiados-vencidos', tono: 'coral',
+      texto: `${plural(datos.vencidos.cantidad, 'fiado vencido', 'fiados vencidos')} por ${formatearPesos(datos.vencidos.monto)}`,
+      detalle: mayor ? `El que más debe es ${mayor.nombre}: ${formatearPesos(mayor.saldo)}.` : 'Ya pasó la fecha que acordaron.',
+      accion: 'Cobrar', href: '/fiados',
+    })
+  } else if (datos.hayFiados && mayor && mayor.diasDelMasViejo >= 7) {
+    tareas.push({
+      id: 'fiado-viejo', tono: 'coral', texto: `${mayor.nombre} te debe ${formatearPesos(mayor.saldo)}`,
+      detalle: `Desde hace ${plural(mayor.diasDelMasViejo, 'día', 'días')}. Podés mandarle un recordatorio.`,
+      accion: 'Recordar', href: '/fiados',
+    })
+  }
+  if (datos.esDueno && datos.bajoCosto.length > 0) {
+    tareas.push({
+      id: 'bajo-costo', tono: 'ambar', texto: `Vendiste por debajo del costo: ${listaCorta(datos.bajoCosto)}`,
+      detalle: 'O hubo un descuento grande o el costo está mal cargado.', accion: 'Revisar costos', href: '/stock',
+    })
+  }
+  if (datos.hayStock && datos.reponer.cantidad > 0) {
+    tareas.push({
+      id: 'reponer', tono: 'ambar', texto: `Se te están por acabar ${listaCorta(datos.reponer.nombres)}`,
+      detalle: `${plural(datos.reponer.cantidad, 'producto llegó', 'productos llegaron')} a su mínimo.`,
+      accion: 'Ver qué pedir', href: '/stock',
+    })
+  }
+  return tareas
 }

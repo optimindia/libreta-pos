@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  alturasDeBarras, detalleFranjas, fiadosVencidos, listaCorta, mejorFranja, porDebajoDelCosto, porReponer, saludo, ventasPorFranja,
+  alturasDeBarras, detalleFranjas, fiadosVencidos, tareasDeHoy, listaCorta, mejorFranja, porDebajoDelCosto, porReponer, saludo, ventasPorFranja,
 } from '@/dominio/inicio'
 import type { Fiado, FiadoPago, Producto, Venta } from '@/dominio/tipos'
 
@@ -164,5 +164,50 @@ describe('porDebajoDelCosto', () => {
       venta({ items: [item('C', 10, 9)] }),
     ]
     expect(porDebajoDelCosto(ventas, HOY)).toEqual([])
+  })
+})
+
+describe('tareasDeHoy', () => {
+  const base = {
+    esDueno: true, hayFiados: true, hayStock: true, cantidadProductos: 5,
+    vencidos: { cantidad: 0, monto: 0 }, deudas: [], reponer: { cantidad: 0, nombres: [] }, bajoCosto: [],
+  }
+
+  it('sin nada pendiente devuelve una lista vacía', () => {
+    expect(tareasDeHoy(base)).toEqual([])
+  })
+
+  it('ordena de lo más urgente a lo menos y dice qué hacer', () => {
+    const tareas = tareasDeHoy({
+      ...base,
+      vencidos: { cantidad: 2, monto: 2670000 },
+      deudas: [{ nombre: 'Doña Rosa', saldo: 2130000, diasDelMasViejo: 20 }],
+      reponer: { cantidad: 3, nombres: ['Aceite Natura', 'Fideos Matarazzo', 'Coca-Cola'] },
+      bajoCosto: ['Morcilla'],
+    })
+    expect(tareas.map((t) => t.id)).toEqual(['fiados-vencidos', 'bajo-costo', 'reponer'])
+    expect(tareas[0]).toMatchObject({ texto: '2 fiados vencidos por $26.700', detalle: 'El que más debe es Doña Rosa: $21.300.', accion: 'Cobrar', href: '/fiados' })
+    expect(tareas[2]).toMatchObject({ texto: 'Se te están por acabar Aceite, Fideos y Coca-Cola', detalle: '3 productos llegaron a su mínimo.' })
+  })
+
+  it('sin vencidos, avisa de una deuda vieja con el nombre del cliente', () => {
+    const [tarea] = tareasDeHoy({ ...base, deudas: [{ nombre: 'Raúl', saldo: 540000, diasDelMasViejo: 9 }] })
+    expect(tarea).toMatchObject({ id: 'fiado-viejo', texto: 'Raúl te debe $5.400', accion: 'Recordar' })
+  })
+
+  it('una deuda reciente no es una tarea', () => {
+    expect(tareasDeHoy({ ...base, deudas: [{ nombre: 'Raúl', saldo: 540000, diasDelMasViejo: 2 }] })).toEqual([])
+  })
+
+  it('respeta las funciones apagadas y el rol', () => {
+    const datos = {
+      ...base, hayFiados: false, esDueno: false,
+      vencidos: { cantidad: 1, monto: 100 }, bajoCosto: ['X'], cantidadProductos: 0,
+    }
+    expect(tareasDeHoy(datos)).toEqual([])
+  })
+
+  it('a un negocio sin productos le pide cargarlos primero', () => {
+    expect(tareasDeHoy({ ...base, cantidadProductos: 0 })[0]).toMatchObject({ id: 'sin-productos', accion: 'Cargar productos' })
   })
 })

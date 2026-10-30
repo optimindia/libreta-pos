@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { violacionesAxe } from './axe'
 import { db } from '@/datos/local/db'
 import { repos } from '@/datos/local/repos'
@@ -143,5 +143,27 @@ describe('PantallaInicio: gráfico por horario', () => {
     const { container } = render(<PantallaInicio />)
     await screen.findByText('Ganaste hoy')
     expect(await violacionesAxe(container)).toEqual([])
+  })
+})
+
+describe('PantallaInicio: para hacer ahora', () => {
+  it('sin pendientes dice que está todo en orden', async () => {
+    await repos.productos.guardar({ codigoBarras: null, nombre: 'Yerba', costo: 300000, precio: 420000, stock: 10, stockMinimo: 3 })
+    render(<PantallaInicio />)
+    const tareas = await screen.findByRole('region', { name: 'Para hacer ahora' })
+    expect(within(tareas).getByText('Nada pendiente. Está todo en orden.')).toBeTruthy()
+  })
+
+  it('un fiado vencido es una tarea con el nombre de quien más debe y el botón para cobrar', async () => {
+    const dia = 24 * 60 * 60 * 1000
+    await repos.productos.guardar({ codigoBarras: null, nombre: 'Yerba', costo: 300000, precio: 420000, stock: 10, stockMinimo: 3 })
+    const cliente = await repos.clientes.guardar({ nombre: 'Raúl', telefono: null })
+    await db.fiados.add({ id: 'f1', clienteId: cliente.id, ventaId: null, monto: 2130000, fecha: Date.now() - 20 * dia, vence: Date.now() - 12 * dia })
+    render(<PantallaInicio />)
+    const tareas = await screen.findByRole('region', { name: 'Para hacer ahora' })
+
+    expect(await within(tareas).findByText('1 fiado vencido por $21.300')).toBeTruthy()
+    expect(within(tareas).getByText('El que más debe es Raúl: $21.300.')).toBeTruthy()
+    expect(within(tareas).getByRole('link', { name: /^cobrar/i }).getAttribute('href')).toBe('/fiados')
   })
 })
