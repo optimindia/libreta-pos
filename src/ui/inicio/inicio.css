@@ -12,20 +12,6 @@
   margin: 0 auto;
 }
 
-.fi-cabeza {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--f-2) var(--f-4);
-  padding-top: var(--f-2);
-}
-
-.fi-cabeza-texto { min-width: 0; }
-.fi-fecha { margin: 0; color: var(--f-tinta-2); font-size: 16px; font-weight: 600; }
-.fi-cabeza-texto .f-titulo { margin-top: 2px; }
-.fi-cabeza .f-etiqueta { min-height: 36px; font-size: 15px; }
-
 .fi-grilla {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -33,56 +19,6 @@
 }
 
 .fi-grilla > * { min-width: 0; }
-
-/* ───────────── Vender: franja lima, la acción principal ───────────── */
-
-.fi-vender {
-  display: flex;
-  align-items: center;
-  gap: var(--f-4);
-  padding: var(--f-4) var(--f-5);
-  border-radius: var(--f-radio-tarjeta);
-  background: var(--f-lima);
-  color: var(--f-sobre-lima);
-  text-decoration: none;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.fi-vender:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
-.fi-vender:active { transform: translateY(1px); }
-
-.fi-vender-icono {
-  display: grid;
-  width: 56px;
-  height: 56px;
-  flex: 0 0 56px;
-  place-items: center;
-  border-radius: 16px;
-  background: var(--f-sobre-lima);
-  color: var(--f-lima);
-}
-
-.fi-vender-icono svg { width: 28px; height: 28px; }
-
-.fi-vender-texto { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 2px; }
-.fi-vender-texto strong { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; }
-.fi-vender-texto small { font-size: 16px; font-weight: 600; line-height: 1.3; }
-
-.fi-vender-ir {
-  display: none;
-  align-items: center;
-  gap: 8px;
-  min-height: 48px;
-  padding: 0 var(--f-5);
-  border-radius: 999px;
-  background: var(--f-sobre-lima);
-  color: var(--f-lima);
-  font-size: 17px;
-  font-weight: 800;
-}
-
-.fi-vender-ir svg { width: 20px; height: 20px; transition: transform 0.16s ease; }
 
 /* ───────────── Los cuatro números del día ───────────── */
 
@@ -428,8 +364,6 @@
 /* Lo que se puede abrir se levanta un poco al pasar el cursor. */
 @media (hover: hover) {
   .fi-vender, .fi-indicador, .fi-atajo { transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease; }
-  .fi-vender:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgb(0 0 0 / 0.14); }
-  .fi-vender:hover .fi-vender-ir svg { transform: translateX(4px); }
   a.fi-indicador:hover, .fi-atajo:hover { border-color: var(--tono, var(--f-tinta)); transform: translateY(-2px); box-shadow: 0 10px 24px rgb(0 0 0 / 0.1); }
   .fi-atajo:hover { --tono: var(--f-tinta); }
   a.fi-indicador:hover .fi-indicador-ir { color: var(--tono); transform: translateX(3px); }
@@ -457,22 +391,15 @@
   .fi-indicador-ir { display: none; }
   .fi-indicador-valor { font-size: 26px; }
   .fi-indicador-nota { font-size: 14px; }
-  .fi-vender { padding: var(--f-4); }
-  .fi-vender-texto strong { font-size: 30px; }
-  .fi-vender-texto small { font-size: 15px; }
 }
 
 /* ───────────── Tablet ───────────── */
 
-@media (min-width: 640px) {
-  .fi-vender-ir { display: inline-flex; }
-}
 
 /* ───────────── PC ───────────── */
 
 @media (min-width: 900px) {
   .fi-pagina { gap: var(--f-5); }
-  .fi-cabeza { padding-top: 0; }
 
   .fi-grilla {
     grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -481,11 +408,6 @@
 
   .fi-grilla > * { grid-column: 1 / -1; }
 
-  .fi-vender { padding: var(--f-5) var(--f-6); }
-  .fi-vender-icono { width: 64px; height: 64px; flex-basis: 64px; border-radius: 18px; }
-  .fi-vender-icono svg { width: 32px; height: 32px; }
-  .fi-vender-texto strong { font-size: 40px; }
-  .fi-vender-texto small { font-size: 17px; }
 
   .fi-numeros { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--f-4); }
   .fi-indicador { padding: var(--f-5); }
@@ -555,3 +477,254 @@
 .fi-guia-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .fi-vacio { grid-column: 1 / -1; }
 .fi-vacio.f-estado-vacio { min-height: 0; padding: var(--f-5); }
+
+/* ───────────── Portada: la página del día ───────────── */
+
+/* Fondo oscuro con el renglonado de una libreta, apenas visible: lo único
+   decorado de la pantalla. Arriba de todo, cuánto se lleva vendido. */
+.fi-portada {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-5);
+  overflow: hidden;
+  padding: var(--f-5);
+  border-radius: var(--f-radio-tarjeta);
+  background-color: var(--f-nav);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 31px, rgb(255 255 255 / 0.05) 31px 32px);
+  color: var(--f-nav-texto-activo);
+}
+
+.fi-portada::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 44px;
+  width: 1px;
+  background: rgb(255 120 100 / 0.22);
+  content: '';
+  pointer-events: none;
+}
+
+.fi-portada-texto { position: relative; min-width: 0; padding-left: 40px; }
+.fi-portada .fi-fecha { margin: 0; color: var(--f-nav-texto); font-size: 15px; font-weight: 600; }
+.fi-saludo { margin: 2px 0 var(--f-4); font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+.fi-llevas-rotulo { margin: 0; color: var(--f-nav-texto); font-size: 16px; font-weight: 600; }
+
+.fi-llevas {
+  margin: 0;
+  color: var(--f-lima);
+  font-size: clamp(44px, 12vw, 76px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.fi-llevas-detalle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: var(--f-2) 0 0;
+  color: var(--f-nav-texto-activo);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.fi-llevas-comparacion { color: var(--f-nav-texto); font-weight: 500; }
+
+.fi-portada-accion { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: var(--f-3); }
+.fi-portada-accion .f-etiqueta { align-self: flex-start; min-height: 32px; font-size: 14px; }
+
+.fi-portada .fi-vender {
+  display: flex;
+  min-height: 88px;
+  align-items: center;
+  gap: var(--f-3);
+  padding: var(--f-3) var(--f-4);
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-lima);
+  color: var(--f-sobre-lima);
+  text-decoration: none;
+  touch-action: manipulation;
+  transition: transform 0.16s ease;
+}
+
+.fi-portada .fi-vender:focus-visible { outline: 3px solid var(--f-lima); outline-offset: 3px; }
+.fi-portada .fi-vender:active { transform: translateY(1px); }
+
+.fi-vender-icono {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--f-sobre-lima);
+  color: var(--f-lima);
+}
+
+.fi-vender-icono svg { width: 26px; height: 26px; }
+.fi-vender-texto { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 2px; }
+.fi-vender-texto strong { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
+.fi-vender-texto small { font-size: 15px; font-weight: 600; }
+.fi-vender-flecha { display: grid; }
+.fi-vender-flecha svg { width: 26px; height: 26px; transition: transform 0.16s ease; }
+
+@media (hover: hover) {
+  .fi-portada .fi-vender:hover .fi-vender-flecha svg { transform: translateX(4px); }
+}
+
+/* ───────────── Para hacer ahora ───────────── */
+
+.fi-tareas {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--f-3);
+  padding: var(--f-5);
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-superficie);
+}
+
+.fi-titulo-bloque { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+
+.fi-tareas-lista { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+
+.fi-tarea {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--f-2) var(--f-3);
+  padding: var(--f-3) 0;
+  border-top: 1px solid var(--f-superficie-2);
+}
+
+.fi-tarea:first-child { border-top: 0; padding-top: 0; }
+
+.fi-tarea-icono {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--f-superficie-2);
+  color: var(--f-tinta);
+}
+
+.fi-tarea-icono[data-tono='coral'] { background: var(--f-coral-suave); color: var(--f-coral); }
+.fi-tarea-icono[data-tono='ambar'] { background: var(--f-ambar-suave); color: var(--f-ambar); }
+.fi-tarea-icono[data-tono='verde'] { background: var(--f-verde-suave); color: var(--f-verde); }
+.fi-tarea-icono svg { width: 22px; height: 22px; }
+
+.fi-tarea-texto { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.fi-tarea-texto strong { font-size: 17px; font-weight: 700; line-height: 1.3; }
+.fi-tarea-texto small { color: var(--f-tinta-2); font-size: 15px; line-height: 1.4; }
+
+.fi-tarea-accion {
+  display: inline-flex;
+  min-height: 44px;
+  grid-column: 2;
+  justify-self: start;
+  align-items: center;
+  padding: 0 var(--f-4);
+  border-radius: 999px;
+  background: var(--f-tinta);
+  color: var(--f-superficie);
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.fi-tarea[data-tono='coral'] .fi-tarea-accion { background: var(--f-coral); color: #fff; }
+.fi-tarea-accion:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+
+.fi-tareas-nada {
+  display: flex;
+  align-items: center;
+  gap: var(--f-3);
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.fi-tareas-nada .fi-tarea-icono { flex: 0 0 44px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fi-portada .fi-vender, .fi-vender-flecha svg { transition: none; }
+}
+
+/* Celu: los números en una columna, el primero más ancho. */
+@media (max-width: 899px) {
+  .fi-numeros > :first-child:nth-last-child(3) { grid-column: 1 / -1; }
+}
+
+@media (min-width: 640px) {
+  .fi-tarea { grid-template-columns: 44px minmax(0, 1fr) auto; }
+  .fi-tarea-accion { grid-column: auto; justify-self: end; }
+}
+
+@media (min-width: 900px) {
+  .fi-portada {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    align-items: center;
+    gap: var(--f-6);
+    padding: var(--f-6) var(--f-7);
+    background-image: repeating-linear-gradient(to bottom, transparent 0 39px, rgb(255 255 255 / 0.05) 39px 40px);
+  }
+
+  .fi-portada::before { left: 56px; }
+  .fi-portada-texto { padding-left: 40px; }
+  .fi-saludo { font-size: 30px; }
+  .fi-vender-texto small { white-space: nowrap; }
+  .fi-llevas { font-size: 80px; }
+  .fi-portada-accion .f-etiqueta { align-self: flex-end; }
+  .fi-portada .fi-vender { min-height: 112px; padding: var(--f-4) var(--f-5); }
+  .fi-vender-texto strong { font-size: 34px; }
+
+  .fi-grilla > .fi-tareas { grid-column: span 7; padding: var(--f-6); }
+  /* Los tres números en una sola tarjeta: cada fila se reparte la altura,
+     así la columna termina junto a "Para hacer ahora" con 0 o 5 tareas. */
+  .fi-grilla > .fi-numeros {
+    display: flex;
+    grid-column: span 5;
+    flex-direction: column;
+    gap: 0;
+    padding: var(--f-2) var(--f-5);
+    border-radius: var(--f-radio-tarjeta);
+    background: var(--f-superficie);
+  }
+
+  .fi-grilla > .fi-numeros .fi-indicador {
+    display: grid;
+    flex: 1 1 0;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-areas: 'icono etiqueta valor' 'icono nota valor';
+    align-content: center;
+    align-items: center;
+    gap: 2px var(--f-3);
+    padding: var(--f-3) 0;
+    border: 0;
+    border-top: 1px solid var(--f-superficie-2);
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .fi-grilla > .fi-numeros .fi-indicador:first-child { border-top: 0; }
+  .fi-grilla > .fi-numeros .fi-indicador-cabeza { display: contents; }
+  .fi-grilla > .fi-numeros .fi-indicador-icono { grid-area: icono; }
+  .fi-grilla > .fi-numeros .fi-indicador-etiqueta { grid-area: etiqueta; align-self: end; }
+  .fi-grilla > .fi-numeros .fi-indicador-ir { display: none; }
+  .fi-grilla > .fi-numeros .fi-indicador-valor { grid-area: valor; font-size: 28px; text-align: right; }
+  .fi-grilla > .fi-numeros .fi-indicador-valor-texto { font-size: 18px; }
+  .fi-grilla > .fi-numeros .fi-indicador-nota { grid-area: nota; align-self: start; justify-self: start; font-size: 14px; }
+  .fi-grilla > .fi-numeros .fi-indicador-extra { display: none; }
+  .fi-grilla > .fi-numeros a.fi-indicador:hover { background: none; }
+  .fi-grilla > .fi-numeros a.fi-indicador:hover .fi-indicador-etiqueta { text-decoration: underline; }
+  .fi-grilla > .fi-tareas:not(:has(+ .fi-numeros)) { grid-column: 1 / -1; }
+}

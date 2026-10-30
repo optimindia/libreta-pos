@@ -13,7 +13,7 @@ import { rolDe } from '@/dominio/roles'
 import { deudaPorCliente } from '@/dominio/fiado'
 import { compararConLaSemanaPasada, fechaLarga } from '@/dominio/comparar'
 import {
-  detalleFranjas, fiadosVencidos, listaCorta, porDebajoDelCosto, porReponer, saludo,
+  detalleFranjas, fiadosVencidos, listaCorta, porDebajoDelCosto, porReponer, saludo, tareasDeHoy,
 } from '@/dominio/inicio'
 import { funcionActiva } from '@/dominio/funciones'
 import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
@@ -22,12 +22,12 @@ import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { Entrar } from '@/ui/vender/Entrar'
 import {
   IconoAlerta, IconoCamara, IconoCobrar, IconoEfectivo, IconoFiados, IconoFlechaDerecha, IconoGanancia, IconoHistorial,
-  IconoHora, IconoMasCantidad, IconoPlata, IconoQR, IconoStock, IconoTransferencia, IconoVender,
+  IconoConfirmar, IconoHora, IconoMasCantidad, IconoQR, IconoStock, IconoTransferencia, IconoVender, IconoWhatsApp,
 } from '@/ui/sistema/iconos'
+import type { Tarea } from '@/dominio/inicio'
 import type { ComponentType, ReactNode } from 'react'
 import type { Venta } from '@/dominio/tipos'
 import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
-import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 import { GraficoHoras } from './GraficoHoras'
 import { PrimerosPasos, pasosDeLaGuia } from './PrimerosPasos'
 
@@ -69,7 +69,8 @@ export function PantallaInicio() {
   const franjas = detalleFranjas(ventas, ahora)
   const bajoCosto = porDebajoDelCosto(ventas, ahora)
   const contraSemanaPasada = compararConLaSemanaPasada(ventas, ahora)
-  const teDeben = deudaPorCliente(fiados, pagos, ahora.getTime()).reduce((total, deuda) => total + deuda.saldo, 0)
+  const deudas = deudaPorCliente(fiados, pagos, ahora.getTime())
+  const teDeben = deudas.reduce((total, deuda) => total + deuda.saldo, 0)
   const vencidos = fiadosVencidos(fiados, pagos, ahora.getTime())
   const reponer = porReponer(productos)
   const medios = resumen.porMedioPago
@@ -88,6 +89,11 @@ export function PantallaInicio() {
   const hayStock = funcionActiva(funciones, 'stock')
   const hayFactura = esDueno && hayStock && funcionActiva(funciones, 'importarFactura')
 
+  const tareas = tareasDeHoy({
+    esDueno, hayFiados, hayStock, cantidadProductos: productos.length, vencidos, reponer, bajoCosto,
+    deudas: deudas.map((deuda) => ({ ...deuda, nombre: nombreCliente(deuda.clienteId) ?? 'Un cliente' })),
+  })
+
   const comparacion =
     contraSemanaPasada === null
       ? null
@@ -99,36 +105,35 @@ export function PantallaInicio() {
 
   return (
     <div className="fi-pagina">
-      <header className="fi-cabeza">
-        <div className="fi-cabeza-texto">
-          <p className="fi-fecha">{fechaLarga(ahora)} · {nombre}</p>
-          <h1 className="f-titulo">{saludo(ahora.getHours())}</h1>
-        </div>
-        <Etiqueta tono={pendientes ? 'ambar' : 'verde'} punto>{pendientes ? 'Guardado en este aparato' : 'Al día'}</Etiqueta>
-      </header>
-
       {aparatoNuevo && <Entrar onListo={() => setDeCero(true)} />}
 
+      <section className="fi-portada" aria-labelledby="fi-saludo">
+        <div className="fi-portada-texto">
+          <p className="fi-fecha">{fechaLarga(ahora)} · {nombre}</p>
+          <h1 id="fi-saludo" className="fi-saludo">{saludo(ahora.getHours())}</h1>
+          <p className="fi-llevas-rotulo">Hoy llevás vendido</p>
+          <p className="fi-llevas">{formatearPesos(resumen.vendido)}</p>
+          <p className="fi-llevas-detalle">
+            <span>{resumen.cantidadVentas === 0
+              ? 'Todavía no vendiste nada hoy'
+              : `${resumen.cantidadVentas} ${resumen.cantidadVentas === 1 ? 'venta' : 'ventas'}`}</span>
+            {comparacion && resumen.cantidadVentas > 0 && <span className="fi-llevas-comparacion">{comparacion}</span>}
+          </p>
+        </div>
+        <div className="fi-portada-accion">
+          <Link href="/vender" className="fi-vender">
+            <span className="fi-vender-icono"><IconoVender /></span>
+            <span className="fi-vender-texto">
+              <strong>Vender</strong>
+              <small>Escaneá o tocá los productos</small>
+            </span>
+            <span className="fi-vender-flecha" aria-hidden="true"><IconoFlechaDerecha /></span>
+          </Link>
+          <Etiqueta tono={pendientes ? 'ambar' : 'verde'} punto>{pendientes ? 'Guardado en este aparato' : 'Todo guardado'}</Etiqueta>
+        </div>
+      </section>
+
       <div className="fi-grilla">
-        <Link href="/vender" className="fi-vender">
-          <span className="fi-vender-icono"><IconoVender /></span>
-          <span className="fi-vender-texto">
-            <strong>Vender</strong>
-            <small>Escaneá o tocá los productos para armar el ticket</small>
-          </span>
-          <span className="fi-vender-ir" aria-hidden="true">Empezar <IconoFlechaDerecha /></span>
-        </Link>
-
-        {esDueno && productos.length === 0 && (
-          <EstadoVacio
-            className="fi-vacio"
-            icono={<IconoStock />}
-            titulo="Todavía no cargaste productos"
-            texto="Cargá el primero o importá tu lista para empezar a vender."
-            accion={{ etiqueta: 'Cargar producto', href: '/stock' }}
-          />
-        )}
-
         <PrimerosPasos
           negocioId={negocio?.negocioId}
           pasos={pasosDeLaGuia({
@@ -139,63 +144,70 @@ export function PantallaInicio() {
           })}
         />
 
-        <section className="fi-numeros" aria-label="Tu día en números">
-          <Indicador
-            href={hayPlata ? '/plata' : undefined}
-            icono={IconoPlata}
-            tono="verde"
-            etiqueta="Vendiste hoy"
-            valor={formatearPesos(resumen.vendido)}
-            nota={resumen.cantidadVentas === 0
-              ? 'Todavía no vendiste nada hoy'
-              : `${resumen.cantidadVentas} ${resumen.cantidadVentas === 1 ? 'venta' : 'ventas'}`}
-            extra={comparacion}
-          />
-
-          {esDueno && (
-            <Indicador
-              href={bajoCosto.length > 0 ? '/stock' : hayPlata ? '/plata' : undefined}
-              icono={bajoCosto.length > 0 ? IconoAlerta : IconoGanancia}
-              tono={bajoCosto.length > 0 ? 'ambar' : 'verde'}
-              etiqueta={bajoCosto.length > 0 ? 'Ganancia' : 'Ganaste hoy'}
-              valor={formatearPesos(resumen.ganancia)}
-              nota={bajoCosto.length > 0
-                ? `Vendiste por debajo del costo: ${listaCorta(bajoCosto)}. Revisá los costos.`
-                : 'Lo que te queda después de pagar la mercadería'}
-            />
-          )}
-
-          {hayFiados && (
-            <Indicador
-              href="/fiados"
-              icono={IconoFiados}
-              tono="coral"
-              etiqueta="Te deben"
-              valor={formatearPesos(teDeben)}
-              nota={vencidos.cantidad > 0
-                ? `${vencidos.cantidad} ${vencidos.cantidad === 1 ? 'vencido' : 'vencidos'}`
-                : teDeben > 0 ? 'Todo al día' : 'Nadie te debe'}
-              extra="Lo que tus clientes todavía no pagaron"
-              urgente={vencidos.cantidad > 0}
-            />
-          )}
-
-          {hayStock && (
-            <Indicador
-              href="/stock"
-              icono={IconoStock}
-              tono="ambar"
-              etiqueta={productos.length === 0 ? 'Mercadería' : 'Por reponer'}
-              valor={productos.length === 0 ? 'Cargá tus productos' : String(reponer.cantidad)}
-              valorTexto={productos.length === 0}
-              nota={productos.length === 0
-                ? 'Sin esto no hay qué vender'
-                : reponer.cantidad === 0 ? 'Todo en orden' : listaCorta(reponer.nombres)}
-              extra={productos.length === 0 ? undefined : 'Productos que llegaron a su mínimo'}
-              urgente={reponer.cantidad > 0}
-            />
+        <section className="fi-tareas" aria-labelledby="fi-tareas-titulo">
+          <h2 id="fi-tareas-titulo" className="fi-titulo-bloque">Para hacer ahora</h2>
+          {tareas.length === 0 ? (
+            <p className="fi-tareas-nada"><span className="fi-tarea-icono" data-tono="verde" aria-hidden="true"><IconoConfirmar /></span>Nada pendiente. Está todo en orden.</p>
+          ) : (
+            <ul className="fi-tareas-lista">
+              {tareas.map((tarea) => {
+                const Icono = ICONO_TAREA[tarea.id]
+                return (
+                  <li key={tarea.id} className="fi-tarea" data-tono={tarea.tono}>
+                    <span className="fi-tarea-icono" data-tono={tarea.tono} aria-hidden="true"><Icono /></span>
+                    <span className="fi-tarea-texto">
+                      <strong>{tarea.texto}</strong>
+                      <small>{tarea.detalle}</small>
+                    </span>
+                    <Link href={tarea.href} className="fi-tarea-accion" aria-label={`${tarea.accion}: ${tarea.texto}`}>{tarea.accion}</Link>
+                  </li>
+                )
+              })}
+            </ul>
           )}
         </section>
+
+        {(esDueno || hayFiados || hayStock) && (
+          <section className="fi-numeros" aria-label="Tu día en números">
+            {esDueno && (
+              <Indicador
+                href={bajoCosto.length > 0 ? '/stock' : hayPlata ? '/plata' : undefined}
+                icono={bajoCosto.length > 0 ? IconoAlerta : IconoGanancia}
+                tono={bajoCosto.length > 0 ? 'ambar' : 'verde'}
+                etiqueta={bajoCosto.length > 0 ? 'Ganancia' : 'Ganaste hoy'}
+                valor={formatearPesos(resumen.ganancia)}
+                nota={bajoCosto.length > 0 ? 'Hay productos vendidos por debajo del costo' : 'Lo que te queda después de pagar la mercadería'}
+              />
+            )}
+            {hayFiados && (
+              <Indicador
+                href="/fiados"
+                icono={IconoFiados}
+                tono="coral"
+                etiqueta="Te deben"
+                valor={formatearPesos(teDeben)}
+                nota={vencidos.cantidad > 0
+                  ? `${vencidos.cantidad} ${vencidos.cantidad === 1 ? 'vencido' : 'vencidos'}`
+                  : teDeben > 0 ? 'Todo al día' : 'Nadie te debe'}
+                urgente={vencidos.cantidad > 0}
+              />
+            )}
+            {hayStock && (
+              <Indicador
+                href="/stock"
+                icono={IconoStock}
+                tono="ambar"
+                etiqueta={productos.length === 0 ? 'Mercadería' : 'Por reponer'}
+                valor={productos.length === 0 ? 'Cargá tus productos' : String(reponer.cantidad)}
+                valorTexto={productos.length === 0}
+                nota={productos.length === 0
+                  ? 'Sin esto no hay qué vender'
+                  : reponer.cantidad === 0 ? 'Todo en orden' : listaCorta(reponer.nombres)}
+                urgente={reponer.cantidad > 0}
+              />
+            )}
+          </section>
+        )}
 
         <Tarjeta como="section" className="fi-horario" aria-labelledby="fi-horario-titulo">
           <div className="fi-bloque-cabeza">
@@ -270,6 +282,14 @@ export function PantallaInicio() {
       </div>
     </div>
   )
+}
+
+const ICONO_TAREA: Record<Tarea['id'], ComponentType> = {
+  'fiados-vencidos': IconoFiados,
+  'fiado-viejo': IconoWhatsApp,
+  'bajo-costo': IconoAlerta,
+  reponer: IconoStock,
+  'sin-productos': IconoStock,
 }
 
 type Tono = 'verde' | 'coral' | 'ambar' | 'tinta'

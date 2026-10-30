@@ -104,15 +104,15 @@ describe('Primeros pasos en Inicio', () => {
     expect(within(guia).getByRole('link', { name: /ir a vender/i })).toBeTruthy()
     expect(within(guia).queryByRole('link', { name: /ir a stock/i })).toBeNull()
     expect(within(guia).queryByRole('link', { name: /ir a ajustes/i })).toBeNull()
-    expect(screen.queryByText('Todavía no cargaste productos')).toBeNull()
+    expect(screen.queryByText('Cargá tus productos para empezar a vender')).toBeNull()
   })
 
-  it('un negocio sin productos muestra un estado vacío con la acción clara', async () => {
+  it('un negocio sin productos tiene como primera tarea cargarlos, con la acción clara', async () => {
     render(<PantallaInicio />)
-    const titulo = await screen.findByRole('heading', { name: 'Todavía no cargaste productos' })
-    const bloque = titulo.closest('section') as HTMLElement
+    const tareas = await screen.findByRole('region', { name: 'Para hacer ahora' })
 
-    expect(within(bloque).getByRole('link', { name: 'Cargar producto' }).getAttribute('href')).toBe('/stock')
+    expect(within(tareas).getByText('Cargá tus productos para empezar a vender')).toBeTruthy()
+    expect(within(tareas).getByRole('link', { name: /^cargar productos/i }).getAttribute('href')).toBe('/stock')
   })
 
   it('con productos cargados ya no hay estado vacío', async () => {
@@ -120,7 +120,7 @@ describe('Primeros pasos en Inicio', () => {
     render(<PantallaInicio />)
     await screen.findByRole('region', { name: 'Primeros pasos' })
 
-    expect(screen.queryByText('Todavía no cargaste productos')).toBeNull()
+    expect(screen.queryByText('Cargá tus productos para empezar a vender')).toBeNull()
   })
 
   it('es accesible: región con nombre, lista ordenada, botón y enlaces alcanzables por teclado', async () => {
