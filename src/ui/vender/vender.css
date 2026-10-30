@@ -876,8 +876,8 @@
 .f-venta-lista > .f-boton { margin-top: 8px; }
 
 @media (hover: hover) {
-  .f-producto:not(:disabled) { transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease; }
-  .f-producto:hover:not(:disabled) { border-color: var(--f-tinta); box-shadow: 0 8px 20px rgb(0 0 0 / 0.08); transform: translateY(-2px); }
+  .f-producto:not(:disabled) { transition: transform 0.12s ease, border-color 0.12s ease; }
+  .f-producto:hover:not(:disabled) { border-color: var(--f-tinta); transform: translateY(-2px); }
   .f-producto[data-en-venta='true']:hover:not(:disabled) { border-color: var(--f-en-venta); }
 }
 

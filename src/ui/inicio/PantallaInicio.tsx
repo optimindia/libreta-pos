@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useContador } from '@/ui/sistema/usoContador'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/datos/local/db'
 import { repos } from '@/datos/local/repos'
@@ -35,6 +36,10 @@ const MEDIO: Record<Venta['medioPago'], string> = { efectivo: 'efectivo', transf
 const ICONO_MEDIO: Record<Venta['medioPago'], ComponentType> = {
   efectivo: IconoEfectivo, transferencia: IconoTransferencia, qr: IconoQR, fiado: IconoFiados,
 }
+/** La animación de entrada se ve una vez por visita: al volver a Inicio
+ *  desde otra pantalla, todo aparece en el acto. */
+let entradaVista = false
+
 const HORA = new Intl.DateTimeFormat('es-AR', { hour: 'numeric', minute: '2-digit', hour12: false })
 
 /** Lo primero que ve el almacenero al abrir, en orden de importancia:
@@ -43,6 +48,8 @@ const HORA = new Intl.DateTimeFormat('es-AR', { hour: 'numeric', minute: '2-digi
  *  último las últimas ventas y los atajos. Cada bloque dice qué es. */
 export function PantallaInicio() {
   const [deCero, setDeCero] = useState(false)
+  const [entrada] = useState(() => !entradaVista)
+  useEffect(() => { entradaVista = true }, [])
   const { funciones } = useFuncionesNegocio()
   const datos = useLiveQuery(async () => {
     const [ventas, fiados, pagos, productos, negocio, pendientes, cantidadVentas, clientes] = await Promise.all([
@@ -57,6 +64,9 @@ export function PantallaInicio() {
     ])
     return { ventas, fiados, pagos, productos, negocio, pendientes, cantidadVentas, clientes }
   })
+
+  const vendidoHoy = datos ? resumenDelDia(datos.ventas, new Date()).vendido : 0
+  const llevas = useContador(vendidoHoy, { animar: entrada, paso: 100 })
 
   if (!datos) return <div className="fi-pagina"><EstadoCarga texto="Preparando tu inicio…" /></div>
 
@@ -104,7 +114,7 @@ export function PantallaInicio() {
   const nombre = negocio?.nombre?.trim() || 'Tu almacén'
 
   return (
-    <div className="fi-pagina">
+    <div className="fi-pagina" data-entrada={entrada ? 'true' : undefined}>
       {aparatoNuevo && <Entrar onListo={() => setDeCero(true)} />}
 
       <section className="fi-portada" aria-labelledby="fi-saludo">
@@ -112,7 +122,7 @@ export function PantallaInicio() {
           <p className="fi-fecha">{fechaLarga(ahora)} · {nombre}</p>
           <h1 id="fi-saludo" className="fi-saludo">{saludo(ahora.getHours())}</h1>
           <p className="fi-llevas-rotulo">Hoy llevás vendido</p>
-          <p className="fi-llevas">{formatearPesos(resumen.vendido)}</p>
+          <p className="fi-llevas"><span aria-hidden="true">{formatearPesos(llevas)}</span><span className="f-sr">{formatearPesos(resumen.vendido)}</span></p>
           <p className="fi-llevas-detalle">
             <span>{resumen.cantidadVentas === 0
               ? 'Todavía no vendiste nada hoy'
@@ -150,10 +160,10 @@ export function PantallaInicio() {
             <p className="fi-tareas-nada"><span className="fi-tarea-icono" data-tono="verde" aria-hidden="true"><IconoConfirmar /></span>Nada pendiente. Está todo en orden.</p>
           ) : (
             <ul className="fi-tareas-lista">
-              {tareas.map((tarea) => {
+              {tareas.map((tarea, indice) => {
                 const Icono = ICONO_TAREA[tarea.id]
                 return (
-                  <li key={tarea.id} className="fi-tarea" data-tono={tarea.tono}>
+                  <li key={tarea.id} className="fi-tarea" data-tono={tarea.tono} style={{ '--i': indice } as React.CSSProperties}>
                     <span className="fi-tarea-icono" data-tono={tarea.tono} aria-hidden="true"><Icono /></span>
                     <span className="fi-tarea-texto">
                       <strong>{tarea.texto}</strong>
