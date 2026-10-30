@@ -127,6 +127,48 @@ describe('PWA-02: aviso de versión nueva', () => {
   })
 })
 
+describe('PWA-02: Actualizar no puede quedar muerto', () => {
+  it('si la versión que esperaba ya se activó o quedó obsoleta, Actualizar recarga igual', async () => {
+    montarSW({ espera: true, controlado: true })
+    render(<RegistrarSW />)
+    const boton = await screen.findByRole('button', { name: /actualizar/i })
+    registro.waiting!.state = 'redundant'
+    fireEvent.click(boton)
+    expect(entornoSW.recargar).toHaveBeenCalledTimes(1)
+  })
+
+  it('si el navegador nunca avisa el cambio de worker, recarga a los pocos segundos', async () => {
+    montarSW({ espera: true, controlado: true })
+    render(<RegistrarSW />)
+    const boton = await screen.findByRole('button', { name: /actualizar/i })
+    vi.useFakeTimers()
+    try {
+      fireEvent.click(boton)
+      expect(registro.waiting?.postMessage).toHaveBeenCalledWith({ tipo: 'SKIP_WAITING' })
+      expect(entornoSW.recargar).not.toHaveBeenCalled()
+      act(() => { vi.advanceTimersByTime(3500) })
+      expect(entornoSW.recargar).toHaveBeenCalledTimes(1)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('si el cambio de worker llega a tiempo, no recarga dos veces', async () => {
+    montarSW({ espera: true, controlado: true })
+    render(<RegistrarSW />)
+    const boton = await screen.findByRole('button', { name: /actualizar/i })
+    vi.useFakeTimers()
+    try {
+      fireEvent.click(boton)
+      act(() => { contenedor.dispatchEvent(new Event('controllerchange')) })
+      act(() => { vi.advanceTimersByTime(5000) })
+      expect(entornoSW.recargar).toHaveBeenCalledTimes(1)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+})
+
 describe('useMarcarVentaAbierta', () => {
   function Probe({ abierta }: { abierta: boolean }) {
     useMarcarVentaAbierta(abierta)
