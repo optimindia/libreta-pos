@@ -48,12 +48,17 @@
 
 .f-pedidos-reserva {
   display: flex;
-  align-items: baseline;
-  gap: var(--f-2);
-  padding: 0 var(--f-2);
+  align-self: stretch;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--f-4) var(--f-5);
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-superficie);
 }
 
-.f-pedidos-reserva b { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.f-pedidos-reserva b { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.f-pedidos-reserva .f-dato { font-size: 15px; }
 
 .f-pedidos-aviso {
   display: flex;

@@ -230,3 +230,8 @@
 }
 
 .f-cartera .f-buscar { flex: 0 0 auto; }
+
+/* Eliminar va como ícono al final: las acciones entran en una línea. */
+.f-clientes-borrar { flex: 0 0 44px; width: 44px; height: 44px; margin-left: auto; color: var(--f-tinta-2); }
+.f-clientes-borrar svg { width: 20px; height: 20px; }
+.f-clientes-borrar:hover { background: var(--f-coral-suave); color: var(--f-coral); }

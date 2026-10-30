@@ -144,7 +144,8 @@ export function PantallaClientes() {
   }
 
   const mejor = datos.perfiles[0]
-  const ticketPromedio = datos.perfiles.length ? Math.round(datos.perfiles.reduce((total, cliente) => total + cliente.ticketPromedio, 0) / datos.perfiles.length) : 0
+  // Redondeado a pesos: un promedio con centavos no le sirve a nadie en el mostrador.
+  const ticketPromedio = datos.perfiles.length ? Math.round(datos.perfiles.reduce((total, cliente) => total + cliente.ticketPromedio, 0) / datos.perfiles.length / 100) * 100 : 0
 
   return (
     <div className="page-clientes f-cartera">
@@ -224,7 +225,7 @@ export function PantallaClientes() {
                       <a data-tamano="normal" href={enlaceWhatsApp(cliente.telefono, cliente.deuda > 0 ? mensajeCobro(cliente, cliente.deuda, cliente.diasDeuda) : `Hola ${cliente.nombre}, ¿cómo estás?`)} target="_blank" rel="noreferrer" className={clasesBoton('secundario')}><IconoWhatsApp /> WhatsApp</a>
                     )}
                     <Boton variante="secundario" onClick={() => setFormulario(cliente)}><IconoEditar /> Editar</Boton>
-                    {borra && <Boton variante="secundario" aria-label={`Eliminar cliente ${cliente.nombre}`} onClick={() => solicitarEliminacion(cliente)}><IconoEliminar /> Eliminar</Boton>}
+                    {borra && <button type="button" className="f-icono-boton f-clientes-borrar" aria-label={`Eliminar cliente ${cliente.nombre}`} title="Eliminar cliente" onClick={() => solicitarEliminacion(cliente)}><IconoEliminar /></button>}
                   </div>
                 </div>
               </Tarjeta>

@@ -14,7 +14,7 @@ import { Hoja } from '@/ui/sistema/Hoja'
 import { normalizarTexto } from '@/dominio/validaciones'
 import { alertasProducto, margenProducto, rotacionStock } from '@/dominio/inteligencia'
 import { ErrorProductoConHistorial, ErrorStockInsuficiente, repos } from '@/datos/local/repos'
-import { IconoCerrar, IconoEliminar, IconoFavorito, IconoStock } from '@/ui/sistema/iconos'
+import { IconoAlerta, IconoCerrar, IconoEliminar, IconoFavorito, IconoMovimiento, IconoPlata, IconoStock } from '@/ui/sistema/iconos'
 import { FormularioProducto } from './FormularioProducto'
 import { usePuede } from '@/ui/sistema/usoRol'
 import './stock.css'
@@ -258,7 +258,7 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
       </div>
 
       <div className="f-stock-filtros">
-        <Chip activo={soloAlertas} onClick={() => setSoloAlertas((actual) => !actual)}>Calidad</Chip>
+        <Chip activo={soloAlertas} onClick={() => setSoloAlertas((actual) => !actual)}><IconoAlerta />Con datos para revisar</Chip>
         {categorias.length > 0 && (
           <select aria-label="Filtrar por categoría" className="f-entrada f-stock-categoria" value={categoria} onChange={(evento) => setCategoria(evento.target.value)}>
             <option value="">Todas las categorías</option>
@@ -304,8 +304,8 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
                   {(editaCatalogo || ajustaStock) && (
                     <div className="f-stock-acciones-fila">
                       {editaCatalogo && <Boton variante="secundario" tamano="chico" aria-label={`Editar ${producto.nombre}`} onClick={() => setEditando(producto)}>Editar</Boton>}
-                      {ajustaStock && <Boton variante="secundario" tamano="chico" aria-label={`Ajustar stock de ${producto.nombre}`} onClick={() => setAjustando(producto)}>Ajustar</Boton>}
-                      {editaCatalogo && <Boton variante="secundario" tamano="chico" aria-label={`Ver rendimiento de ${producto.nombre}`} onClick={() => setDetalle(producto)}>Rendimiento</Boton>}
+                      {ajustaStock && <button type="button" className="f-icono-boton f-stock-accion" aria-label={`Ajustar stock de ${producto.nombre}`} title="Ajustar cuántos hay" onClick={() => setAjustando(producto)}><IconoMovimiento /></button>}
+                      {editaCatalogo && <button type="button" className="f-icono-boton f-stock-accion" aria-label={`Ver rendimiento de ${producto.nombre}`} title="Ver cuánto rinde" onClick={() => setDetalle(producto)}><IconoPlata /></button>}
                       {editaCatalogo && <button type="button" className="f-icono-boton f-stock-borrar" aria-label={`Eliminar ${producto.nombre}`} title="Eliminar producto" onClick={() => solicitarEliminacion(producto)}><IconoEliminar /></button>}
                     </div>
                   )}

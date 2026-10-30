@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/datos/local/db'
@@ -17,7 +16,7 @@ import { Chip, Chips } from '@/ui/sistema/Chip'
 import { Etiqueta } from '@/ui/sistema/Etiqueta'
 import { Hoja } from '@/ui/sistema/Hoja'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
-import { IconoFlechaIzquierda, IconoHistorial } from '@/ui/sistema/iconos'
+import { IconoHistorial } from '@/ui/sistema/iconos'
 import { usePuede } from '@/ui/sistema/usoRol'
 import { useIdentidad, type Identidad } from '@/ui/sistema/usoVendedor'
 import { FiltroVendedor } from '@/ui/sistema/FiltroVendedor'
@@ -139,8 +138,8 @@ export function PantallaHistorial() {
     <div className="fh-pagina">
       <header className="fh-cabeza">
         <div className="fh-cabeza-texto">
-          <Link href="/vender" className="fh-volver"><IconoFlechaIzquierda /> Vender</Link>
           <h1 className="f-titulo">Historial de ventas</h1>
+          <p className="f-texto fh-subtitulo">Todas tus ventas: buscá, mirá el detalle o anulá una.</p>
         </div>
         <span className="f-dato fh-cuenta">{filtradas.length} {filtradas.length === 1 ? 'venta' : 'ventas'}</span>
       </header>

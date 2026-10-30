@@ -225,7 +225,7 @@
   flex-direction: column;
 }
 
-.f-venta-vaciar {
+.f-venta-arranquer {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -785,4 +785,114 @@
   color: var(--f-coral);
   font-size: 13px;
   font-weight: 800;
+}
+
+/* ───────────── Rótulos, vacío y detalles (rediseño PC) ───────────── */
+
+.f-catalogo-fila { display: flex; min-width: 0; flex-direction: column; gap: 8px; }
+
+.f-catalogo-rotulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--f-tinta-2);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.f-catalogo-rotulo svg { width: 16px; height: 16px; }
+
+.f-producto-nota { display: inline-flex; align-items: center; gap: 4px; }
+.f-producto-nota svg { width: 13px; height: 13px; flex: 0 0 13px; }
+
+.f-venta-icono {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--f-lima);
+  color: var(--f-sobre-lima);
+}
+
+.f-venta-icono svg { width: 22px; height: 22px; }
+.f-venta-titulo .f-seccion { font-size: 22px; }
+.f-venta-titulo .f-dato { font-size: 14px; }
+
+.f-venta-arranque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 32px 8px 20px;
+  text-align: center;
+}
+
+.f-venta-arranque .f-estado { align-items: center; padding: 0; text-align: center; }
+
+.f-venta-arranque .f-estado-icono {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 6px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--f-superficie-2);
+  color: var(--f-tinta-2);
+}
+
+.f-venta-arranque .f-estado-icono svg { width: 32px; height: 32px; }
+.f-venta-arranque .f-estado-titulo { margin: 0; font-size: 18px; font-weight: 800; }
+.f-venta-arranque .f-estado-texto { margin: 0; color: var(--f-tinta-2); font-size: 15px; }
+
+.f-venta-atajos {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 14px;
+  margin: 14px 0 4px;
+  padding: 0;
+  color: var(--f-tinta-2);
+  font-size: 13px;
+  font-weight: 600;
+  list-style: none;
+}
+
+.f-venta-atajos kbd {
+  display: inline-block;
+  min-width: 24px;
+  padding: 1px 6px;
+  border: 1px solid var(--f-borde);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+  font: inherit;
+  font-weight: 800;
+  text-align: center;
+}
+
+.f-venta-lista > .f-boton { margin-top: 8px; }
+
+@media (hover: hover) {
+  .f-producto:not(:disabled) { transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease; }
+  .f-producto:hover:not(:disabled) { border-color: var(--f-tinta); box-shadow: 0 8px 20px rgb(0 0 0 / 0.08); transform: translateY(-2px); }
+  .f-producto[data-en-venta='true']:hover:not(:disabled) { border-color: var(--f-en-venta); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f-producto:hover:not(:disabled) { transform: none; }
+}
+
+@media (min-width: 900px) {
+  /* Vender es una herramienta de trabajo: aprovecha más ancho que el resto. */
+  .nb-app > .app-main > .f-vender { max-width: 1600px; }
+  .f-productos { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)) !important; }
+  .f-producto { height: 140px; }
+  .f-producto-nombre { font-size: 17px; }
+  .f-producto-precio { font-size: 24px; }
+  .f-producto-nota { font-size: 14px; }
+  .f-catalogo-rotulo { font-size: 15px; }
+  .f-venta-total span { font-size: 18px; }
 }

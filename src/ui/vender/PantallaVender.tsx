@@ -18,7 +18,7 @@ import { CatalogoVender } from './CatalogoVender'
 import { Entrar } from './Entrar'
 import { Cobrado } from './Cobrado'
 import { PonerPrecio } from './PonerPrecio'
-import { IconoCerrar } from '@/ui/sistema/iconos'
+import { IconoCerrar, IconoVender } from '@/ui/sistema/iconos'
 import { avisarLectura } from '@/ui/escaner/sonido'
 import { Boton } from '@/ui/sistema/Boton'
 import { Segmentado } from '@/ui/sistema/Segmentado'
@@ -332,6 +332,7 @@ export function PantallaVender() {
             {verTicket && <div className="f-venta-capa" aria-hidden="true" onClick={() => setVerTicket(false)} />}
             <aside className="f-venta" data-abierta={verTicket ? 'true' : 'false'} aria-label="Venta en curso">
               <div className="f-venta-cabeza">
+                <span className="f-venta-icono" aria-hidden="true"><IconoVender /></span>
                 <div className="f-venta-titulo">
                   <h2 className="f-seccion">Venta</h2>
                   <span className="f-dato">{textoUnidades}</span>

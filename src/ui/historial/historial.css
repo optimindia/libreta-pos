@@ -1,9 +1,8 @@
 /* Historial con el sistema F (src/ui/historial). Una lista de ventas en
    una tarjeta; el detalle se abre en una hoja. Sólo tokens --f-*. */
 
-.nb-app > .app-main > .fh-pagina {
-  max-width: 880px;
-}
+/* Mismo ancho que el resto de las pantallas: los bordes quedan alineados
+   al pasar de una sección a otra. */
 
 .fh-pagina {
   display: flex;
@@ -22,21 +21,7 @@
 .fh-cabeza-texto { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
 .fh-cuenta { flex: 0 0 auto; padding-bottom: 6px; font-size: 14px; }
 
-.fh-volver {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  gap: 6px;
-  align-self: flex-start;
-  color: var(--f-verde);
-  font-size: 15px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.fh-volver svg { width: 18px; height: 18px; }
-.fh-volver:hover { text-decoration: underline; }
-.fh-volver:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; border-radius: 4px; }
+.fh-subtitulo { margin: 4px 0 0; color: var(--f-tinta-2); font-size: 16px; }
 
 .fh-herramientas { display: flex; flex-direction: column; gap: var(--f-3); }
 .fh-herramientas .f-chips { margin-inline: -16px; padding-inline: 16px; }

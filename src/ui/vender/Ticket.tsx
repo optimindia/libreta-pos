@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import type { ItemVenta } from '@/dominio/tipos'
 import { formatearPesos } from '@/dominio/dinero'
-import { IconoMasCantidad, IconoMenos } from '@/ui/sistema/iconos'
+import { IconoEscanear, IconoMasCantidad, IconoMenos } from '@/ui/sistema/iconos'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 
 /** "Vaciar" la venta, con una confirmación en el lugar: un toque de más no
@@ -19,7 +19,7 @@ export function VaciarVenta({ onVaciar, etiqueta = 'Vaciar venta', confirmar = '
     )
   }
   return (
-    <div className="f-venta-vaciar" role="group" aria-label="¿Borrar todo?">
+    <div className="f-venta-arranquer" role="group" aria-label="¿Borrar todo?">
       <span>¿Borrar todo?</span>
       <button type="button" className="f-boton f-boton-cuidado" data-tamano="chico" onClick={() => { onVaciar(); setConfirmando(false) }}>
         {confirmar}
@@ -52,7 +52,14 @@ export function Ticket({
 }) {
   if (items.length === 0) {
     return (
-      <EstadoVacio compacto titulo="Todavía no hay nada en la venta" texto="Escaneá o tocá un producto para empezar." />
+      <div className="f-venta-arranque">
+        <EstadoVacio compacto icono={<IconoEscanear />} titulo="Todavía no hay nada en la venta" texto="Escaneá o tocá un producto para empezar." />
+        <ul className="f-venta-atajos f-solo-pc" aria-label="Atajos de teclado">
+          <li><kbd>/</kbd> buscar</li>
+          <li><kbd>Esc</kbd> limpiar</li>
+          <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> cobrar</li>
+        </ul>
+      </div>
     )
   }
 
