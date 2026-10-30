@@ -46,11 +46,12 @@
   padding: 0 var(--f-4);
   border: 1.5px solid #ffffff59;
   border-radius: var(--f-radio-chip);
-  background: #0b100e99;
+  /* Sin desenfoque: sobre el video en vivo se recalcula en cada cuadro y
+     traba los celus de gama baja. Un fondo más opaco se lee igual. */
+  background: #0b100ecc;
   color: #fff;
   font: 700 15px/1 var(--f-letra);
   cursor: pointer;
-  backdrop-filter: blur(6px);
 }
 .f-visor-boton[aria-pressed='true'] { background: var(--f-lima); border-color: var(--f-lima); color: var(--f-sobre-lima); }
 .f-visor-boton:disabled { opacity: 0.45; cursor: default; }
@@ -110,7 +111,6 @@
   padding: var(--f-4) var(--f-4) max(var(--f-4), env(safe-area-inset-bottom));
   border-radius: var(--f-radio-hoja) var(--f-radio-hoja) 0 0;
   background: #121a17f2;
-  backdrop-filter: blur(10px);
 }
 
 .f-visor-estado {

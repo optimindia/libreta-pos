@@ -149,7 +149,7 @@
   border-radius: 8px 8px 2px 2px;
   background: var(--f-superficie-2);
   transform-origin: bottom;
-  transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+  transition: transform 0.18s ease, background-color 0.18s ease;
 }
 
 .fi-barra-boton[data-fuerte='true'] .fi-barra { background: var(--f-verde); }
@@ -363,8 +363,8 @@
 
 /* Lo que se puede abrir se levanta un poco al pasar el cursor. */
 @media (hover: hover) {
-  .fi-vender, .fi-indicador, .fi-atajo { transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease; }
-  a.fi-indicador:hover, .fi-atajo:hover { border-color: var(--tono, var(--f-tinta)); transform: translateY(-2px); box-shadow: 0 10px 24px rgb(0 0 0 / 0.1); }
+  .fi-indicador, .fi-atajo { transition: transform 0.16s ease, border-color 0.16s ease; }
+  a.fi-indicador:hover, .fi-atajo:hover { border-color: var(--tono, var(--f-tinta)); transform: translateY(-2px); }
   .fi-atajo:hover { --tono: var(--f-tinta); }
   a.fi-indicador:hover .fi-indicador-ir { color: var(--tono); transform: translateX(3px); }
   .fi-atajo:hover .fi-atajo-ir { transform: translateX(3px); }
@@ -727,4 +727,39 @@
   .fi-grilla > .fi-numeros a.fi-indicador:hover { background: none; }
   .fi-grilla > .fi-numeros a.fi-indicador:hover .fi-indicador-etiqueta { text-decoration: underline; }
   .fi-grilla > .fi-tareas:not(:has(+ .fi-numeros)) { grid-column: 1 / -1; }
+}
+
+/* ───────────── Movimiento ───────────── */
+
+/* Una sola entrada coordinada, la primera vez que se abre Inicio: la
+   portada aparece, el total sube desde $0 (usoContador), las tareas llegan
+   una tras otra y las barras crecen de izquierda a derecha. Sólo se anima
+   opacidad y transform, que el navegador resuelve sin recalcular nada. */
+@keyframes fi-aparecer {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+@keyframes fi-crecer {
+  from { transform: scaleY(0); }
+}
+
+.fi-pagina[data-entrada='true'] .fi-portada { animation: fi-aparecer 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.fi-pagina[data-entrada='true'] .fi-tarea { animation: fi-aparecer 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(160ms + var(--i, 0) * 70ms); }
+.fi-pagina[data-entrada='true'] .fi-barra { animation: fi-crecer 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(200ms + var(--i, 0) * 45ms); }
+
+/* Al tocar en el celu, lo que se puede abrir se hunde apenas: se siente
+   la respuesta aunque la pantalla nueva tarde un instante. */
+@media (hover: none) {
+  .fi-portada .fi-vender, a.fi-indicador, .fi-atajo, .fi-tarea-accion, .fi-caja-cerrar {
+    transition: transform 0.12s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .fi-portada .fi-vender:active, a.fi-indicador:active, .fi-atajo:active, .fi-tarea-accion:active, .fi-caja-cerrar:active {
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fi-pagina[data-entrada='true'] :is(.fi-portada, .fi-tarea, .fi-barra) { animation: none; }
 }

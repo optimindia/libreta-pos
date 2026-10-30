@@ -35,7 +35,7 @@ export function GraficoHoras({ franjas }: { franjas: DetalleFranja[] }) {
             data-fuerte={i === mejor ? 'true' : undefined}
             data-activa={i === activa ? 'true' : undefined}
             aria-label={lectura(franja)}
-            style={{ '--alto': `${alturas[i]}%` } as React.CSSProperties}
+            style={{ '--alto': `${alturas[i]}%`, '--i': i } as React.CSSProperties}
             onMouseEnter={() => setActiva(i)}
             onFocus={() => setActiva(i)}
             onBlur={() => setActiva((actual) => (actual === i ? null : actual))}
