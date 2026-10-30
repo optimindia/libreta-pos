@@ -155,4 +155,30 @@ describe('Ventas abiertas', () => {
     }
     expect(screen.getByRole('button', { name: 'Nueva venta' })).toHaveProperty('disabled', true)
   })
+
+  it('lo que tiene apartado otra venta abierta no se puede usar en esta', async () => {
+    await repos.productos.guardar({ codigoBarras: null, nombre: 'Morcilla', costo: 100, precio: 20000, stock: 5, stockMinimo: 1 })
+    render(<PantallaVender />)
+    for (let i = 0; i < 3; i++) await sumar('Morcilla')
+    fireEvent.click(await screen.findByRole('button', { name: 'Nueva venta' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /^Morcilla/ }).textContent).toContain('quedan 2'))
+    for (let i = 0; i < 4; i++) await sumar('Morcilla')
+    // sólo entran 2: las otras 3 están en la Venta 1
+    expect(screen.getByRole('button', { name: /Quitar uno de Morcilla/ })).toBeTruthy()
+    expect(screen.getByLabelText('2 unidades')).toBeTruthy()
+  })
+
+  it('si el stock se acaba con algo ya en el ticket, avisa, no deja cobrar y se puede ajustar', async () => {
+    const morcilla = await repos.productos.guardar({ codigoBarras: null, nombre: 'Morcilla', costo: 100, precio: 20000, stock: 5, stockMinimo: 1 })
+    render(<PantallaVender />)
+    for (let i = 0; i < 3; i++) await sumar('Morcilla')
+    // otro aparato (o la sincronización) vende 4: quedan 1
+    await repos.ventas.registrar({ items: [{ productoId: morcilla.id, nombre: 'Morcilla', cantidad: 4, precio: 20000, costo: 100 }], medioPago: 'efectivo', clienteId: null })
+    expect(await screen.findByText(/Solo quedan 1/)).toBeTruthy()
+    for (const boton of screen.getAllByRole('button', { name: /^Cobrar/ })) expect(boton).toHaveProperty('disabled', true)
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar el ticket' }))
+    await waitFor(() => expect(screen.getByLabelText('1 unidades')).toBeTruthy())
+    expect(screen.queryByText(/Solo quedan 1/)).toBeNull()
+    expect(screen.getAllByRole('button', { name: /^Cobrar/ }).some((boton) => !(boton as HTMLButtonElement).disabled)).toBe(true)
+  })
 })

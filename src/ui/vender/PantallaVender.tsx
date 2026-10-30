@@ -56,8 +56,25 @@ export function PantallaVender() {
   // catálogo y el ticket muestran lo que de verdad queda.
   const reservadas = useLiveQuery(() => repos.pedidos.reservadasPorProducto(), [], new Map<UUID, number>())
   const [sinPrecio, setSinPrecio] = useState<Producto | null>(null)
-  const disponible = (producto: Producto) => Math.max(0, producto.stock - (reservadas.get(producto.id) ?? 0))
+  // Lo que lleva otra venta abierta está apartado: no se puede usar en esta.
+  const enOtrasVentas = new Map<UUID, number>()
+  for (const otra of ventas) {
+    if (otra.id === activa.id) continue
+    for (const renglon of otra.items) enOtrasVentas.set(renglon.productoId, (enOtrasVentas.get(renglon.productoId) ?? 0) + renglon.cantidad)
+  }
+  const disponible = (producto: Producto) =>
+    Math.max(0, producto.stock - (reservadas.get(producto.id) ?? 0) - (enOtrasVentas.get(producto.id) ?? 0))
   const disponibles = Object.fromEntries(productos.map((producto) => [producto.id, disponible(producto)]))
+  // Si el stock bajó con algo ya en el ticket (otra venta, otro aparato), no se cobra a ciegas.
+  const faltantes = items.filter((item) => item.cantidad > (disponibles[item.productoId] ?? 0))
+  const hayFaltantes = faltantes.length > 0
+  const puedeCobrar = items.length > 0 && !hayFaltantes
+
+  function ajustarAlStock() {
+    setItems((actuales) => actuales
+      .map((item) => ({ ...item, cantidad: Math.min(item.cantidad, disponibles[item.productoId] ?? 0) }))
+      .filter((item) => item.cantidad > 0))
+  }
   const estado = useLiveQuery(async () => {
     const [productos, ventas, negocio] = await Promise.all([
       db.productos.count(),
@@ -112,17 +129,17 @@ export function PantallaVender() {
       } else if (evento.key === 'Escape') {
         if (cobrando) setCobrando(false)
         else setBusqueda('')
-      } else if (evento.key === 'Enter' && evento.ctrlKey && items.length > 0 && !cobrando) {
+      } else if (evento.key === 'Enter' && evento.ctrlKey && puedeCobrar && !cobrando) {
         evento.preventDefault()
         setCobrando(true)
       }
     }
     window.addEventListener('keydown', atajo)
     return () => window.removeEventListener('keydown', atajo)
-  }, [atajosPc, cobrando, items.length])
+  }, [atajosPc, cobrando, puedeCobrar])
 
   async function cobrar(medio: MedioPago, clienteId: UUID | null = null, vence: number | null = null, referenciaPago?: string, entregado?: number) {
-    if (items.length === 0) return
+    if (!puedeCobrar) return
     if (medio === 'fiado' && !clienteId) return
     try {
       const venta = await repos.ventas.registrar({ items: cobrables, medioPago: medio, clienteId, vence, referenciaPago })
@@ -152,8 +169,9 @@ export function PantallaVender() {
     const quedan = disponible(producto)
     if (quedan <= enTicket) {
       const reservado = (reservadas.get(producto.id) ?? 0) > 0
+      const apartado = enOtrasVentas.get(producto.id) ?? 0
       const motivo = quedan === 0
-        ? `${producto.nombre} está sin stock${reservado ? ' (lo que hay está reservado para pedidos)' : ''}.`
+        ? `${producto.nombre} está sin stock${reservado ? ' (lo que hay está reservado para pedidos)' : apartado > 0 ? ` (${apartado} ${apartado === 1 ? 'está' : 'están'} en otras ventas abiertas)` : ''}.`
         : `Solo quedan ${quedan} unidades de ${producto.nombre} y ya están en el ticket.`
       setAvisoStock(motivo)
       return motivo
@@ -357,6 +375,12 @@ export function PantallaVender() {
               </div>
 
               <div className="f-venta-pie">
+                {hayFaltantes && (
+                  <div className="f-aviso" role="alert">
+                    <span>Hay productos que superan el stock. Ajustá el ticket para cobrar.</span>{' '}
+                    <Boton variante="secundario" tamano="chico" onClick={ajustarAlStock}>Ajustar el ticket</Boton>
+                  </div>
+                )}
                 {hayItems && (
                   <div className="f-venta-descuento-fila">
                     {ahorro > 0 && <span className="f-dato">Descuento −{formatearPesos(ahorro)}</span>}
@@ -374,7 +398,7 @@ export function PantallaVender() {
                   variante="principal"
                   tamano="caja"
                   ancho
-                  disabled={!hayItems}
+                  disabled={!puedeCobrar}
                   aria-keyshortcuts={atajosPc ? 'Control+Enter' : undefined}
                   onClick={() => { setVerTicket(false); setCobrando(true) }}
                 >
@@ -396,7 +420,7 @@ export function PantallaVender() {
               type="button"
               className="f-cobro-barra-cobrar"
               aria-label="Cobrar"
-              disabled={!hayItems}
+              disabled={!puedeCobrar}
               onClick={() => setCobrando(true)}
             >
               <span>Cobrar</span>
