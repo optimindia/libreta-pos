@@ -52,6 +52,7 @@ export interface ActualizacionSW {
 }
 
 const UNA_HORA = 60 * 60 * 1000
+const ESPERA_CAMBIO_MS = 3000
 
 export function useActualizacionSW(): ActualizacionSW {
   const [espera, setEspera] = useState<ServiceWorker | null>(null)
@@ -114,7 +115,21 @@ export function useActualizacionSW(): ActualizacionSW {
   const aplicar = useCallback(() => {
     if (!espera || activando.current) return
     activando.current = true
+    // La versión que esperaba ya se activó o quedó reemplazada (otra pestaña,
+    // el modo segundo plano): no hay nada que activar, sólo recargar.
+    if (espera.state === 'activated' || espera.state === 'redundant') {
+      activando.current = false
+      entornoSW.recargar()
+      return
+    }
     espera.postMessage({ tipo: 'SKIP_WAITING' })
+    // Si el navegador no avisa el cambio de worker, el botón no puede quedar
+    // muerto: pasados unos segundos se recarga igual y se toma la versión nueva.
+    window.setTimeout(() => {
+      if (!activando.current || ventaAbiertaAhora()) return
+      activando.current = false
+      entornoSW.recargar()
+    }, ESPERA_CAMBIO_MS)
   }, [espera])
 
   // Pedida por la persona: se aplica apenas no haya una venta abierta.
