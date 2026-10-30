@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import type { MedioPago, Negocio, Producto, UUID, Venta } from '@/dominio/tipos'
+import type { Centavos, ItemVenta, MedioPago, Negocio, Producto, UUID, Venta } from '@/dominio/tipos'
+import { CODIGO_VARIOS, STOCK_VARIOS, sumarMontoLibre } from '@/dominio/varios'
+import { HojaMontoLibre } from './HojaMontoLibre'
 import { agregarProducto, cambiarCantidad, precioVigente, totalTicket } from '@/dominio/ticket'
 import { ErrorStockInsuficiente, ErrorVentaInvalida, repos } from '@/datos/local/repos'
 import { db } from '@/datos/local/db'
@@ -18,7 +20,7 @@ import { CatalogoVender } from './CatalogoVender'
 import { Entrar } from './Entrar'
 import { Cobrado } from './Cobrado'
 import { PonerPrecio } from './PonerPrecio'
-import { IconoCerrar, IconoVender } from '@/ui/sistema/iconos'
+import { IconoCerrar, IconoCobrar, IconoVender } from '@/ui/sistema/iconos'
 import { avisarLectura } from '@/ui/escaner/sonido'
 import { Boton } from '@/ui/sistema/Boton'
 import { Segmentado } from '@/ui/sistema/Segmentado'
@@ -56,6 +58,12 @@ export function PantallaVender() {
   // catálogo y el ticket muestran lo que de verdad queda.
   const reservadas = useLiveQuery(() => repos.pedidos.reservadasPorProducto(), [], new Map<UUID, number>())
   const [sinPrecio, setSinPrecio] = useState<Producto | null>(null)
+  const [montoLibre, setMontoLibre] = useState(false)
+  // El último cambio del ticket se puede deshacer unos segundos.
+  const [deshacer, setDeshacer] = useState<{ items: ItemVenta[]; texto: string; ventaId: UUID } | null>(null)
+  // El renglón que acaba de cambiar se ilumina un instante.
+  const [destacado, setDestacado] = useState<{ id: UUID; vez: number } | null>(null)
+  const idVarios = useLiveQuery(async () => (await repos.productos.porCodigoBarras(CODIGO_VARIOS))?.id ?? null, [], null)
   // Lo que lleva otra venta abierta está apartado: no se puede usar en esta.
   const enOtrasVentas = new Map<UUID, number>()
   for (const otra of ventas) {
@@ -64,7 +72,9 @@ export function PantallaVender() {
   }
   const disponible = (producto: Producto) =>
     Math.max(0, producto.stock - (reservadas.get(producto.id) ?? 0) - (enOtrasVentas.get(producto.id) ?? 0))
-  const disponibles = Object.fromEntries(productos.map((producto) => [producto.id, disponible(producto)]))
+  const disponibles: Record<UUID, number> = Object.fromEntries(productos.map((producto) => [producto.id, disponible(producto)]))
+  // "Varios" (monto libre) no está en el catálogo y nunca se queda sin stock.
+  if (idVarios) disponibles[idVarios] = STOCK_VARIOS
   // Si el stock bajó con algo ya en el ticket (otra venta, otro aparato), no se cobra a ciegas.
   const faltantes = items.filter((item) => item.cantidad > (disponibles[item.productoId] ?? 0))
   const hayFaltantes = faltantes.length > 0
@@ -119,11 +129,72 @@ export function PantallaVender() {
   }, [avisoStock])
 
   useEffect(() => {
+    if (!deshacer) return
+    const reloj = window.setTimeout(() => setDeshacer(null), 6000)
+    return () => window.clearTimeout(reloj)
+  }, [deshacer])
+
+  /** Cambia el ticket guardando cómo estaba, para poder deshacerlo. */
+  function cambiarConDeshacer(texto: string, cambio: (actuales: ItemVenta[]) => ItemVenta[], productoId?: UUID) {
+    setDeshacer({ items, texto, ventaId: activa.id })
+    setItems(cambio)
+    if (productoId) marcar(productoId)
+  }
+
+  /** Ilumina el renglón y, en el celu, da una vibración cortita. */
+  function marcar(productoId: UUID) {
+    setDestacado({ id: productoId, vez: Date.now() })
+    try { navigator.vibrate?.(8) } catch { /* sin vibración */ }
+  }
+
+  function hacerDeshacer() {
+    if (!deshacer || deshacer.ventaId !== activa.id) return
+    setItems(deshacer.items)
+    setDeshacer(null)
+  }
+
+  async function sumarMonto(monto: Centavos) {
+    const varios = await repos.productos.varios()
+    cambiarConDeshacer(`Sumaste ${formatearPesos(monto)} en Varios`, (actuales) => sumarMontoLibre(actuales, varios, monto), varios.id)
+    setMontoLibre(false)
+  }
+
+  function cambiarRenglon(productoId: UUID, cantidad: number) {
+    const renglon = items.find((item) => item.productoId === productoId)
+    if (!renglon) return
+    if (cantidad <= 0) {
+      cambiarConDeshacer(`Quitaste ${renglon.nombre}`, (actuales) => cambiarCantidad(actuales, productoId, 0))
+      return
+    }
+    const tope = disponibles[productoId] ?? 0
+    if (cantidad > tope) {
+      setAvisoStock(`Solo quedan ${tope} unidades de ${renglon.nombre}.`)
+      return
+    }
+    setItems((actuales) => cambiarCantidad(actuales, productoId, cantidad))
+    marcar(productoId)
+  }
+
+  useEffect(() => {
     if (!atajosPc) return
     function atajo(evento: KeyboardEvent) {
       const elemento = evento.target as HTMLElement | null
       const escribiendo = elemento?.tagName === 'INPUT' || elemento?.tagName === 'TEXTAREA' || elemento?.tagName === 'SELECT'
-      if (evento.key === '/' && !escribiendo) {
+      const ultimo = items[items.length - 1]
+      const hojaEnPantalla = cobrando || montoLibre || Boolean(sinPrecio) || Boolean(cobrada) || Boolean(descontando)
+      if (!hojaEnPantalla && evento.key.toLowerCase() === 'z' && (evento.ctrlKey || evento.metaKey) && !escribiendo && deshacer) {
+        evento.preventDefault()
+        hacerDeshacer()
+      } else if (!hojaEnPantalla && evento.key === 'F2') {
+        evento.preventDefault()
+        setMontoLibre(true)
+      } else if (!hojaEnPantalla && !escribiendo && ultimo && (evento.key === '+' || evento.key === '-')) {
+        evento.preventDefault()
+        cambiarRenglon(ultimo.productoId, ultimo.cantidad + (evento.key === '+' ? 1 : -1))
+      } else if (!hojaEnPantalla && !escribiendo && ultimo && evento.key === 'Delete') {
+        evento.preventDefault()
+        cambiarRenglon(ultimo.productoId, 0)
+      } else if (evento.key === '/' && !escribiendo) {
         evento.preventDefault()
         document.querySelector<HTMLInputElement>('[aria-label="Buscar producto"]')?.focus()
       } else if (evento.key === 'Escape') {
@@ -136,7 +207,7 @@ export function PantallaVender() {
     }
     window.addEventListener('keydown', atajo)
     return () => window.removeEventListener('keydown', atajo)
-  }, [atajosPc, cobrando, puedeCobrar])
+  })
 
   async function cobrar(medio: MedioPago, clienteId: UUID | null = null, vence: number | null = null, referenciaPago?: string, entregado?: number) {
     if (!puedeCobrar) return
@@ -182,7 +253,7 @@ export function PantallaVender() {
       return `${producto.nombre} no tiene precio todavía.`
     }
     setAvisoStock(null)
-    setItems((actuales) => agregarProducto(actuales, producto))
+    cambiarConDeshacer(`Agregaste ${producto.nombre}`, (actuales) => agregarProducto(actuales, producto), producto.id)
     return null
   }
 
@@ -244,7 +315,7 @@ export function PantallaVender() {
   const cantidades = Object.fromEntries(items.map((item) => [item.productoId, item.cantidad]))
   const hayItems = items.length > 0
   const textoUnidades = `${unidades} ${unidades === 1 ? 'producto' : 'productos'}`
-  const hojaAbierta = cobrando || Boolean(sinPrecio) || Boolean(cobrada)
+  const hojaAbierta = cobrando || montoLibre || Boolean(sinPrecio) || Boolean(cobrada)
 
   // En el celu, mientras hay una venta en curso, la barra de cobro ocupa el
   // lugar de la barra de secciones (ver f/navegacion.css).
@@ -327,6 +398,11 @@ export function PantallaVender() {
                   onNoEncontrado={(codigo) => setAvisoStock(`No encontramos el código ${codigo}. Cargalo en Stock para venderlo.`)}
                 />
               ) : undefined}
+              acciones={(
+                <button type="button" className="f-boton f-boton-secundario f-monto-libre" onClick={() => setMontoLibre(true)} title="Cobrar algo que no está cargado (F2)" aria-keyshortcuts={atajosPc ? 'F2' : undefined}>
+                  <IconoCobrar /><span>Monto libre</span>
+                </button>
+              )}
             />
 
             {verTicket && <div className="f-venta-capa" aria-hidden="true" onClick={() => setVerTicket(false)} />}
@@ -362,9 +438,9 @@ export function PantallaVender() {
                   cobrables={cobrables}
                   onDescuento={(productoId) => setDescontando({ productoId })}
                   stockPorProducto={disponibles}
-                  onCambiarCantidad={(productoId, cantidad) =>
-                    setItems((actuales) => cambiarCantidad(actuales, productoId, cantidad))
-                  }
+                  onCambiarCantidad={cambiarRenglon}
+                  destacado={destacado}
+                  idVarios={idVarios}
                   onSinStock={(productoId) => {
                     const producto = productos.find((item) => item.id === productoId)
                     if (producto) setAvisoStock(`Solo quedan ${disponible(producto)} unidades de ${producto.nombre}.`)
@@ -436,6 +512,15 @@ export function PantallaVender() {
       <AnuncioVivo nombre="avisos" mensaje={avisoStock ?? lecturaOk ?? ''} />
       {avisoStock && <p className="f-aviso-flotante" aria-hidden="true">{avisoStock}</p>}
       {!avisoStock && lecturaOk && <p className="f-aviso-flotante" data-tono="ok" aria-hidden="true">{lecturaOk}</p>}
+
+      {deshacer && deshacer.ventaId === activa.id && !hojaAbierta && !verTicket && (
+        <div className="f-deshacer">
+          <span>{deshacer.texto}</span>
+          <button type="button" onClick={hacerDeshacer} aria-keyshortcuts={atajosPc ? 'Control+Z' : undefined}>Deshacer</button>
+        </div>
+      )}
+
+      {montoLibre && <HojaMontoLibre onSumar={(monto) => void sumarMonto(monto)} onCerrar={() => setMontoLibre(false)} />}
 
       {sinPrecio && (
         <PonerPrecio

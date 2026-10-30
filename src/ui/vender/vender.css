@@ -410,7 +410,11 @@
 }
 
 .f-cobro-tablero:focus-within,
-.f-precio:focus-within { outline: 2px solid var(--f-tinta); outline-offset: -2px; }
+.f-precio:focus-within { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+
+/* Dentro de una caja de importe el anillo lo lleva la caja entera (con sus
+   esquinas redondeadas); el renglón de adentro no dibuja otro. */
+:is(.f-precio, .f-cobro-tablero) .f-cobro-monto:focus-within { outline: 0; }
 
 .f-cobro-te-dan {
   display: flex;
@@ -467,6 +471,9 @@
   font-size: 24px;
   line-height: 1.2;
 }
+
+/* Si te dan menos de lo que es, se lee "Falta" en coral. */
+.f-cobro-vuelto[data-falta='true'] strong { color: var(--f-coral); }
 
 .f-billetes {
   display: grid;
@@ -700,11 +707,12 @@
 
 /* Lector de código de barras (el "pi pi"), sólo en PC. */
 .f-lector {
+  align-self: flex-start;
   align-items: center;
-  gap: var(--f-3);
+  gap: var(--f-2);
   margin: 0;
-  padding: 10px 14px;
-  border-radius: var(--f-radio-control);
+  padding: 6px 14px 6px 12px;
+  border-radius: 999px;
   background: var(--f-verde-suave);
   color: var(--f-verde);
   font-size: 14px;
@@ -764,13 +772,16 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--f-tinta);
+  color: var(--f-tinta-2);
   font: inherit;
   font-size: 14px;
   font-weight: 700;
-  text-decoration: underline;
   cursor: pointer;
 }
+
+/* Discreto en cada renglón: se nota al pasar el cursor, no compite con el
+   producto ni con el precio. */
+.f-venta-descuento:hover { color: var(--f-tinta); text-decoration: underline; }
 
 .f-venta-descuento-fila {
   display: flex;
@@ -895,4 +906,148 @@
   .f-producto-nota { font-size: 14px; }
   .f-catalogo-rotulo { font-size: 15px; }
   .f-venta-total span { font-size: 18px; }
+}
+
+/* ───────────── Cantidad exacta ───────────── */
+
+/* El número del renglón se toca para escribir la cantidad. */
+.f-paso button.f-paso-editar {
+  width: 40px;
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: text;
+}
+
+.f-paso button.f-paso-editar:hover { border-color: var(--f-borde); }
+
+.f-paso-campo {
+  width: 52px;
+  height: 40px;
+  padding: 0 4px;
+  border: 2px solid var(--f-tinta);
+  border-radius: 8px;
+  background: var(--f-superficie);
+  color: var(--f-tinta);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.f-paso-campo:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 1px; }
+
+/* ───────────── Monto libre ───────────── */
+
+.f-boton.f-monto-libre {
+  min-width: 48px;
+  min-height: 52px;
+  gap: 8px;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+/* En el celu entran buscador, cámara y monto libre en una fila. */
+@media (max-width: 899px) {
+  .f-catalogo-busqueda { gap: 8px; }
+  .f-boton.f-escanear { min-width: 48px; padding: 0 12px; }
+}
+
+.f-monto-libre svg { width: 22px; height: 22px; }
+.f-monto-libre span { display: none; }
+
+@media (min-width: 900px) {
+  .f-boton.f-monto-libre { min-height: 60px; padding: 0 18px; }
+  .f-monto-libre span { display: inline; }
+}
+
+/* ───────────── Deshacer ───────────── */
+
+/* Aviso abajo con el botón "Deshacer": aparece después de agregar o
+   quitar y se va solo. En el celu queda arriba de la barra de cobro. */
+.f-deshacer {
+  position: fixed;
+  left: 50%;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  z-index: 69;
+  display: flex;
+  width: min(calc(100% - 32px), 460px);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--f-3);
+  padding: 8px 8px 8px 18px;
+  border-radius: 999px;
+  background: var(--f-tinta);
+  color: var(--f-superficie);
+  font-size: 15px;
+  font-weight: 600;
+  transform: translateX(-50%);
+  animation: f-deshacer-entrar 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.f-deshacer span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.f-deshacer button {
+  min-height: 40px;
+  flex: 0 0 auto;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--f-lima);
+  color: var(--f-sobre-lima);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.f-deshacer button:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+
+@keyframes f-deshacer-entrar {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+}
+
+@media (min-width: 900px) {
+  .f-deshacer { bottom: 28px; left: calc(50% + var(--f-ancho-lateral) / 2); }
+}
+
+/* ───────────── Destello del renglón ───────────── */
+
+@keyframes f-renglon-destello {
+  from { background-color: var(--f-verde-suave); }
+}
+
+.f-venta-renglon[data-destello='true'] {
+  border-radius: 10px;
+  animation: f-renglon-destello 0.7s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f-deshacer, .f-venta-renglon[data-destello='true'] { animation: none; }
+}
+
+/* Quitar el monto libre: un tacho del mismo tamaño que los botones − y +. */
+.f-venta-quitar {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--f-radio-control);
+  background: var(--f-fondo);
+  color: var(--f-tinta-2);
+  cursor: pointer;
+}
+
+.f-venta-quitar svg { width: 20px; height: 20px; }
+.f-venta-quitar:hover { background: var(--f-coral-suave); color: var(--f-coral); }
+.f-venta-quitar:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 1px; }
+
+/* En la PC "Lo que más sale" queda en un solo renglón: los que no entran
+   igual están en la grilla de abajo. */
+@media (min-width: 900px) {
+  .f-catalogo .f-mas-vendidos { max-height: 40px; overflow: hidden; }
 }

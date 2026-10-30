@@ -28,14 +28,14 @@ export const OPCIONES_PAGO: OpcionSegmentado<MedioCobro>[] = [
 const TECLAS: TeclaCobro[] = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '000', '0', 'borrar']
 
 /** Cobro en efectivo: cuánto te dan, cuánto es el vuelto y un teclado grande.
- *  Los botones de arriba ("Justo", $14.000…) resuelven el caso más común en
- *  un solo toque. */
+ *  Sin escribir nada se cobra justo (lo más común, sin tocar nada más); los
+ *  billetes de arriba resuelven el resto en un toque. */
 function Efectivo({ total, onCobrar }: { total: number; onCobrar: (entregado: number) => void }) {
   const [pagoCon, setPagoCon] = useState('')
-  const entregado = pesosACentavos(Number(pagoCon) || 0)
-  const resto = vuelto(entregado, total)
   const hayPago = pagoCon !== ''
-  const alcanza = hayPago && resto >= 0
+  const entregado = hayPago ? pesosACentavos(Number(pagoCon) || 0) : total
+  const resto = vuelto(entregado, total)
+  const alcanza = resto >= 0
   const justo = String(Math.ceil(total / 100))
 
   return (
@@ -53,22 +53,18 @@ function Efectivo({ total, onCobrar }: { total: number; onCobrar: (entregado: nu
               inputMode="numeric"
               autoComplete="off"
               autoFocus
-              placeholder="0"
+              placeholder={conPuntos(justo)}
               className="f-plata"
               value={conPuntos(pagoCon)}
               onChange={(evento) => setPagoCon(soloDigitos(evento.target.value))}
             />
           </span>
         </label>
-        <div className="f-cobro-vuelto">
-          <span className="f-cobro-rotulo">Vuelto</span>
-          <strong className="f-plata">{alcanza ? formatearPesos(resto) : '—'}</strong>
+        <div className="f-cobro-vuelto" data-falta={alcanza ? undefined : 'true'} aria-live="polite">
+          <span className="f-cobro-rotulo">{alcanza ? 'Vuelto' : 'Falta'}</span>
+          <strong className="f-plata">{formatearPesos(Math.abs(resto))}</strong>
         </div>
       </div>
-
-      {hayPago && resto < 0 && (
-        <p className="f-aviso" role="status">Le faltan {formatearPesos(-resto)} para cubrir la venta.</p>
-      )}
 
       <div className="f-billetes">
         <button type="button" className="f-billete" aria-pressed={pagoCon === justo} onClick={() => setPagoCon(justo)}>Justo</button>

@@ -90,7 +90,8 @@ describe('PantallaVender', () => {
     fireEvent.click(await screen.findByRole('button', { name: /^cobrar$/i }))
     fireEvent.click(await screen.findByRole('radio', { name: /efectivo/i }))
     fireEvent.change(await screen.findByLabelText(/con cuánto pagó/i), { target: { value: '3000' } })
-    expect(await screen.findByText(/le faltan \$1\.200/i)).toBeDefined()
+    expect(await screen.findByText('Falta')).toBeDefined()
+    expect(screen.getByText('$1.200')).toBeDefined()
     expect(screen.getByRole('button', { name: /cobrar \$4\.200/i })).toHaveProperty('disabled', true)
   })
 
@@ -163,8 +164,8 @@ describe('PantallaVender', () => {
     fireEvent.click(await screen.findByText('Yerba Playadito'))
     fireEvent.click(await screen.findByRole('button', { name: /^cobrar$/i }))
 
-    // arranca en efectivo y sin pago: no se puede cobrar todavía
-    expect(screen.getByRole('button', { name: /cobrar \$4\.200/i })).toHaveProperty('disabled', true)
+    // arranca en efectivo y sin escribir nada: se cobra justo, sin vuelto
+    expect(screen.getByRole('button', { name: /cobrar \$4\.200/i })).toHaveProperty('disabled', false)
 
     // $5.000 es uno de los billetes sugeridos para $4.200
     fireEvent.click(screen.getByRole('button', { name: '$5.000' }))
