@@ -561,3 +561,19 @@
   .f-nav-item .f-nav-icono svg { width: 20px; height: 20px; }
   .f-lateral[data-compacta='true'] .f-nav-item { min-height: 42px; }
 }
+
+/* ───────────── Celu: encabezados de pantalla ───────────── */
+
+/* La acción principal del encabezado ocupa todo el ancho, igual en todas
+   las pantallas (como "Llegó mercadería" en Stock). */
+@media (max-width: 899px) {
+  .app-main :is(.f-pedidos-cabeza, .f-clientes-cabeza, .f-cuenta-encabezado) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .app-main :is(.f-pedidos-cabeza, .f-clientes-cabeza, .f-cuenta-encabezado) > :is(.f-boton, a) {
+    width: 100%;
+    justify-content: center;
+  }
+}
