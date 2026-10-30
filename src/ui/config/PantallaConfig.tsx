@@ -1,5 +1,6 @@
 'use client'
 
+import { Portada } from '@/ui/sistema/Portada'
 import { useEffect, useRef, useState } from 'react'
 import { db } from '@/datos/local/db'
 import { repos } from '@/datos/local/repos'
@@ -61,10 +62,7 @@ export function PantallaConfig() {
 
   return (
     <div className="page-config f-config">
-      <header>
-        <h1 className="f-titulo">Tu negocio</h1>
-        <p className="f-texto f-config-subtitulo">Personalizá tu operación y protegé tus datos.</p>
-      </header>
+      <Portada id="config" titulo="Tu negocio" subtitulo="Personalizá tu operación y protegé tus datos." />
 
       <div className="f-config-cuerpo">
         <div className="f-config-col">

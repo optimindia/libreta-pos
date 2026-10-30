@@ -1,5 +1,6 @@
 'use client'
 
+import { Portada } from '@/ui/sistema/Portada'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -149,24 +150,27 @@ export function PantallaClientes() {
 
   return (
     <div className="page-clientes f-cartera">
-      <header className="f-clientes-cabeza">
-        <div>
-          <h1 className="f-titulo">Clientes</h1>
-          <p className="f-clientes-sub">Quién vuelve, quién debe y qué suele llevar.</p>
-        </div>
-        <Boton variante="principal" onClick={() => { setFormulario('nuevo'); setAviso(null) }}>
-          + {TEXTOS.agregarCliente}
-        </Boton>
-      </header>
+      <Portada
+        id="clientes"
+        titulo="Clientes"
+        subtitulo="Quién vuelve, quién debe y qué suele llevar."
+        rotulo="Clientes en tu cartera"
+        valor={datos.perfiles.length}
+        formato="numero"
+        detalle={(
+          <>
+            <p>Fiado abierto <b>{formatearPesos(totalDeuda)}</b></p>
+            <p data-tenue="">{conDeuda === 0 ? 'Nadie te debe' : `${conDeuda} ${conDeuda === 1 ? 'cliente debe' : 'clientes deben'}`}</p>
+          </>
+        )}
+        accion={(
+          <Boton variante="principal" onClick={() => { setFormulario('nuevo'); setAviso(null) }}>
+            + {TEXTOS.agregarCliente}
+          </Boton>
+        )}
+      />
 
       <div className="f-clientes-resumen">
-        <div className="f-clientes-debe">
-          <span className="f-clientes-debe-texto">
-            <span className="f-clientes-debe-rotulo">Fiado abierto</span>
-            <span className="f-dato">{conDeuda === 0 ? 'Nadie te debe' : `${conDeuda} ${conDeuda === 1 ? 'cliente debe' : 'clientes deben'}`}</span>
-          </span>
-          <b className="f-plata f-clientes-debe-monto">{formatearPesos(totalDeuda)}</b>
-        </div>
         <Tarjeta relleno="normal" className="f-clientes-datos">
           <div><span className="f-dato">Clientes</span><b>{datos.perfiles.length}</b><span className="f-dato">en tu cartera</span></div>
           <div><span className="f-dato">Activos</span><b>{compradoresMes}</b><span className="f-dato">últimos 30 días</span></div>

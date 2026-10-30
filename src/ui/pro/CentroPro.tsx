@@ -1,5 +1,6 @@
 'use client'
 
+import { Portada } from '@/ui/sistema/Portada'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -311,25 +312,26 @@ export function CentroPro() {
     { numero: '30', titulo: 'Resumen compartible', descripcion: 'Mandá el estado del negocio por WhatsApp en un toque.', valor: 'WhatsApp', accion: { label: 'Compartir', onClick: compartirResumen } },
   ] as const
 
-  const tonoScore: TonoEtiqueta = calculos.score >= 80 ? 'verde' : 'ambar'
 
   return (
     <div className="page-pro f-pro">
-      <header className="f-pro-cabecera">
-        <div className="f-pro-titulo">
-          <h1 className="f-titulo">Centro Pro</h1>
-          <p className="f-texto">Treinta herramientas para decidir más rápido, cuidar tu margen y no perder ventas.</p>
-          <div className="f-pro-acciones">
+      <Portada
+        id="pro"
+        titulo="Centro Pro"
+        subtitulo="Treinta herramientas para decidir más rápido, cuidar tu margen y no perder ventas."
+        rotulo="Salud de tu negocio"
+        valor={calculos.score}
+        formato="numero"
+        sufijo="/100"
+        tono={calculos.score >= 80 ? 'lima' : calculos.score >= 55 ? 'ambar' : 'coral'}
+        detalle={<p>{calculos.score >= 80 ? 'Todo en orden' : calculos.score >= 55 ? 'Hay cosas para mirar' : 'Necesita atención'}</p>}
+        accion={(
+          <>
             <Boton variante="secundario" onClick={compartirResumen}><IconoWhatsApp /> Compartir resumen</Boton>
             <Boton variante="secundario" onClick={descargarInforme}><IconoDescargar /> Descargar informe</Boton>
-          </div>
-        </div>
-        <Tarjeta className="f-pro-score" aria-label="Salud operativa">
-          <span className="f-dato">Salud operativa</span>
-          <strong className="f-plata-48">{calculos.score}<small>/100</small></strong>
-          <Etiqueta tono={tonoScore} punto>{calculos.score >= 80 ? 'Todo en orden' : calculos.score >= 55 ? 'Hay cosas para mirar' : 'Necesita atención'}</Etiqueta>
-        </Tarjeta>
-      </header>
+          </>
+        )}
+      />
 
       <div className="f-pro-periodo">
         <div><span className="f-dato">Ventana de análisis</span><strong className="f-seccion">{periodoLabel(periodo)}</strong></div>

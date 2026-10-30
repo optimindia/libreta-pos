@@ -1,5 +1,6 @@
 'use client'
 
+import { Portada } from '@/ui/sistema/Portada'
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/datos/local/db'
@@ -81,20 +82,30 @@ export function PantallaPlata() {
 
   return (
     <div className="fp-pagina">
-      <header className="fp-cabeza">
-        <div className="fp-cabeza-texto">
-          <h1 className="f-titulo">Plata</h1>
-          <p className="f-dato">{etiquetaPeriodo(periodo)}</p>
-        </div>
-        <a
-          className={clasesBoton('secundario', 'fp-compartir')}
-          target="_blank"
-          rel="noreferrer"
-          href={enlaceWhatsApp('', mensajeResumen(etiquetaPeriodo(periodo), datos.resumen))}
-        >
-          Compartir resumen
-        </a>
-      </header>
+      <Portada
+        id="plata"
+        contexto={etiquetaPeriodo(periodo)}
+        titulo="Plata"
+        rotulo="Vendiste"
+        valor={datos.resumen.vendido}
+        detalle={(
+          <>
+            <p>{datos.resumen.cantidadVentas} {datos.resumen.cantidadVentas === 1 ? 'venta' : 'ventas'}</p>
+            <p>Ganaste <b>{formatearPesos(ganancia)}</b> <span data-tenue="">({porcentajeMargen(datos.resumen.vendido, ganancia)}% de margen)</span></p>
+            <p data-tenue="">Ticket promedio <b>{formatearPesos(datos.resumen.ticketPromedio)}</b></p>
+          </>
+        )}
+        accion={(
+          <a
+            className={clasesBoton('secundario', 'fp-compartir')}
+            target="_blank"
+            rel="noreferrer"
+            href={enlaceWhatsApp('', mensajeResumen(etiquetaPeriodo(periodo), datos.resumen))}
+          >
+            Compartir resumen
+          </a>
+        )}
+      />
 
       <Chips etiqueta="Período" className="fp-periodos">
         {PERIODOS.map((opcion) => (
@@ -108,26 +119,6 @@ export function PantallaPlata() {
 
       <div className="fp-grilla">
         <CentroAcciones agotados={agotados} reposiciones={datos.compras.length} vencidos={vencidos} alertasMargen={alertasMargen} cierrePendiente={cierrePendiente} pendientesSync={nubeActiva() ? pendientesSync : 0} />
-
-        <Tarjeta como="section" className="fp-resumen fp-ancho" aria-label="Resumen del período">
-          <div className="fp-resumen-principal">
-            <span className="f-dato">Vendiste · {etiquetaPeriodo(periodo).toLowerCase()}</span>
-            <span className="f-plata f-plata-48 fp-monto">{formatearPesos(datos.resumen.vendido)}</span>
-            <span className="f-texto fp-resumen-detalle">{datos.resumen.cantidadVentas} {datos.resumen.cantidadVentas === 1 ? 'venta' : 'ventas'}</span>
-          </div>
-          <div className="fp-resumen-datos">
-            <div className="fp-dato-caja" data-tono={ganancia > 0 ? 'verde' : undefined}>
-              <span>Ganaste</span>
-              <b className="f-plata f-plata-36 fp-dato-monto">{formatearPesos(ganancia)}</b>
-              <small>{porcentajeMargen(datos.resumen.vendido, ganancia)}% de margen</small>
-            </div>
-            <div className="fp-dato-caja">
-              <span>Ticket promedio</span>
-              <b className="f-plata f-plata-36 fp-dato-monto">{formatearPesos(datos.resumen.ticketPromedio)}</b>
-              <small>por venta</small>
-            </div>
-          </div>
-        </Tarjeta>
 
         <Tarjeta como="section" aria-labelledby="plata-rindio">
           <h2 id="plata-rindio" className="f-seccion">Lo que más rindió</h2>

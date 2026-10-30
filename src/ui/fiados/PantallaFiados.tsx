@@ -17,6 +17,7 @@ import { Chip, Chips } from '@/ui/sistema/Chip'
 import { Etiqueta, type TonoEtiqueta } from '@/ui/sistema/Etiqueta'
 import { Hoja } from '@/ui/sistema/Hoja'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
+import { Portada } from '@/ui/sistema/Portada'
 import { IconoCobrar, IconoEditar, IconoFiados, IconoVender, IconoWhatsApp } from '@/ui/sistema/iconos'
 import { usePantallaAncha } from './usoPantallaAncha'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
@@ -358,24 +359,23 @@ export function PantallaFiados() {
   const deudaActualPago = ultimoPago ? datos.deudas.find((item) => item.clienteId === ultimoPago.clienteId)?.saldo ?? 0 : 0
 
   return (
-    <div className="page-fiados f-fiados">
+    <div className="page-fiados f-fiados-pagina">
+      <Portada
+        id="fiados"
+        titulo="Fiados"
+        rotulo="Te deben"
+        valor={totalDeuda}
+        tono="coral"
+        detalle={(
+          <>
+            <p>{datos.deudas.length} {datos.deudas.length === 1 ? 'cliente' : 'clientes'}</p>
+            <p data-tenue={vencidas === 0 ? '' : undefined}>{vencidas} {vencidas === 1 ? 'vencido' : 'vencidos'}</p>
+          </>
+        )}
+        accion={<Boton variante="secundario" onClick={() => setFormularioCliente('nuevo')}>+ Cliente</Boton>}
+      />
+    <div className="f-fiados">
       <div className="f-fiados-lista-col">
-        <header className="f-fiados-cabeza">
-          <h1 className="f-titulo">Fiados</h1>
-          <Boton variante="secundario" onClick={() => setFormularioCliente('nuevo')}>
-            + Cliente
-          </Boton>
-        </header>
-
-        <div className="f-fiados-total">
-          <span className="f-fiados-total-texto">
-            <span className="f-fiados-total-rotulo">Te deben</span>
-            <span className="f-dato">
-              {datos.deudas.length} {datos.deudas.length === 1 ? 'cliente' : 'clientes'} · {vencidas} {vencidas === 1 ? 'vencido' : 'vencidos'}
-            </span>
-          </span>
-          <b className="f-plata f-fiados-total-monto">{formatearPesos(totalDeuda)}</b>
-        </div>
 
         {datos.clientes.length > 0 && (
           <CampoBusqueda etiqueta="Buscar cliente en fiados" placeholder="Buscar cliente" valor={busqueda} onCambiar={setBusqueda} />
@@ -468,6 +468,8 @@ export function PantallaFiados() {
           {detalle}
         </Hoja>
       )}
+
+    </div>
 
       {formularioCliente && (
         <ClienteForm

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { useContador } from '@/ui/sistema/usoContador'
+import { Portada } from '@/ui/sistema/Portada'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/datos/local/db'
 import { repos } from '@/datos/local/repos'
@@ -65,9 +65,6 @@ export function PantallaInicio() {
     return { ventas, fiados, pagos, productos, negocio, pendientes, cantidadVentas, clientes }
   })
 
-  const vendidoHoy = datos ? resumenDelDia(datos.ventas, new Date()).vendido : 0
-  const llevas = useContador(vendidoHoy, { animar: entrada, paso: 100 })
-
   if (!datos) return <div className="fi-pagina"><EstadoCarga texto="Preparando tu inicio…" /></div>
 
   const { ventas, fiados, pagos, productos, negocio, pendientes, cantidadVentas, clientes } = datos
@@ -117,31 +114,36 @@ export function PantallaInicio() {
     <div className="fi-pagina" data-entrada={entrada ? 'true' : undefined}>
       {aparatoNuevo && <Entrar onListo={() => setDeCero(true)} />}
 
-      <section className="fi-portada" aria-labelledby="fi-saludo">
-        <div className="fi-portada-texto">
-          <p className="fi-fecha">{fechaLarga(ahora)} · {nombre}</p>
-          <h1 id="fi-saludo" className="fi-saludo">{saludo(ahora.getHours())}</h1>
-          <p className="fi-llevas-rotulo">Hoy llevás vendido</p>
-          <p className="fi-llevas"><span aria-hidden="true">{formatearPesos(llevas)}</span><span className="f-sr">{formatearPesos(resumen.vendido)}</span></p>
-          <p className="fi-llevas-detalle">
-            <span>{resumen.cantidadVentas === 0
+      <Portada
+        id="inicio"
+        className="fi-portada"
+        animar={entrada}
+        contexto={`${fechaLarga(ahora)} · ${nombre}`}
+        titulo={saludo(ahora.getHours())}
+        rotulo="Hoy llevás vendido"
+        valor={resumen.vendido}
+        detalle={(
+          <>
+            <p>{resumen.cantidadVentas === 0
               ? 'Todavía no vendiste nada hoy'
-              : `${resumen.cantidadVentas} ${resumen.cantidadVentas === 1 ? 'venta' : 'ventas'}`}</span>
-            {comparacion && resumen.cantidadVentas > 0 && <span className="fi-llevas-comparacion">{comparacion}</span>}
-          </p>
-        </div>
-        <div className="fi-portada-accion">
-          <Link href="/vender" className="fi-vender">
-            <span className="fi-vender-icono"><IconoVender /></span>
-            <span className="fi-vender-texto">
-              <strong>Vender</strong>
-              <small>Escaneá o tocá los productos</small>
-            </span>
-            <span className="fi-vender-flecha" aria-hidden="true"><IconoFlechaDerecha /></span>
-          </Link>
-          <Etiqueta tono={pendientes ? 'ambar' : 'verde'} punto>{pendientes ? 'Guardado en este aparato' : 'Todo guardado'}</Etiqueta>
-        </div>
-      </section>
+              : `${resumen.cantidadVentas} ${resumen.cantidadVentas === 1 ? 'venta' : 'ventas'}`}</p>
+            {comparacion && resumen.cantidadVentas > 0 && <p data-tenue="">{comparacion}</p>}
+          </>
+        )}
+        accion={(
+          <>
+            <Link href="/vender" className="fi-vender">
+              <span className="fi-vender-icono"><IconoVender /></span>
+              <span className="fi-vender-texto">
+                <strong>Vender</strong>
+                <small>Escaneá o tocá los productos</small>
+              </span>
+              <span className="fi-vender-flecha" aria-hidden="true"><IconoFlechaDerecha /></span>
+            </Link>
+            <Etiqueta tono={pendientes ? 'ambar' : 'verde'} punto>{pendientes ? 'Guardado en este aparato' : 'Todo guardado'}</Etiqueta>
+          </>
+        )}
+      />
 
       <div className="fi-grilla">
         <PrimerosPasos

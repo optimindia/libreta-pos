@@ -8,6 +8,8 @@
   gap: var(--f-4);
 }
 
+.f-fiados-pagina { display: flex; flex-direction: column; gap: var(--f-4); }
+
 .f-fiados-lista-col {
   display: flex;
   min-width: 0;
@@ -233,10 +235,20 @@
 @media (min-width: 900px) {
   /* Lista y cuenta ocupan el alto de la pantalla y cada una se desliza por
      su cuenta: con 0 o con 100 clientes, las dos columnas terminan juntas. */
+  /* La portada arriba y, debajo, lista y cuenta ocupan el resto del alto de
+     la pantalla. */
+  .f-fiados-pagina {
+    display: flex;
+    height: calc(100dvh - 76px);
+    min-height: 720px;
+    flex-direction: column;
+    gap: var(--f-5);
+  }
+
   .f-fiados {
     display: grid;
-    height: calc(100dvh - 76px);
-    min-height: 560px;
+    min-height: 0;
+    flex: 1;
     grid-template-columns: minmax(360px, 488px) minmax(0, 1fr);
     align-items: stretch;
     gap: var(--f-6);

@@ -478,64 +478,7 @@
 .fi-vacio { grid-column: 1 / -1; }
 .fi-vacio.f-estado-vacio { min-height: 0; padding: var(--f-5); }
 
-/* ───────────── Portada: la página del día ───────────── */
-
-/* Fondo oscuro con el renglonado de una libreta, apenas visible: lo único
-   decorado de la pantalla. Arriba de todo, cuánto se lleva vendido. */
-.fi-portada {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: var(--f-5);
-  overflow: hidden;
-  padding: var(--f-5);
-  border-radius: var(--f-radio-tarjeta);
-  background-color: var(--f-nav);
-  background-image: repeating-linear-gradient(to bottom, transparent 0 31px, rgb(255 255 255 / 0.05) 31px 32px);
-  color: var(--f-nav-texto-activo);
-}
-
-.fi-portada::before {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 44px;
-  width: 1px;
-  background: rgb(255 120 100 / 0.22);
-  content: '';
-  pointer-events: none;
-}
-
-.fi-portada-texto { position: relative; min-width: 0; padding-left: 40px; }
-.fi-portada .fi-fecha { margin: 0; color: var(--f-nav-texto); font-size: 15px; font-weight: 600; }
-.fi-saludo { margin: 2px 0 var(--f-4); font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
-.fi-llevas-rotulo { margin: 0; color: var(--f-nav-texto); font-size: 16px; font-weight: 600; }
-
-.fi-llevas {
-  margin: 0;
-  color: var(--f-lima);
-  font-size: clamp(44px, 12vw, 76px);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.035em;
-  line-height: 1;
-  overflow-wrap: anywhere;
-}
-
-.fi-llevas-detalle {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  margin: var(--f-2) 0 0;
-  color: var(--f-nav-texto-activo);
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.fi-llevas-comparacion { color: var(--f-nav-texto); font-weight: 500; }
-
-.fi-portada-accion { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: var(--f-3); }
-.fi-portada-accion .f-etiqueta { align-self: flex-start; min-height: 32px; font-size: 14px; }
+/* ───────────── Portada: el botón Vender ───────────── */
 
 .fi-portada .fi-vender {
   display: flex;
@@ -667,21 +610,7 @@
 }
 
 @media (min-width: 900px) {
-  .fi-portada {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
-    align-items: center;
-    gap: var(--f-6);
-    padding: var(--f-6) var(--f-7);
-    background-image: repeating-linear-gradient(to bottom, transparent 0 39px, rgb(255 255 255 / 0.05) 39px 40px);
-  }
-
-  .fi-portada::before { left: 56px; }
-  .fi-portada-texto { padding-left: 40px; }
-  .fi-saludo { font-size: 30px; }
   .fi-vender-texto small { white-space: nowrap; }
-  .fi-llevas { font-size: 80px; }
-  .fi-portada-accion .f-etiqueta { align-self: flex-end; }
   .fi-portada .fi-vender { min-height: 112px; padding: var(--f-4) var(--f-5); }
   .fi-vender-texto strong { font-size: 34px; }
 
@@ -743,7 +672,6 @@
   from { transform: scaleY(0); }
 }
 
-.fi-pagina[data-entrada='true'] .fi-portada { animation: fi-aparecer 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .fi-pagina[data-entrada='true'] .fi-tarea { animation: fi-aparecer 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(160ms + var(--i, 0) * 70ms); }
 .fi-pagina[data-entrada='true'] .fi-barra { animation: fi-crecer 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(200ms + var(--i, 0) * 45ms); }
 
@@ -761,5 +689,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fi-pagina[data-entrada='true'] :is(.fi-portada, .fi-tarea, .fi-barra) { animation: none; }
+  .fi-pagina[data-entrada='true'] :is(.fi-tarea, .fi-barra) { animation: none; }
+}
+
+/* La etiqueta de guardado, debajo de Vender dentro de la portada. */
+.fi-portada .f-portada-accion .f-etiqueta { align-self: flex-start; min-height: 32px; font-size: 14px; }
+@media (min-width: 900px) {
+  .fi-portada .f-portada-accion .f-etiqueta { align-self: flex-end; }
 }
