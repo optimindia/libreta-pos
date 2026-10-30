@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { ChevronDown, ChevronUp, Eye, EyeOff, MonitorDown, Moon, PanelLeftClose, PanelLeftOpen, RotateCcw, Share, SlidersHorizontal, SquarePlus, Sun, SunMoon, Camera, Delete, House, ArrowLeft, ArrowRight, ArrowRightLeft, ArrowUpDown, BadgeCheck, Banknote, Bookmark, CalendarClock, CalendarDays, ChartNoAxesColumnIncreasing, Check, CircleAlert, CircleCheck, CircleDollarSign, CircleX, ClipboardList, Cloud, CreditCard, Download, Grid2X2, ListFilter, LockKeyhole, MapPin, MessageCircle, Minus, Package, Pencil, Percent, Plus, QrCode, ReceiptText, RefreshCw, ScanLine, Search, Settings, ShieldCheck, ShoppingCart, Star, StickyNote, Trash2, Truck, Upload, UserRoundPlus, UsersRound, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, Eye, EyeOff, MonitorDown, Moon, PanelLeftClose, PanelLeftOpen, RotateCcw, Share, SlidersHorizontal, SquarePlus, Sun, SunMoon, Camera, Delete, House, ArrowLeft, ArrowRight, ArrowRightLeft, ArrowUpDown, BadgeCheck, Banknote, Bookmark, CalendarClock, CalendarDays, ChartNoAxesColumnIncreasing, Check, CircleAlert, CircleCheck, CircleDollarSign, CircleX, ClipboardList, Cloud, CreditCard, Download, Grid2X2, ListFilter, LockKeyhole, MapPin, MessageCircle, Minus, Package, Pencil, Percent, Plus, QrCode, ReceiptText, RefreshCw, ScanLine, Search, Settings, ShieldCheck, ShoppingCart, Star, StickyNote, Trash2, TrendingUp, Clock, Truck, Upload, UserRoundPlus, UsersRound, X } from 'lucide-react'
 
 /** Un único lenguaje visual: misma familia, peso y proporción en toda la app. */
 function crearIcono(Icono: LucideIcon, relleno = false) {
@@ -74,3 +74,5 @@ export const IconoSol = crearIcono(Sun)
 export const IconoLuna = crearIcono(Moon)
 export const IconoTemaAuto = crearIcono(SunMoon)
 export const IconoRestablecer = crearIcono(RotateCcw)
+export const IconoGanancia = crearIcono(TrendingUp)
+export const IconoHora = crearIcono(Clock)

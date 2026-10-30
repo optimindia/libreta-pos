@@ -19,9 +19,12 @@ import { funcionActiva } from '@/dominio/funciones'
 import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
 import { Etiqueta } from '@/ui/sistema/Etiqueta'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
-import { clasesBoton } from '@/ui/sistema/Boton'
 import { Entrar } from '@/ui/vender/Entrar'
-import { IconoCamara, IconoFlechaDerecha, IconoMasCantidad, IconoVender } from '@/ui/sistema/iconos'
+import {
+  IconoAlerta, IconoCamara, IconoCobrar, IconoEfectivo, IconoFiados, IconoFlechaDerecha, IconoGanancia, IconoHistorial,
+  IconoHora, IconoMasCantidad, IconoPlata, IconoQR, IconoStock, IconoTransferencia, IconoVender,
+} from '@/ui/sistema/iconos'
+import type { ComponentType, ReactNode } from 'react'
 import type { Venta } from '@/dominio/tipos'
 import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
@@ -29,11 +32,15 @@ import { GraficoHoras } from './GraficoHoras'
 import { PrimerosPasos, pasosDeLaGuia } from './PrimerosPasos'
 
 const MEDIO: Record<Venta['medioPago'], string> = { efectivo: 'efectivo', transferencia: 'transferencia', qr: 'QR', fiado: 'fiado' }
+const ICONO_MEDIO: Record<Venta['medioPago'], ComponentType> = {
+  efectivo: IconoEfectivo, transferencia: IconoTransferencia, qr: IconoQR, fiado: IconoFiados,
+}
 const HORA = new Intl.DateTimeFormat('es-AR', { hour: 'numeric', minute: '2-digit', hour12: false })
 
-/** Lo primero que ve el almacenero al abrir: arriba de todo, VENDER, grande y
- *  inconfundible; abajo, lo que necesita saber de un vistazo (cuánto lleva,
- *  cuánto le deben, qué se le acaba, cómo viene la caja). */
+/** Lo primero que ve el almacenero al abrir, en orden de importancia:
+ *  VENDER; cuatro números del día con su ícono (vendido, ganancia, lo que le
+ *  deben, lo que se acaba); el día hora por hora junto a la caja; y por
+ *  último las últimas ventas y los atajos. Cada bloque dice qué es. */
 export function PantallaInicio() {
   const [deCero, setDeCero] = useState(false)
   const { funciones } = useFuncionesNegocio()
@@ -94,10 +101,10 @@ export function PantallaInicio() {
     <div className="fi-pagina">
       <header className="fi-cabeza">
         <div className="fi-cabeza-texto">
-          <p className="f-dato">{fechaLarga(ahora)} · {nombre}</p>
+          <p className="fi-fecha">{fechaLarga(ahora)} · {nombre}</p>
           <h1 className="f-titulo">{saludo(ahora.getHours())}</h1>
         </div>
-        <Etiqueta tono={pendientes ? 'ambar' : 'verde'} punto>{pendientes ? 'Guardado' : 'Al día'}</Etiqueta>
+        <Etiqueta tono={pendientes ? 'ambar' : 'verde'} punto>{pendientes ? 'Guardado en este aparato' : 'Al día'}</Etiqueta>
       </header>
 
       {aparatoNuevo && <Entrar onListo={() => setDeCero(true)} />}
@@ -107,9 +114,9 @@ export function PantallaInicio() {
           <span className="fi-vender-icono"><IconoVender /></span>
           <span className="fi-vender-texto">
             <strong>Vender</strong>
-            <small>Escaneá o tocá los productos</small>
+            <small>Escaneá o tocá los productos para armar el ticket</small>
           </span>
-          <span className="fi-vender-flecha" aria-hidden="true"><IconoFlechaDerecha /></span>
+          <span className="fi-vender-ir" aria-hidden="true">Empezar <IconoFlechaDerecha /></span>
         </Link>
 
         {esDueno && productos.length === 0 && (
@@ -131,120 +138,191 @@ export function PantallaInicio() {
           })}
         />
 
-        <Tarjeta como="section" className="fi-hoy" aria-label="Resumen de hoy">
-          <span className="f-dato">Vendiste hoy</span>
-          <span className="f-plata f-plata-36 fi-hoy-monto">{formatearPesos(resumen.vendido)}</span>
-          <span className="f-texto fi-hoy-detalle">
-            {resumen.cantidadVentas === 0
+        <section className="fi-numeros" aria-label="Tu día en números">
+          <Indicador
+            href={hayPlata ? '/plata' : undefined}
+            icono={IconoPlata}
+            tono="verde"
+            etiqueta="Vendiste hoy"
+            valor={formatearPesos(resumen.vendido)}
+            nota={resumen.cantidadVentas === 0
               ? 'Todavía no vendiste nada hoy'
-              : `${resumen.cantidadVentas} ${resumen.cantidadVentas === 1 ? 'venta' : 'ventas'}${comparacion ? ` · ${comparacion}` : ''}`}
-          </span>
-          <GraficoHoras franjas={franjas} />
+              : `${resumen.cantidadVentas} ${resumen.cantidadVentas === 1 ? 'venta' : 'ventas'}`}
+            extra={comparacion}
+          />
+
           {esDueno && (
-            <div className="fi-ganancia">
-              {bajoCosto.length > 0 ? (
-                <>
-                  <Etiqueta tono="ambar">Ganancia {formatearPesos(resumen.ganancia)}</Etiqueta>
-                  <Link href="/stock" className="fi-ganancia-nota">
-                    Vendiste por debajo del costo: {listaCorta(bajoCosto)}. Revisá los costos.
-                  </Link>
-                </>
-              ) : (
-                <Etiqueta tono="verde">Ganaste {formatearPesos(resumen.ganancia)}</Etiqueta>
-              )}
-              {hayPlata && <Link href="/plata" className="fi-enlace">Ver mi plata</Link>}
-            </div>
+            <Indicador
+              href={bajoCosto.length > 0 ? '/stock' : hayPlata ? '/plata' : undefined}
+              icono={bajoCosto.length > 0 ? IconoAlerta : IconoGanancia}
+              tono={bajoCosto.length > 0 ? 'ambar' : 'verde'}
+              etiqueta={bajoCosto.length > 0 ? 'Ganancia' : 'Ganaste hoy'}
+              valor={formatearPesos(resumen.ganancia)}
+              nota={bajoCosto.length > 0
+                ? `Vendiste por debajo del costo: ${listaCorta(bajoCosto)}. Revisá los costos.`
+                : 'Lo que te queda después de pagar la mercadería'}
+            />
           )}
+
+          {hayFiados && (
+            <Indicador
+              href="/fiados"
+              icono={IconoFiados}
+              tono="coral"
+              etiqueta="Te deben"
+              valor={formatearPesos(teDeben)}
+              nota={vencidos.cantidad > 0
+                ? `${vencidos.cantidad} ${vencidos.cantidad === 1 ? 'vencido' : 'vencidos'}`
+                : teDeben > 0 ? 'Todo al día' : 'Nadie te debe'}
+              extra="Lo que tus clientes todavía no pagaron"
+              urgente={vencidos.cantidad > 0}
+            />
+          )}
+
+          {hayStock && (
+            <Indicador
+              href="/stock"
+              icono={IconoStock}
+              tono="ambar"
+              etiqueta={productos.length === 0 ? 'Mercadería' : 'Por reponer'}
+              valor={productos.length === 0 ? 'Cargá tus productos' : String(reponer.cantidad)}
+              valorTexto={productos.length === 0}
+              nota={productos.length === 0
+                ? 'Sin esto no hay qué vender'
+                : reponer.cantidad === 0 ? 'Todo en orden' : listaCorta(reponer.nombres)}
+              extra={productos.length === 0 ? undefined : 'Productos que llegaron a su mínimo'}
+              urgente={reponer.cantidad > 0}
+            />
+          )}
+        </section>
+
+        <Tarjeta como="section" className="fi-horario" aria-labelledby="fi-horario-titulo">
+          <div className="fi-bloque-cabeza">
+            <span className="fi-bloque-icono" data-tono="verde"><IconoHora /></span>
+            <div>
+              <h2 id="fi-horario-titulo" className="f-seccion">Ventas de hoy por horario</h2>
+              <p className="fi-bloque-ayuda">Pasá el cursor o tocá una barra para ver cuánto vendiste en ese horario.</p>
+            </div>
+          </div>
+          <GraficoHoras franjas={franjas} />
         </Tarjeta>
 
-        {hayFiados && (
-          <Link href="/fiados" className="fi-aviso fi-deben" data-tono="coral">
-            <span className="f-dato">Te deben</span>
-            <span className="fi-aviso-ayuda">Lo que tus clientes todavía no pagaron</span>
-            <span className="f-plata f-plata-36 fi-aviso-monto">{formatearPesos(teDeben)}</span>
-            <span className="fi-aviso-nota">
-              {vencidos.cantidad > 0
-                ? <>{vencidos.cantidad} {vencidos.cantidad === 1 ? 'vencido' : 'vencidos'}</>
-                : teDeben > 0 ? 'Todo al día' : 'Nadie te debe'}
-            </span>
-            <span className="fi-aviso-ir">Ver fiados <IconoFlechaDerecha /></span>
-          </Link>
-        )}
-
         {hayPlata && (
-          <Tarjeta como="section" className="fi-caja" aria-label="Caja de hoy">
-            <h2 className="f-seccion">Caja de hoy</h2>
-            <p className="fi-seccion-ayuda f-texto">Cómo entró la plata: en mano, por QR o transferencia, o anotada en fiado.</p>
-            <FilaMedio nombre="Efectivo" monto={medios.efectivo} ancho={porcentajeDe(medios.efectivo)} tono="verde" />
-            <FilaMedio nombre="QR y transferencia" monto={qrYTransferencia} ancho={porcentajeDe(qrYTransferencia)} tono="tinta" />
-            <FilaMedio nombre="Fiado" monto={medios.fiado} ancho={porcentajeDe(medios.fiado)} tono="coral" />
-            <Link href="/plata" className={clasesBoton('secundario', 'fi-caja-boton')}>Cerrar caja</Link>
+          <Tarjeta como="section" className="fi-caja" aria-labelledby="fi-caja-titulo">
+            <div className="fi-bloque-cabeza">
+              <span className="fi-bloque-icono" data-tono="tinta"><IconoCobrar /></span>
+              <div>
+                <h2 id="fi-caja-titulo" className="f-seccion">Caja de hoy</h2>
+                <p className="fi-bloque-ayuda">Cómo te pagaron lo que vendiste.</p>
+              </div>
+            </div>
+            <FilaMedio icono={IconoEfectivo} nombre="Efectivo" monto={medios.efectivo} ancho={porcentajeDe(medios.efectivo)} tono="verde" />
+            <FilaMedio icono={IconoQR} nombre="QR y transferencia" monto={qrYTransferencia} ancho={porcentajeDe(qrYTransferencia)} tono="tinta" />
+            <FilaMedio icono={IconoFiados} nombre="Fiado" monto={medios.fiado} ancho={porcentajeDe(medios.fiado)} tono="coral" />
+            <Link href="/plata" className="fi-caja-cerrar">
+              <span>Cerrar caja</span>
+              <IconoFlechaDerecha />
+            </Link>
           </Tarjeta>
         )}
 
-        {hayStock && (
-          <Link href="/stock" className="fi-aviso fi-reponer" data-tono="ambar">
-            <span className="f-dato">{productos.length === 0 ? 'Mercadería' : 'Por reponer'}</span>
-            <span className="fi-aviso-ayuda">{productos.length === 0 ? 'Lo que tenés para vender' : 'Productos que se están por acabar'}</span>
-            <span className={`f-plata f-plata-36 fi-aviso-monto${productos.length === 0 ? ' fi-aviso-texto' : ''}`}>{productos.length === 0 ? 'Cargá tus productos' : reponer.cantidad}</span>
-            <span className="fi-aviso-nota">
-              {productos.length === 0
-                ? 'Sin esto no hay qué vender'
-                : reponer.cantidad === 0 ? 'Todo en orden' : listaCorta(reponer.nombres)}
-            </span>
-            <span className="fi-aviso-ir">Ver stock <IconoFlechaDerecha /></span>
-          </Link>
-        )}
-
         {ultimas.length > 0 && (
-          <Tarjeta como="section" className="fi-ultimas" aria-label="Últimas ventas">
-            <div className="fi-ultimas-cabeza">
-              <h2 className="f-seccion">Últimas ventas</h2>
+          <Tarjeta como="section" className="fi-ultimas" aria-labelledby="fi-ultimas-titulo">
+            <div className="fi-bloque-cabeza">
+              <span className="fi-bloque-icono" data-tono="tinta"><IconoHistorial /></span>
+              <div>
+                <h2 id="fi-ultimas-titulo" className="f-seccion">Últimas ventas</h2>
+                <p className="fi-bloque-ayuda">Lo último que cobraste.</p>
+              </div>
               <Link href="/historial" className="fi-enlace">Ver todas</Link>
             </div>
             <ul className="fi-ultimas-lista">
-              {ultimas.map((venta) => (
-                <li key={venta.id} className="f-renglon">
-                  <span className="f-renglon-cuerpo">
-                    <span className="f-renglon-titulo">{venta.items.map((item) => (item.cantidad > 1 ? `${item.nombre} ×${item.cantidad}` : item.nombre)).join(', ')}</span>
-                    <span className="f-renglon-detalle" data-tono={venta.medioPago === 'fiado' ? 'coral' : undefined}>
-                      {HORA.format(new Date(venta.fecha))} · {MEDIO[venta.medioPago]}{venta.medioPago === 'fiado' && nombreCliente(venta.clienteId) ? ` a ${nombreCliente(venta.clienteId)}` : ''}
+              {ultimas.map((venta) => {
+                const Icono = ICONO_MEDIO[venta.medioPago]
+                return (
+                  <li key={venta.id} className="fi-venta">
+                    <span className="fi-venta-icono" data-tono={venta.medioPago === 'fiado' ? 'coral' : undefined}><Icono /></span>
+                    <span className="fi-venta-cuerpo">
+                      <span className="fi-venta-titulo">{venta.items.map((item) => (item.cantidad > 1 ? `${item.nombre} ×${item.cantidad}` : item.nombre)).join(', ')}</span>
+                      <span className="fi-venta-detalle" data-tono={venta.medioPago === 'fiado' ? 'coral' : undefined}>
+                        {HORA.format(new Date(venta.fecha))} · {MEDIO[venta.medioPago]}{venta.medioPago === 'fiado' && nombreCliente(venta.clienteId) ? ` a ${nombreCliente(venta.clienteId)}` : ''}
+                      </span>
                     </span>
-                  </span>
-                  <span className="f-renglon-fin">{formatearPesos(venta.total)}</span>
-                </li>
-              ))}
+                    <span className="fi-venta-monto">{formatearPesos(venta.total)}</span>
+                  </li>
+                )
+              })}
             </ul>
           </Tarjeta>
         )}
 
         {(hayFactura || hayPlata) && (
-          <div className="fi-atajos">
-            {hayFactura && (
-              <Link href="/stock" className={clasesBoton('secundario')}>
-                <IconoCamara />
-                <span>Foto de factura</span>
-              </Link>
-            )}
+          <section className="fi-atajos" aria-label="Atajos">
             {hayPlata && (
-              <Link href="/plata" className={clasesBoton('secundario')}>
-                <IconoMasCantidad />
-                <span>Anotar un gasto</span>
-              </Link>
+              <Atajo href="/plata" icono={IconoMasCantidad} titulo="Anotar un gasto" ayuda="Luz, proveedor, alquiler…" />
             )}
-          </div>
+            {hayFactura && (
+              <Atajo href="/stock" icono={IconoCamara} titulo="Foto de factura" ayuda="Cargá la mercadería con una foto" />
+            )}
+          </section>
         )}
       </div>
     </div>
   )
 }
 
-function FilaMedio({ nombre, monto, ancho, tono }: { nombre: string; monto: number; ancho: number; tono: 'verde' | 'tinta' | 'coral' }) {
+type Tono = 'verde' | 'coral' | 'ambar' | 'tinta'
+
+function Indicador({
+  href, icono: Icono, tono, etiqueta, valor, valorTexto = false, nota, extra, urgente = false,
+}: {
+  href?: string
+  icono: ComponentType
+  tono: Tono
+  etiqueta: string
+  valor: string
+  valorTexto?: boolean
+  nota: ReactNode
+  extra?: string | null
+  urgente?: boolean
+}) {
+  const contenido = (
+    <>
+      <span className="fi-indicador-cabeza">
+        <span className="fi-indicador-icono"><Icono /></span>
+        <span className="fi-indicador-etiqueta">{etiqueta}</span>
+        {href && <span className="fi-indicador-ir" aria-hidden="true"><IconoFlechaDerecha /></span>}
+      </span>
+      <span className={`fi-indicador-valor${valorTexto ? ' fi-indicador-valor-texto' : ''}`}>{valor}</span>
+      <span className="fi-indicador-nota" data-urgente={urgente ? 'true' : undefined}>{nota}</span>
+      {extra && <span className="fi-indicador-extra">{extra}</span>}
+    </>
+  )
+  return href
+    ? <Link href={href} className="fi-indicador" data-tono={tono}>{contenido}</Link>
+    : <div className="fi-indicador" data-tono={tono}>{contenido}</div>
+}
+
+function Atajo({ href, icono: Icono, titulo, ayuda }: { href: string; icono: ComponentType; titulo: string; ayuda: string }) {
+  return (
+    <Link href={href} className="fi-atajo">
+      <span className="fi-atajo-icono"><Icono /></span>
+      <span className="fi-atajo-texto">
+        <strong>{titulo}</strong>
+        <small>{ayuda}</small>
+      </span>
+      <span className="fi-atajo-ir" aria-hidden="true"><IconoFlechaDerecha /></span>
+    </Link>
+  )
+}
+
+function FilaMedio({ icono: Icono, nombre, monto, ancho, tono }: { icono: ComponentType; nombre: string; monto: number; ancho: number; tono: 'verde' | 'tinta' | 'coral' }) {
   return (
     <div className="fi-medio" data-tono={tono}>
       <span className="fi-medio-fila">
-        <span className="f-texto">{nombre}{monto > 0 && <small className="fi-medio-pct"> {Math.min(100, ancho)}%</small>}</span>
-        <span className="f-plata f-plata-16 fi-medio-monto">{formatearPesos(monto)}</span>
+        <span className="fi-medio-icono"><Icono /></span>
+        <span className="fi-medio-nombre">{nombre}{monto > 0 && <small className="fi-medio-pct"> {Math.min(100, ancho)}%</small>}</span>
+        <span className="fi-medio-monto">{formatearPesos(monto)}</span>
       </span>
       <span className="fi-medio-barra" aria-hidden="true"><span style={{ width: `${ancho}%` }} /></span>
     </div>
