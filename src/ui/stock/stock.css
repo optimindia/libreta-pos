@@ -311,7 +311,7 @@
 
 .f-stock-cargar-cuerpo {
   display: grid;
-  align-items: start;
+  align-items: stretch;
   gap: var(--f-4);
 }
 

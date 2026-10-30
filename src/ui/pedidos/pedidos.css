@@ -370,8 +370,7 @@
 /* ───────────── PC ───────────── */
 
 @media (min-width: 900px) {
-  .f-pedidos-resumen { grid-template-columns: minmax(320px, 2fr) 1fr; align-items: center; }
-  .f-pedidos-filtros .f-buscar { flex: 0 0 auto; max-width: 520px; }
+  .f-pedidos-resumen { grid-template-columns: minmax(320px, 2fr) 1fr; align-items: stretch; }
   .f-pedidos-lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .f-pedidos-form-acciones { bottom: -24px; margin-bottom: -24px; padding-bottom: var(--f-5); }
 }
@@ -381,4 +380,4 @@
 }
 
 .f-pedidos .f-buscar { flex: 0 0 auto; }
-.f-pedidos-lista { align-items: start; }
+.f-pedidos-lista { align-items: stretch; }

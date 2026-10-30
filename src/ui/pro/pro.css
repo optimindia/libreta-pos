@@ -116,7 +116,7 @@
 
 /* ───────────── Paneles ───────────── */
 
-.f-pro-paneles { display: grid; align-items: start; gap: var(--f-4); }
+.f-pro-paneles { display: grid; align-items: stretch; gap: var(--f-4); }
 
 .f-pro-panel {
   display: flex;
