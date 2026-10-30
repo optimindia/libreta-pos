@@ -34,6 +34,7 @@ export function CatalogoVender({
   busqueda,
   onBuscar,
   onElegir,
+  masVendidos = [],
   escaner,
   lectorListo = false,
   atajos = false,
@@ -46,6 +47,8 @@ export function CatalogoVender({
   busqueda: string
   onBuscar: (texto: string) => void
   onElegir: (producto: Producto) => void
+  /** Los que más salieron últimamente: accesos directos de un toque. */
+  masVendidos?: Producto[]
   /** El botón de la cámara, que va al lado del buscador. */
   escaner?: ReactNode
   /** En la PC avisa que el lector de código de barras está andando. */
@@ -86,6 +89,16 @@ export function CatalogoVender({
           <span className="f-lector-punto" aria-hidden="true" />
           <span><b>Lector listo.</b> Pasá el producto por el lector: suena un pi y se suma solo al ticket.</span>
         </p>
+      )}
+
+      {masVendidos.length > 0 && categoria === '' && (
+        <Chips etiqueta="Más vendidos" className="f-mas-vendidos">
+          {masVendidos.map((producto) => (
+            <Chip key={producto.id} activo={false} onClick={() => onElegir(producto)} aria-label={`Sumar ${producto.nombre}, más vendido`}>
+              {producto.nombre}
+            </Chip>
+          ))}
+        </Chips>
       )}
 
       {(categorias.length > 0 || hayFavoritos) && (

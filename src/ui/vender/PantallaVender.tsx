@@ -2,12 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import type { ItemVenta, MedioPago, Negocio, Producto, UUID, Venta } from '@/dominio/tipos'
+import type { MedioPago, Negocio, Producto, UUID, Venta } from '@/dominio/tipos'
 import { agregarProducto, cambiarCantidad, precioVigente, totalTicket } from '@/dominio/ticket'
 import { ErrorStockInsuficiente, ErrorVentaInvalida, repos } from '@/datos/local/repos'
 import { db } from '@/datos/local/db'
 import { nubeActiva } from '@/datos/nube/cliente'
 import { Ticket, VaciarVenta } from './Ticket'
+import { TiraVentas } from './TiraVentas'
+import { HojaDescuento } from './HojaDescuento'
+import { useVentasAbiertas } from './usoVentasAbiertas'
+import { ahorroTotal, itemsParaCobrar, masVendidos, MAX_VENTAS_ABIERTAS, repetirVenta, ventaConContenido, ventaNueva, type Descuento } from '@/dominio/ventaAbierta'
 import { Cobro, OPCIONES_PAGO, type MedioCobro } from './Cobro'
 import { BotonEscanear } from './BotonEscanear'
 import { CatalogoVender } from './CatalogoVender'
@@ -26,10 +30,14 @@ import { AnuncioVivo } from '@/ui/sistema/AnuncioVivo'
 
 /** Mientras el almacenero no configure su negocio, el ticket lleva el
  *  mismo nombre provisorio que muestra la cabecera. */
+const SIN_VENTA = ventaNueva('sin-cargar', 0)
 const NEGOCIO_POR_DEFECTO: Negocio = { id: 'unico', nombre: 'Tu almacén', logo: null, color: null }
 
 export function PantallaVender() {
-  const [items, setItems] = useState<ItemVenta[]>([])
+  const { ventas, activa: activaGuardada, items, setItems, setNombre, setDescuentoItem, setDescuentoTotal, nueva, elegir, cerrar } = useVentasAbiertas()
+  // Mientras se leen las ventas guardadas (un instante) se muestra una en blanco.
+  const activa = activaGuardada ?? SIN_VENTA
+  const [descontando, setDescontando] = useState<{ productoId: UUID | null } | null>(null)
   const [cobrando, setCobrando] = useState(false)
   const [verTicket, setVerTicket] = useState(false)
   const [medio, setMedio] = useState<MedioCobro>('efectivo')
@@ -66,10 +74,19 @@ export function PantallaVender() {
     !estado.negocio?.negocioId &&
     nubeActiva()
 
-  const total = totalTicket(items)
+  // Lo que se cobra es el ticket con sus descuentos; la venta guarda el precio de lista.
+  const cobrables = itemsParaCobrar(activa)
+  const total = totalTicket(cobrables)
+  const ahorro = ahorroTotal(activa)
+  const masVendidosHoy = useLiveQuery(async () => {
+    const desde = Date.now() - 30 * 24 * 60 * 60 * 1000
+    return db.ventas.where('fecha').above(desde).toArray()
+  }, [])
+  const ultimaVenta = useLiveQuery(() => db.ventas.orderBy('fecha').reverse().filter((venta) => venta.estado === 'completada' && venta.items.length > 0).first(), [])
+  const hayVentaAbierta = ventas.some(ventaConContenido)
   // Con una venta a medias (o el ticket recién cobrado en pantalla) la app
   // no se recarga para actualizarse.
-  useMarcarVentaAbierta(items.length > 0 || cobrando || Boolean(cobrada) || Boolean(sinPrecio))
+  useMarcarVentaAbierta(hayVentaAbierta || cobrando || Boolean(cobrada) || Boolean(sinPrecio))
 
   // El aviso es un cartelito pasajero, como en el celu: se va solo.
   useEffect(() => {
@@ -108,8 +125,8 @@ export function PantallaVender() {
     if (items.length === 0) return
     if (medio === 'fiado' && !clienteId) return
     try {
-      const venta = await repos.ventas.registrar({ items, medioPago: medio, clienteId, vence, referenciaPago })
-      setItems([])
+      const venta = await repos.ventas.registrar({ items: cobrables, medioPago: medio, clienteId, vence, referenciaPago })
+      cerrar(activa.id)
       setCobrando(false)
       setMedio('efectivo')
       setPagoCon(medio === 'efectivo' && entregado !== undefined ? entregado : null)
@@ -228,11 +245,49 @@ export function PantallaVender() {
     return () => window.removeEventListener('keydown', tecla)
   }, [verTicket])
 
+  /** Deja la venta actual guardada y abre otra en blanco. */
+  function nuevaVenta() {
+    if (!nueva()) {
+      setAvisoStock(`Ya tenés ${MAX_VENTAS_ABIERTAS} ventas abiertas. Cobrá o descartá alguna para abrir otra.`)
+      return
+    }
+    setVerTicket(false)
+    setBusqueda('')
+  }
+
+  function repetirUltima() {
+    if (!ultimaVenta) return
+    const { items: repetidos, omitidos } = repetirVenta(ultimaVenta, productos, disponible)
+    if (repetidos.length === 0) {
+      setAvisoStock('No se pudo repetir la venta: ya no hay stock o precio de esos productos.')
+      return
+    }
+    setItems(repetidos)
+    setAvisoStock(omitidos.length > 0 ? `Repetimos la última venta, menos: ${omitidos.join(', ')}.` : null)
+  }
+
+  function aplicarDescuento(descuento: Descuento | null) {
+    if (descontando?.productoId) setDescuentoItem(descontando.productoId, descuento)
+    else setDescuentoTotal(descuento)
+    setDescontando(null)
+  }
+
+  const populares = busqueda.trim() === '' ? masVendidos(masVendidosHoy ?? [], productos, 0, 6) : []
+  const sobreDescuento = descontando
+    ? descontando.productoId
+      ? { titulo: 'Descuento del producto', inicial: activa.descuentoItems[descontando.productoId] ?? null, base: (() => { const renglon = activa.items.find((item) => item.productoId === descontando.productoId); return renglon ? renglon.precio * renglon.cantidad : 0 })() }
+      : { titulo: 'Descuento de la venta', inicial: activa.descuentoTotal, base: totalTicket(itemsParaCobrar({ ...activa, descuentoTotal: null })) }
+    : null
+
   return (
     <div className="f-vender">
       {/* Con una hoja abierta, lo de atrás no se lee ni se toca. */}
       <div className="f-vender-marco" aria-hidden={hojaAbierta || undefined} inert={hojaAbierta || undefined}>
         <h1 className="f-sr">Vender</h1>
+
+        {!aparatoNuevo && (ventas.length > 1 || hayVentaAbierta) && (
+          <TiraVentas ventas={ventas} activaId={activa.id} llena={ventas.length >= MAX_VENTAS_ABIERTAS} onElegir={(id) => { elegir(id); setVerTicket(false) }} onNueva={nuevaVenta} />
+        )}
 
         {aparatoNuevo ? (
           <Entrar onListo={() => setDeCero(true)} />
@@ -245,6 +300,7 @@ export function PantallaVender() {
               busqueda={busqueda}
               onBuscar={setBusqueda}
               onElegir={elegirProducto}
+              masVendidos={populares}
               atajos={atajosPc}
               lectorListo={escanerVenta}
               escaner={escanerVenta ? (
@@ -262,13 +318,30 @@ export function PantallaVender() {
                   <h2 className="f-seccion">Venta</h2>
                   <span className="f-dato">{textoUnidades}</span>
                 </div>
-                {hayItems && <VaciarVenta onVaciar={() => { setItems([]); setVerTicket(false) }} />}
+                {hayItems && (
+                  ventas.length > 1
+                    ? <VaciarVenta etiqueta="Descartar venta" confirmar="Sí, descartar" onVaciar={() => { cerrar(activa.id); setVerTicket(false) }} />
+                    : <VaciarVenta onVaciar={() => { setItems([]); setNombre(''); setVerTicket(false) }} />
+                )}
                 <button type="button" className="f-hoja-cerrar f-venta-cerrar" aria-label="Volver a los productos" onClick={() => setVerTicket(false)}><IconoCerrar /></button>
               </div>
 
               <div className="f-venta-lista">
+                {(hayItems || activa.nombre !== '') && (
+                  <input
+                    className="f-venta-nombre"
+                    aria-label="Nombre de la venta"
+                    placeholder="Nombre o nota (opcional)"
+                    maxLength={40}
+                    autoComplete="off"
+                    value={activa.nombre}
+                    onChange={(evento) => setNombre(evento.target.value)}
+                  />
+                )}
                 <Ticket
                   items={items}
+                  cobrables={cobrables}
+                  onDescuento={(productoId) => setDescontando({ productoId })}
                   stockPorProducto={disponibles}
                   onCambiarCantidad={(productoId, cantidad) =>
                     setItems((actuales) => cambiarCantidad(actuales, productoId, cantidad))
@@ -278,9 +351,20 @@ export function PantallaVender() {
                     if (producto) setAvisoStock(`Solo quedan ${disponible(producto)} unidades de ${producto.nombre}.`)
                   }}
                 />
+                {!hayItems && ultimaVenta && (
+                  <Boton variante="secundario" ancho onClick={repetirUltima}>Repetir la última venta</Boton>
+                )}
               </div>
 
               <div className="f-venta-pie">
+                {hayItems && (
+                  <div className="f-venta-descuento-fila">
+                    {ahorro > 0 && <span className="f-dato">Descuento −{formatearPesos(ahorro)}</span>}
+                    <button type="button" className="f-venta-descuento" onClick={() => setDescontando({ productoId: null })}>
+                      {activa.descuentoTotal ? 'Cambiar descuento de la venta' : 'Descuento a toda la venta'}
+                    </button>
+                  </div>
+                )}
                 <div className="f-venta-total">
                   <span>Total</span>
                   <strong className="f-plata-48">{formatearPesos(total)}</strong>
@@ -337,6 +421,10 @@ export function PantallaVender() {
             setItems((actuales) => agregarProducto(actuales, conPrecio))
           }}
         />
+      )}
+
+      {sobreDescuento && (
+        <HojaDescuento titulo={sobreDescuento.titulo} base={sobreDescuento.base} inicial={sobreDescuento.inicial} onAplicar={aplicarDescuento} onCerrar={() => setDescontando(null)} />
       )}
 
       {cobrando && <Cobro total={total} medioInicial={medio} onCobrar={cobrar} onCancelar={() => setCobrando(false)} />}

@@ -3,6 +3,7 @@ import type {
   Cierre, Cliente, Fiado, FiadoPago, Ingreso, MovimientoCaja, Negocio, Producto, Venta,
   Pedido, PreferenciasNegocio,
 } from '@/dominio/tipos'
+import type { VentaAbierta } from '@/dominio/ventaAbierta'
 
 /** Una operación pendiente de subir a la nube. */
 export interface EnCola {
@@ -31,6 +32,7 @@ export const db = new Dexie('libreta') as Dexie & {
   preferencias: EntityTable<PreferenciasNegocio, 'id'>
   negocio: EntityTable<Negocio, 'id'>
   cola: EntityTable<EnCola, 'id'>
+  ventasAbiertas: EntityTable<VentaAbierta, 'id'>
 }
 
 db.version(1).stores({
@@ -66,4 +68,11 @@ db.version(6).stores({
   ventas: 'id, fecha, vendidoPor',
   fiadoPagos: 'id, fiadoId, usuarioId',
   cierres: 'id, fecha, usuarioId',
+})
+
+/** Ventas armadas que todavía no se cobraron. Viven sólo en el aparato (no se
+ *  sincronizan ni entran en la copia de seguridad): son el trabajo a medias
+ *  del mostrador y tienen que sobrevivir a cambiar de pantalla o recargar. */
+db.version(7).stores({
+  ventasAbiertas: 'id, actualizada',
 })
