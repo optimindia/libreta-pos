@@ -203,7 +203,10 @@ export async function entrar(
 /** Cierra la sesión y elimina la copia local sensible del aparato. */
 export async function cerrarSesion(): Promise<void> {
   try {
-    await cliente?.auth.signOut()
+    // Sólo este aparato: el cierre global revoca la sesión de la PC o el
+    // celular donde el mismo dueño sigue trabajando, y ese aparato deja de
+    // sincronizar sin avisar.
+    await cliente?.auth.signOut({ scope: 'local' })
   } finally {
     await limpiarDatosLocales()
     olvidarAvisoBaja()

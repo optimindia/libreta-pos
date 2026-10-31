@@ -15,6 +15,22 @@ export function esRechazoDePermiso(error: unknown): boolean {
   return typeof error === 'object' && error !== null && (error as { code?: unknown }).code === '42501'
 }
 
+/** El token del aparato venció o la sesión ya no existe (PostgREST responde
+ *  401 con PGRST301/302/303). No es culpa de la operación: no se gasta un
+ *  intento, se corta la vuelta y se renueva la sesión. */
+export class SesionVencida extends Error {
+  constructor() { super('sesión vencida') }
+}
+
+export function esErrorDeSesion(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) return false
+  const { code, message, status } = error as { code?: unknown; message?: unknown; status?: unknown }
+  if (error instanceof SesionVencida) return true
+  if (status === 401) return true
+  if (typeof code === 'string' && /^PGRST30[123]$/.test(code)) return true
+  return typeof message === 'string' && /jwt (expired|could not be decoded)|invalid jwt/i.test(message)
+}
+
 export async function sincronizar(
   subir: SubirFn,
 ): Promise<{ subidos: number; fallidos: number; rechazados: number }> {
@@ -29,6 +45,7 @@ export async function sincronizar(
       await marcarSubido(item.id, item.creadoEn, item.datos)
       subidos++
     } catch (error) {
+      if (esErrorDeSesion(error)) throw new SesionVencida()
       if (esRechazoDePermiso(error)) {
         // Sin permiso no es un corte de red: se aparta y se sigue.
         await marcarRechazado(item.id, error)

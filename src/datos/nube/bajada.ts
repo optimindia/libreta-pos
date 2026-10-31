@@ -1,7 +1,7 @@
 import { db } from '@/datos/local/db'
 import { cliente } from './cliente'
 import { deLaNube, preferenciasDeLaNube, type Fila } from './mapeo'
-import { DESTINO, itemsDe, rearmarItems } from './sincronizar'
+import { DESTINO, SesionVencida, esErrorDeSesion, itemsDe, rearmarItems } from './sincronizar'
 import { todasLasFilas } from './paginar'
 
 /** El solape reprocesa lo último bajado: el merge por id es idempotente
@@ -105,7 +105,9 @@ export async function bajarCambios(traer: TraerCambiosFn): Promise<number> {
         if (marca > maximo) maximo = marca
         if (await escribir(tabla, fila)) escritas++
       }
-    } catch {
+    } catch (error) {
+      // Sin sesión válida ninguna tabla va a bajar: se corta y se renueva.
+      if (esErrorDeSesion(error)) throw new SesionVencida()
       fallo = true // se sigue con la próxima tabla: bajar algo es mejor que nada
     }
   }
