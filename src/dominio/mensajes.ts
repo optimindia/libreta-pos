@@ -1,3 +1,4 @@
+import { formatearCantidad } from './cantidad'
 import type { Centavos, Cliente, Negocio, Pedido, Venta } from './tipos'
 import type { SugerenciaCompra } from './reposicion'
 import { formatearPesos } from './dinero'
@@ -110,7 +111,7 @@ function fechaLegible(epoch: number): string {
 /** El ticket de una venta, listo para mandar por WhatsApp. */
 export function mensajeTicket(negocio: Negocio, venta: Venta): string {
   const lineas = venta.items.map(
-    (item) => `${item.cantidad} x ${item.nombre} — ${formatearPesos(item.precio * item.cantidad)}`,
+    (item) => `${formatearCantidad(item.cantidad)} x ${item.nombre} — ${formatearPesos(Math.round(item.precio * item.cantidad))}`,
   )
   const partes = [
     `*${negocio.nombre}*`,
@@ -129,7 +130,7 @@ export function mensajeTicket(negocio: Negocio, venta: Venta): string {
 }
 
 export function mensajePedido(negocio: Negocio, pedido: Pedido, cliente?: Cliente | null): string {
-  const lineas = pedido.items.map((item) => `${item.cantidad} x ${item.nombre} — ${formatearPesos(item.precio * item.cantidad)}`)
+  const lineas = pedido.items.map((item) => `${formatearCantidad(item.cantidad)} x ${item.nombre} — ${formatearPesos(Math.round(item.precio * item.cantidad))}`)
   const entrega = pedido.tipoEntrega === 'envio'
     ? `Envío a: ${pedido.direccion || 'dirección a confirmar'}`
     : 'Retiro en el local'

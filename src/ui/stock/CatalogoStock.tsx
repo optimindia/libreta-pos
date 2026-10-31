@@ -1,5 +1,6 @@
 'use client'
 
+import { cantidadValida, esFraccionado, formatearCantidad, leerCantidad, unidadDe } from '@/dominio/cantidad'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { Producto } from '@/dominio/tipos'
@@ -14,8 +15,9 @@ import { Hoja } from '@/ui/sistema/Hoja'
 import { normalizarTexto } from '@/dominio/validaciones'
 import { alertasProducto, margenProducto, rotacionStock } from '@/dominio/inteligencia'
 import { ErrorProductoConHistorial, ErrorStockInsuficiente, repos } from '@/datos/local/repos'
-import { IconoAlerta, IconoCerrar, IconoEliminar, IconoFavorito, IconoMovimiento, IconoPlata, IconoStock } from '@/ui/sistema/iconos'
+import { IconoAlerta, IconoCerrar, IconoEditar, IconoEliminar, IconoFavorito, IconoMovimiento, IconoPlata, IconoStock } from '@/ui/sistema/iconos'
 import { FormularioProducto } from './FormularioProducto'
+import { HojaCategorias } from './HojaCategorias'
 import { usePuede } from '@/ui/sistema/usoRol'
 import './stock.css'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
@@ -37,9 +39,10 @@ function AjustarStock({ producto, onTerminado }: { producto: Producto; onTermina
 
   async function guardar(evento?: React.FormEvent<HTMLFormElement>) {
     evento?.preventDefault()
-    const numero = Number(cantidad)
-    if (!Number.isInteger(numero) || numero <= 0) {
-      setAviso('Escribí una cantidad entera mayor a cero.')
+    const numero = leerCantidad(cantidad)
+    const porUnidadDeVenta = !esFraccionado(producto)
+    if (!cantidadValida(numero) || (porUnidadDeVenta && !Number.isInteger(numero))) {
+      setAviso(porUnidadDeVenta ? 'Escribí una cantidad entera mayor a cero.' : 'Escribí una cantidad mayor a cero (por ejemplo 2,5).')
       return
     }
     setGuardando(true)
@@ -49,7 +52,7 @@ function AjustarStock({ producto, onTerminado }: { producto: Producto; onTermina
       onTerminado()
     } catch (error) {
       if (error instanceof ErrorStockInsuficiente) {
-        setAviso(`No podés restar ${numero}: quedan ${error.disponible} unidades.`)
+        setAviso(`No podés restar ${formatearCantidad(numero, unidadDe(producto))}: quedan ${formatearCantidad(error.disponible, unidadDe(producto))}.`)
       } else {
         setAviso(noSePudo('actualizar', 'el stock'))
       }
@@ -60,7 +63,7 @@ function AjustarStock({ producto, onTerminado }: { producto: Producto; onTermina
 
   return (
     <form className="f-stock-form" onSubmit={(evento) => void guardar(evento)}>
-      <p className="f-hoja-ayuda">Ahora hay <b>{producto.stock} unidades</b>. {modo === 'sumar' ? 'Usá Sumar cuando recibís mercadería.' : 'Usá Restar para corregir una pérdida o rotura.'}</p>
+      <p className="f-hoja-ayuda">Ahora hay <b>{formatearCantidad(producto.stock, unidadDe(producto))}{esFraccionado(producto) ? '' : ' unidades'}</b>. {modo === 'sumar' ? 'Usá Sumar cuando recibís mercadería.' : 'Usá Restar para corregir una pérdida o rotura.'}</p>
       <div className="f-stock-fila-campos">
         <label className="f-campo">
           <span>Acción</span>
@@ -70,8 +73,8 @@ function AjustarStock({ producto, onTerminado }: { producto: Producto; onTermina
           </select>
         </label>
         <label className="f-campo">
-          <span>Cantidad</span>
-          <input aria-label={`Cantidad a ajustar de ${producto.nombre}`} inputMode="numeric" placeholder="Ej. 2" className="f-entrada" value={cantidad} onChange={(evento) => setCantidad(evento.target.value)} />
+          <span>Cantidad {esFraccionado(producto) && <em>{unidadDe(producto) === 'kg' ? 'kilos' : 'litros'}</em>}</span>
+          <input aria-label={`Cantidad a ajustar de ${producto.nombre}`} inputMode={esFraccionado(producto) ? 'decimal' : 'numeric'} placeholder="Ej. 2" className="f-entrada" value={cantidad} onChange={(evento) => setCantidad(evento.target.value)} />
         </label>
       </div>
       {aviso && <p className="f-aviso" data-tono="ambar" role="alert">{aviso}</p>}
@@ -134,6 +137,7 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
   const [busqueda, setBusqueda] = useState('')
   const [filtro, setFiltro] = useState<Filtro | null>(null)
   const [soloAlertas, setSoloAlertas] = useState(false)
+  const [editandoCategorias, setEditandoCategorias] = useState(false)
   const [categoria, setCategoria] = useState('')
   const [orden, setOrden] = useState<Orden>('nombre')
   const [editando, setEditando] = useState<Producto | null>(null)
@@ -265,7 +269,11 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
             {categorias.map((opcion) => <option key={opcion} value={opcion}>{opcion}</option>)}
           </select>
         )}
+        {editaCatalogo && categorias.length > 0 && (
+          <Chip activo={false} onClick={() => setEditandoCategorias(true)}><IconoEditar />Editar categorías</Chip>
+        )}
       </div>
+      {editandoCategorias && <HojaCategorias onCerrar={() => setEditandoCategorias(false)} />}
 
       {visibles.length === 0 ? (
         <p className="f-texto f-stock-nada">No encontramos productos con esos filtros.</p>
@@ -289,8 +297,8 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
                     {producto.stock <= 0
                       ? <Etiqueta tono="gris">Sin stock</Etiqueta>
                       : enMinimo(producto)
-                        ? <Etiqueta tono="ambar"><span className="f-stock-solo-celu">Quedan&nbsp;</span>{producto.stock}</Etiqueta>
-                        : <span className="f-stock-cantidad"><span className="f-stock-solo-celu">Quedan </span>{producto.stock}</span>}
+                        ? <Etiqueta tono="ambar"><span className="f-stock-solo-celu">Quedan&nbsp;</span>{formatearCantidad(producto.stock, unidadDe(producto))}</Etiqueta>
+                        : <span className="f-stock-cantidad"><span className="f-stock-solo-celu">Quedan </span>{formatearCantidad(producto.stock, unidadDe(producto))}</span>}
                   </div>
                   {editaCatalogo && <span className="f-stock-costo"><i className="f-stock-rotulo">Costo </i>{formatearPesos(producto.costo)}</span>}
                   <div className="f-stock-precio">
@@ -298,7 +306,7 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
                       ? (editaCatalogo
                         ? <button type="button" className="f-stock-poner" aria-label={`Poner precio a ${producto.nombre}`} onClick={() => setEditando(producto)}>Poner precio</button>
                         : <Etiqueta tono="ambar">Sin precio</Etiqueta>)
-                      : <strong className="f-plata f-stock-precio-valor">{formatearPesos(precioVigente(producto))}</strong>}
+                      : <strong className="f-plata f-stock-precio-valor">{formatearPesos(precioVigente(producto))}{esFraccionado(producto) && <small className="f-stock-por">/{unidadDe(producto) === 'kg' ? 'kg' : 'L'}</small>}</strong>}
                   </div>
                   {editaCatalogo && <span className="f-stock-gana" data-tono={sinPrecio ? 'nada' : bajoCosto ? 'ambar' : 'verde'}><i className="f-stock-rotulo">Ganás </i>{sinPrecio ? '—' : `${margenProducto(producto)}%`}</span>}
                   {(editaCatalogo || ajustaStock) && (

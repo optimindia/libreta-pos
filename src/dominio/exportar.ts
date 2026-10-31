@@ -2,6 +2,7 @@
 // ";", coma decimal, fechas dd/mm/aaaa hh:mm en horario argentino, BOM UTF-8
 // y celdas a prueba de inyección de fórmulas. Todo puro: sin Dexie ni DOM.
 
+import { formatearCantidad } from './cantidad'
 import type { Centavos, Cliente, Fiado, FiadoPago, MedioPago, Producto, Venta } from './tipos'
 import { saldoFiado } from './fiado'
 
@@ -95,7 +96,7 @@ export function csvVentas(ventas: Venta[], clientes: Cliente[]): string {
       MEDIOS[v.medioPago] ?? v.medioPago,
       decimalArgentino(v.total),
       v.estado === 'anulada' ? 'Anulada' : 'Completada',
-      v.items.map((item) => `${item.cantidad} x ${item.nombre}`).join(' | '),
+      v.items.map((item) => `${formatearCantidad(item.cantidad)} x ${item.nombre}`).join(' | '),
       v.clienteId ? (nombres.get(v.clienteId) ?? '') : '',
       v.motivoAnulacion ?? '',
       v.referenciaPago ?? '',

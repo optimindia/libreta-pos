@@ -81,3 +81,43 @@ describe('Cantidad exacta', () => {
     expect(await screen.findByRole('button', { name: /^10 unidades de Yerba/ })).toBeTruthy()
   })
 })
+
+describe('Por kilo o por litro', () => {
+  beforeEach(async () => {
+    await repos.productos.guardar({ codigoBarras: null, nombre: 'Pan del día', costo: 50000, precio: 95000, stock: 10, stockMinimo: 1, unidad: 'kg' })
+    await repos.productos.guardar({ codigoBarras: null, nombre: 'Aceite suelto', costo: 200000, precio: 380000, stock: 20, stockMinimo: 1, unidad: 'l' })
+  })
+
+  it('"dame $500 de pan": dice cuánto pesar y cobra justo $500', async () => {
+    render(<PantallaVender />)
+    fireEvent.click(await screen.findByRole('button', { name: /^Pan del día/ }))
+    const hoja = await screen.findByRole('dialog', { name: 'Pan del día' })
+    fireEvent.click(within(hoja).getByRole('radio', { name: 'Por plata' }))
+    fireEvent.click(within(hoja).getByRole('button', { name: '$500' }))
+    expect(within(hoja).getByText('526 g')).toBeTruthy()
+    fireEvent.click(within(hoja).getByRole('button', { name: 'Sumar 526 g · $500' }))
+
+    await waitFor(() => expect(within(venta()).getByRole('button', { name: /^526 g de Pan del día/ })).toBeTruthy())
+    expect(within(venta()).getByRole('button', { name: /^Cobrar \$500/ })).toBeTruthy()
+  })
+
+  it('"medio litro de aceite": dice cuánto sale', async () => {
+    render(<PantallaVender />)
+    fireEvent.click(await screen.findByRole('button', { name: /^Aceite suelto/ }))
+    const hoja = await screen.findByRole('dialog', { name: 'Aceite suelto' })
+    fireEvent.click(within(hoja).getByRole('button', { name: '500 ml' }))
+    expect(within(hoja).getByText('$1.900')).toBeTruthy()
+    fireEvent.click(within(hoja).getByRole('button', { name: 'Sumar 500 ml · $1.900' }))
+    await waitFor(() => expect(within(venta()).getByRole('button', { name: /^500 ml de Aceite suelto/ })).toBeTruthy())
+    expect(await violacionesAxe(venta())).toEqual([])
+  })
+
+  it('no deja pedir más de lo que hay', async () => {
+    render(<PantallaVender />)
+    fireEvent.click(await screen.findByRole('button', { name: /^Pan del día/ }))
+    const hoja = await screen.findByRole('dialog', { name: 'Pan del día' })
+    fireEvent.change(within(hoja).getByLabelText('Gramos de Pan del día'), { target: { value: '12000' } })
+    expect(within(hoja).getByText(/No alcanza: quedan 10 kg/)).toBeTruthy()
+    expect((within(hoja).getByRole('button', { name: 'Sumar al ticket' }) as HTMLButtonElement).disabled).toBe(true)
+  })
+})

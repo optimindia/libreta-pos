@@ -1,3 +1,4 @@
+import { redondearCantidad } from '@/dominio/cantidad'
 import type { Producto, Venta } from '@/dominio/tipos'
 import { pesosDeTexto } from '@/dominio/dinero'
 
@@ -103,8 +104,8 @@ export function productosDesdeCsv(texto: string): ProductoCsv[] {
     codigoBarras: codigo >= 0 ? (fila[codigo]?.trim() || null) : null,
     costo: Math.round(Math.max(0, numero(fila[costo])) * 100),
     precio: Math.round(Math.max(0, numero(fila[precio])) * 100),
-    stock: Math.max(0, Math.trunc(numero(fila[stock]))),
-    stockMinimo: Math.max(0, Math.trunc(numero(fila[minimo]))),
+    stock: Math.max(0, redondearCantidad(numero(fila[stock]))),
+    stockMinimo: Math.max(0, redondearCantidad(numero(fila[minimo]))),
     categoria: categoria >= 0 ? fila[categoria]?.trim() || undefined : undefined,
   })).filter((producto) => producto.nombre.length >= 2)
 }

@@ -17,6 +17,9 @@ export type TipoSuscripcion = 'prueba' | 'mensual' | 'cortesia' | 'manual'
 export type MedioCaja = Exclude<MedioPago, 'fiado'>
 export type TipoMovimientoCaja = 'entrada' | 'salida'
 
+/** Cómo se vende un producto: por unidad, por kilo o por litro. */
+export type UnidadVenta = 'unidad' | 'kg' | 'l'
+
 export interface Producto {
   id: UUID
   codigoBarras: string | null
@@ -26,6 +29,9 @@ export interface Producto {
   stock: number
   stockMinimo: number
   actualizadoEn: number
+  /** Por unidad (si falta), por kilo o por litro. En kilo y litro el precio,
+   *  el stock y las cantidades se cuentan en esa unidad, con decimales. */
+  unidad?: UnidadVenta
   /** Preferencias locales del catálogo; no alteran los totales históricos. */
   categoria?: string
   favorito?: boolean

@@ -111,6 +111,10 @@ export function aLaNube(
   return [{ tabla: TABLA[entidad], filas: [cabecera] }]
 }
 
+/** Columnas numeric (cantidades con decimales): según el cliente, Postgres
+ *  puede devolverlas como texto ("0.500"). Adentro siempre son números. */
+const CANTIDADES = new Set(['stock', 'stock_minimo', 'cantidad'])
+
 export function deLaNube(tabla: string, fila: Fila): Fila {
   const local: Fila = {}
   for (const [clave, valor] of Object.entries(fila)) {
@@ -119,7 +123,9 @@ export function deLaNube(tabla: string, fila: Fila): Fila {
     local[nombre] =
       FECHAS.has(clave) && typeof valor === 'string'
         ? new Date(valor).getTime()
-        : valor
+        : CANTIDADES.has(clave) && typeof valor === 'string'
+          ? Number(valor)
+          : valor
   }
   return local
 }

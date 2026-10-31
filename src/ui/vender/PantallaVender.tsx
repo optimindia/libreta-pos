@@ -5,6 +5,8 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import type { Centavos, ItemVenta, MedioPago, Negocio, Producto, UUID, Venta } from '@/dominio/tipos'
 import { CODIGO_VARIOS, STOCK_VARIOS, sumarMontoLibre } from '@/dominio/varios'
 import { HojaMontoLibre } from './HojaMontoLibre'
+import { HojaFraccion } from './HojaFraccion'
+import { esFraccionado, formatearCantidad, ponerFraccion, unidadDe } from '@/dominio/cantidad'
 import { agregarProducto, cambiarCantidad, precioVigente, totalTicket } from '@/dominio/ticket'
 import { ErrorStockInsuficiente, ErrorVentaInvalida, repos } from '@/datos/local/repos'
 import { db } from '@/datos/local/db'
@@ -59,6 +61,8 @@ export function PantallaVender() {
   const reservadas = useLiveQuery(() => repos.pedidos.reservadasPorProducto(), [], new Map<UUID, number>())
   const [sinPrecio, setSinPrecio] = useState<Producto | null>(null)
   const [montoLibre, setMontoLibre] = useState(false)
+  // Un producto por kilo o litro abre su hoja: por cantidad o por plata.
+  const [fraccionando, setFraccionando] = useState<Producto | null>(null)
   // El último cambio del ticket se puede deshacer unos segundos.
   const [deshacer, setDeshacer] = useState<{ items: ItemVenta[]; texto: string; ventaId: UUID } | null>(null)
   // El renglón que acaba de cambiar se ilumina un instante.
@@ -181,14 +185,14 @@ export function PantallaVender() {
       const elemento = evento.target as HTMLElement | null
       const escribiendo = elemento?.tagName === 'INPUT' || elemento?.tagName === 'TEXTAREA' || elemento?.tagName === 'SELECT'
       const ultimo = items[items.length - 1]
-      const hojaEnPantalla = cobrando || montoLibre || Boolean(sinPrecio) || Boolean(cobrada) || Boolean(descontando)
+      const hojaEnPantalla = cobrando || montoLibre || Boolean(fraccionando) || Boolean(sinPrecio) || Boolean(cobrada) || Boolean(descontando)
       if (!hojaEnPantalla && evento.key.toLowerCase() === 'z' && (evento.ctrlKey || evento.metaKey) && !escribiendo && deshacer) {
         evento.preventDefault()
         hacerDeshacer()
       } else if (!hojaEnPantalla && evento.key === 'F2') {
         evento.preventDefault()
         setMontoLibre(true)
-      } else if (!hojaEnPantalla && !escribiendo && ultimo && (evento.key === '+' || evento.key === '-')) {
+      } else if (!hojaEnPantalla && !escribiendo && ultimo && !fraccionados.has(ultimo.productoId) && (evento.key === '+' || evento.key === '-')) {
         evento.preventDefault()
         cambiarRenglon(ultimo.productoId, ultimo.cantidad + (evento.key === '+' ? 1 : -1))
       } else if (!hojaEnPantalla && !escribiendo && ultimo && evento.key === 'Delete') {
@@ -238,6 +242,11 @@ export function PantallaVender() {
   function elegirProducto(producto: Producto): string | null {
     const enTicket = items.find((item) => item.productoId === producto.id)?.cantidad ?? 0
     const quedan = disponible(producto)
+    if (esFraccionado(producto) && quedan > 0 && precioVigente(producto) > 0) {
+      setAvisoStock(null)
+      setFraccionando(producto)
+      return null
+    }
     if (quedan <= enTicket) {
       const reservado = (reservadas.get(producto.id) ?? 0) > 0
       const apartado = enOtrasVentas.get(producto.id) ?? 0
@@ -311,11 +320,14 @@ export function PantallaVender() {
     return () => window.removeEventListener('keydown', capturarLector)
   })
 
-  const unidades = items.reduce((suma, item) => suma + item.cantidad, 0)
+  // Un renglón por kilo o litro cuenta como un producto, no como 0,526.
+  const fraccionados = new Set(productos.filter(esFraccionado).map((producto) => producto.id))
+  const unidades = items.reduce((suma, item) => suma + (fraccionados.has(item.productoId) ? 1 : item.cantidad), 0)
+  const unidadesPorProducto = Object.fromEntries(productos.filter(esFraccionado).map((producto) => [producto.id, unidadDe(producto)]))
   const cantidades = Object.fromEntries(items.map((item) => [item.productoId, item.cantidad]))
   const hayItems = items.length > 0
   const textoUnidades = `${unidades} ${unidades === 1 ? 'producto' : 'productos'}`
-  const hojaAbierta = cobrando || montoLibre || Boolean(sinPrecio) || Boolean(cobrada)
+  const hojaAbierta = cobrando || montoLibre || Boolean(fraccionando) || Boolean(sinPrecio) || Boolean(cobrada)
 
   // En el celu, mientras hay una venta en curso, la barra de cobro ocupa el
   // lugar de la barra de secciones (ver f/navegacion.css).
@@ -441,6 +453,11 @@ export function PantallaVender() {
                   onCambiarCantidad={cambiarRenglon}
                   destacado={destacado}
                   idVarios={idVarios}
+                  unidades={unidadesPorProducto}
+                  onEditarFraccion={(productoId) => {
+                    const producto = productos.find((candidato) => candidato.id === productoId)
+                    if (producto) setFraccionando(producto)
+                  }}
                   onSinStock={(productoId) => {
                     const producto = productos.find((item) => item.id === productoId)
                     if (producto) setAvisoStock(`Solo quedan ${disponible(producto)} unidades de ${producto.nombre}.`)
@@ -518,6 +535,20 @@ export function PantallaVender() {
           <span>{deshacer.texto}</span>
           <button type="button" onClick={hacerDeshacer} aria-keyshortcuts={atajosPc ? 'Control+Z' : undefined}>Deshacer</button>
         </div>
+      )}
+
+      {fraccionando && (
+        <HojaFraccion
+          producto={fraccionando}
+          maximo={disponible(fraccionando)}
+          inicial={items.find((item) => item.productoId === fraccionando.id)?.cantidad}
+          onCerrar={() => setFraccionando(null)}
+          onSumar={(cantidad, precio) => {
+            const producto = fraccionando
+            cambiarConDeshacer(`Agregaste ${formatearCantidad(cantidad, unidadDe(producto))} de ${producto.nombre}`, (actuales) => ponerFraccion(actuales, producto, cantidad, precio), producto.id)
+            setFraccionando(null)
+          }}
+        />
       )}
 
       {montoLibre && <HojaMontoLibre onSumar={(monto) => void sumarMonto(monto)} onCerrar={() => setMontoLibre(false)} />}
