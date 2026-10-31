@@ -84,9 +84,35 @@ describe('deLaNube', () => {
 
   it('ida y vuelta devuelve el mismo producto (sin la marca, que es de la base)', () => {
     const [{ filas }] = aLaNube('producto', producto, NEGOCIO)
-    const esperado: Partial<typeof producto> = { ...producto }
+    const esperado: Partial<typeof producto> & { favorito: boolean } = { ...producto, favorito: false }
     delete esperado.actualizadoEn
     expect(deLaNube('productos', filas[0])).toEqual(esperado)
+  })
+})
+
+describe('campos que antes no viajaban', () => {
+  it('categoría y favorito suben, y quitar la categoría viaja como null', () => {
+    const [{ filas: con }] = aLaNube('producto', { ...producto, categoria: 'Lácteos', favorito: true }, NEGOCIO)
+    expect(con[0]).toMatchObject({ categoria: 'Lácteos', favorito: true })
+    const [{ filas: sin }] = aLaNube('producto', { ...producto, categoria: undefined }, NEGOCIO)
+    expect(sin[0]).toMatchObject({ categoria: null, favorito: false })
+    expect(deLaNube('productos', { id: 'p1', categoria: null })).not.toHaveProperty('categoria')
+  })
+
+  it('la anulación de una venta usa las columnas reales', () => {
+    const [cabecera] = aLaNube('venta', { id: 'v1', fecha: 1, total: 100, medioPago: 'efectivo', items: [], clienteId: null, estado: 'anulada', anuladaEn: Date.UTC(2026, 9, 31), motivoAnulacion: 'error' }, NEGOCIO)
+    expect(cabecera.filas[0]).toMatchObject({ anulada_en: '2026-10-31T00:00:00.000Z', motivo_anulacion: 'error' })
+    expect(cabecera.filas[0]).not.toHaveProperty('anuladaEn')
+    expect(deLaNube('ventas', { id: 'v1', anulada_en: '2026-10-31T00:00:00.000Z', motivo_anulacion: 'error' })).toMatchObject({ anuladaEn: Date.UTC(2026, 9, 31), motivoAnulacion: 'error' })
+  })
+
+  it('el cierre lleva entradas y salidas, y el cliente su límite de fiado', () => {
+    const [{ filas: cierre }] = aLaNube('cierre', { id: 'c1', fecha: 1, fondoInicial: 0, ventasEfectivo: 0, pagosFiadoEfectivo: 0, esperado: 0, contado: 0, entradasCaja: 500, salidasCaja: 200 }, NEGOCIO)
+    expect(cierre[0]).toMatchObject({ entradas_caja: 500, salidas_caja: 200 })
+    const [{ filas: cliente }] = aLaNube('cliente', { id: 'k1', nombre: 'Rosa', telefono: null }, NEGOCIO)
+    expect(cliente[0]).toMatchObject({ limite_fiado: null })
+    const [{ filas: conLimite }] = aLaNube('cliente', { id: 'k1', nombre: 'Rosa', telefono: null, limiteFiado: 5000 }, NEGOCIO)
+    expect(conLimite[0]).toMatchObject({ limite_fiado: 5000 })
   })
 })
 

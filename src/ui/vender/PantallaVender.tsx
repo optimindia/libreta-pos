@@ -15,6 +15,7 @@ import { Ticket, VaciarVenta } from './Ticket'
 import { TiraVentas } from './TiraVentas'
 import { HojaDescuento } from './HojaDescuento'
 import { useVentasAbiertas } from './usoVentasAbiertas'
+import { useReservasEnVivo } from './usoReservasEnVivo'
 import { ahorroTotal, itemsParaCobrar, masVendidos, MAX_VENTAS_ABIERTAS, repetirVenta, ventaConContenido, ventaNueva, type Descuento } from '@/dominio/ventaAbierta'
 import { Cobro, OPCIONES_PAGO, type MedioCobro } from './Cobro'
 import { BotonEscanear } from './BotonEscanear'
@@ -74,19 +75,26 @@ export function PantallaVender() {
     if (otra.id === activa.id) continue
     for (const renglon of otra.items) enOtrasVentas.set(renglon.productoId, (enOtrasVentas.get(renglon.productoId) ?? 0) + renglon.cantidad)
   }
+  // Lo que otro aparato del negocio tiene en una venta todavía sin cobrar,
+  // avisado en vivo: tampoco se puede vender acá.
+  const enOtrosAparatos = useReservasEnVivo(ventas)
   const disponible = (producto: Producto) =>
-    Math.max(0, producto.stock - (reservadas.get(producto.id) ?? 0) - (enOtrasVentas.get(producto.id) ?? 0))
+    Math.max(0, producto.stock - (reservadas.get(producto.id) ?? 0) - (enOtrasVentas.get(producto.id) ?? 0) - (enOtrosAparatos.get(producto.id) ?? 0))
   const disponibles: Record<UUID, number> = Object.fromEntries(productos.map((producto) => [producto.id, disponible(producto)]))
   // "Varios" (monto libre) no está en el catálogo y nunca se queda sin stock.
   if (idVarios) disponibles[idVarios] = STOCK_VARIOS
   // Si el stock bajó con algo ya en el ticket (otra venta, otro aparato), no se cobra a ciegas.
-  const faltantes = items.filter((item) => item.cantidad > (disponibles[item.productoId] ?? 0))
+  // Lo que otro aparato tiene sin cobrar frena agregar más, pero no marca
+  // como faltante lo que ya está acá: si dos aparatos agregan la última
+  // unidad en el mismo instante, ninguno queda trabado.
+  const tope = (productoId: UUID) => (disponibles[productoId] ?? 0) + (enOtrosAparatos.get(productoId) ?? 0)
+  const faltantes = items.filter((item) => item.cantidad > tope(item.productoId))
   const hayFaltantes = faltantes.length > 0
   const puedeCobrar = items.length > 0 && !hayFaltantes
 
   function ajustarAlStock() {
     setItems((actuales) => actuales
-      .map((item) => ({ ...item, cantidad: Math.min(item.cantidad, disponibles[item.productoId] ?? 0) }))
+      .map((item) => ({ ...item, cantidad: Math.min(item.cantidad, tope(item.productoId)) }))
       .filter((item) => item.cantidad > 0))
   }
   const estado = useLiveQuery(async () => {
@@ -250,8 +258,9 @@ export function PantallaVender() {
     if (quedan <= enTicket) {
       const reservado = (reservadas.get(producto.id) ?? 0) > 0
       const apartado = enOtrasVentas.get(producto.id) ?? 0
+      const enOtroAparato = enOtrosAparatos.get(producto.id) ?? 0
       const motivo = quedan === 0
-        ? `${producto.nombre} está sin stock${reservado ? ' (lo que hay está reservado para pedidos)' : apartado > 0 ? ` (${apartado} ${apartado === 1 ? 'está' : 'están'} en otras ventas abiertas)` : ''}.`
+        ? `${producto.nombre} está sin stock${reservado ? ' (lo que hay está reservado para pedidos)' : enOtroAparato > 0 ? ` (${formatearCantidad(enOtroAparato, unidadDe(producto))} en una venta abierta de otro aparato)` : apartado > 0 ? ` (${apartado} ${apartado === 1 ? 'está' : 'están'} en otras ventas abiertas)` : ''}.`
         : `Solo quedan ${quedan} unidades de ${producto.nombre} y ya están en el ticket.`
       setAvisoStock(motivo)
       return motivo

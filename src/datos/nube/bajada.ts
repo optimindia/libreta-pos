@@ -1,4 +1,6 @@
 import { db } from '@/datos/local/db'
+import type { Table } from 'dexie'
+import { productoTieneCambiosPendientes } from '@/datos/local/cola'
 import { cliente } from './cliente'
 import { deLaNube, preferenciasDeLaNube, type Fila } from './mapeo'
 import { DESTINO, SesionVencida, esErrorDeSesion, itemsDe, rearmarItems } from './sincronizar'
@@ -7,15 +9,6 @@ import { todasLasFilas } from './paginar'
 /** El solape reprocesa lo último bajado: el merge por id es idempotente
  *  y así las transacciones que llegan apenas antes del cursor no se pierden. */
 const SOLAPE_MS = 30_000
-
-/** Lo que la base rechazó por permisos (`rechazado`) no va a subir: no cuenta
- *  como pendiente y la ficha real de la nube puede pisar la local. */
-async function productoTieneCambiosPendientes(id: string): Promise<boolean> {
-  const propio = await db.cola.get(`producto:${id}`)
-  if (propio && !propio.rechazado) return true
-  const cola = await db.cola.toArray()
-  return cola.some((item) => !item.rechazado && item.entidad === 'movimientoStock' && (item.datos as { productoId?: string }).productoId === id)
-}
 
 export type TraerCambiosFn = (tabla: string, desdeISO: string) => Promise<unknown[]>
 
@@ -26,8 +19,10 @@ export const traerCambiosDeSupabase: TraerCambiosFn = async (tabla, desdeISO) =>
   const nube = cliente
   // Paginado y ordenado: un día con más de 1000 cambios no se corta a medias.
   // negocio_configuracion no tiene `id`: es una fila por negocio.
+  // De negocios sólo lo que se edita desde la app (lo demás es del panel).
   const cambios = await todasLasFilas<Fila>((desde, hasta) => {
-    const consulta = nube.from(tabla).select('*').gte('actualizado_en', desdeISO).order('actualizado_en')
+    const base = nube.from(tabla)
+    const consulta = (tabla === 'negocios' ? base.select('id,nombre,logo,color,actualizado_en') : base.select('*')).gte('actualizado_en', desdeISO).order('actualizado_en')
     return (tabla === 'negocio_configuracion' ? consulta : consulta.order('id')).range(desde, hasta)
   })
 
@@ -47,6 +42,47 @@ export const traerCambiosDeSupabase: TraerCambiosFn = async (tabla, desdeISO) =>
 /** El merge: en productos gana el más nuevo, para que una edición local
  *  todavía sin subir nunca la pise una bajada. El resto es append por id:
  *  si ya existía, es la misma fila. */
+/** Dónde vive cada tabla en el aparato y con qué nombre se encola. */
+const BORRABLES: Record<string, { local: () => Table<unknown, string>; cola: string }> = {
+  clientes: { local: () => db.clientes as unknown as Table<unknown, string>, cola: 'cliente' },
+  movimientos_caja: { local: () => db.movimientosCaja as unknown as Table<unknown, string>, cola: 'movimientoCaja' },
+  ventas: { local: () => db.ventas as unknown as Table<unknown, string>, cola: 'venta' },
+  fiados: { local: () => db.fiados as unknown as Table<unknown, string>, cola: 'fiado' },
+  fiado_pagos: { local: () => db.fiadoPagos as unknown as Table<unknown, string>, cola: 'fiadoPago' },
+  ingresos: { local: () => db.ingresos as unknown as Table<unknown, string>, cola: 'ingreso' },
+  cierres: { local: () => db.cierres as unknown as Table<unknown, string>, cola: 'cierre' },
+  pedidos: { local: () => db.pedidos as unknown as Table<unknown, string>, cola: 'pedido' },
+  productos: { local: () => db.productos as unknown as Table<unknown, string>, cola: 'producto' },
+}
+
+/** Además de las tablas de datos: el nombre/logo/color del negocio y las
+ *  marcas de lo que se borró en otro aparato. */
+export const TABLAS_EXTRA = ['negocios', 'borrados'] as const
+
+async function escribirExtra(tabla: string, fila: Fila): Promise<boolean> {
+  if (tabla === 'negocios') {
+    // Un cambio de este aparato que todavía no subió gana.
+    const pendiente = (await db.cola.toArray()).some((item) => item.entidad === 'negocio' && !item.rechazado)
+    if (pendiente) return false
+    const actual = await db.negocio.get('unico')
+    if (!actual || (actual.negocioId && actual.negocioId !== fila.id)) return false
+    await db.negocio.update('unico', {
+      nombre: typeof fila.nombre === 'string' ? fila.nombre : actual.nombre,
+      logo: (fila.logo as string | null | undefined) ?? null,
+      color: (fila.color as string | null | undefined) ?? null,
+    })
+    return true
+  }
+  // borrados: otro aparato borró la fila. También se descarta lo que este
+  // aparato tenía pendiente de esa fila, o la volvería a crear en la nube.
+  const destino = BORRABLES[fila.tabla as string]
+  if (!destino) return false
+  const id = fila.id as string
+  await destino.local().delete(id)
+  await db.cola.delete(`${destino.cola}:${id}`)
+  return true
+}
+
 async function escribir(tabla: string, fila: Fila): Promise<boolean> {
   if (tabla === 'negocio_configuracion') {
     const local = await db.preferencias.get('unico')
@@ -69,12 +105,6 @@ async function escribir(tabla: string, fila: Fila): Promise<boolean> {
     // Una edición local rechazada por permisos no es "más nueva": no subió.
     const rechazada = (await db.cola.get(`producto:${fila.id as string}`))?.rechazado === true
     if (local && local.actualizadoEn > nueva && !rechazada) return false
-    if (local) {
-      // Son preferencias del aparato: la nube no las conoce, pero tampoco
-      // debe borrarlas al bajar un precio o un stock.
-      fila.categoria = local.categoria
-      fila.favorito = local.favorito
-    }
   }
   const destino = DESTINO[tabla]
   await destino().put(fila)
@@ -97,13 +127,14 @@ export async function bajarCambios(traer: TraerCambiosFn): Promise<number> {
   let maximo = cursor
   let fallo = false
 
-  for (const tabla of Object.keys(DESTINO)) {
+  for (const tabla of [...Object.keys(DESTINO), ...TABLAS_EXTRA]) {
     try {
       const filas = (await traer(tabla, desde)) as Fila[]
+      const extra = (TABLAS_EXTRA as readonly string[]).includes(tabla)
       for (const fila of filas) {
         const marca = (fila.actualizadoEn as number | undefined) ?? 0
         if (marca > maximo) maximo = marca
-        if (await escribir(tabla, fila)) escritas++
+        if (await (extra ? escribirExtra(tabla, fila) : escribir(tabla, fila))) escritas++
       }
     } catch (error) {
       // Sin sesión válida ninguna tabla va a bajar: se corta y se renueva.

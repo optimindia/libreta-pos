@@ -38,20 +38,37 @@ const CAMPOS: Record<string, string> = {
   reservarStock: 'reservar_stock',
   vendidoPor: 'vendido_por',
   usuarioId: 'usuario_id',
+  anuladaEn: 'anulada_en',
+  motivoAnulacion: 'motivo_anulacion',
+  limiteFiado: 'limite_fiado',
+  entradasCaja: 'entradas_caja',
+  salidasCaja: 'salidas_caja',
 }
 
-const FECHAS = new Set(['fecha', 'vence', 'anulado_en', 'actualizado_en', 'oferta_hasta', 'eliminado_en', 'fecha_entrega'])
+const FECHAS = new Set(['fecha', 'vence', 'anulado_en', 'anulada_en', 'actualizado_en', 'oferta_hasta', 'eliminado_en', 'fecha_entrega'])
 
 const INVERSO: Record<string, string> = Object.fromEntries(
   Object.entries(CAMPOS).map(([local, nube]) => [nube, local]),
 )
 
+/** Un opcional que se borra (quitar la categoría, la oferta o el límite)
+ *  tiene que viajar como null: un undefined desaparece del JSON y la nube se
+ *  quedaría con el valor viejo. */
+const BORRABLES = new Set(['precioOferta', 'ofertaHasta', 'categoria', 'limiteFiado'])
+
+/** Lo que no se manda queda como estaba en la nube: estas claves se fuerzan
+ *  para que "sin categoría" o "sin límite" también lleguen a los demás. */
+const SIEMPRE: Record<string, Record<string, unknown>> = {
+  producto: { categoria: null, favorito: false },
+  cliente: { limiteFiado: null },
+}
+
 function aFilaPlana(datos: Fila, negocioId: UUID, incluirMarca = false): Fila {
   const fila: Fila = { negocio_id: negocioId }
   for (const [clave, valor] of Object.entries(datos)) {
-    if (clave === 'items' || (!incluirMarca && clave === 'actualizadoEn') || clave === 'categoria' || clave === 'favorito' || clave === 'limiteFiado') continue
+    if (clave === 'items' || (!incluirMarca && clave === 'actualizadoEn')) continue
     const nombre = CAMPOS[clave] ?? clave
-    const valorFinal = valor === undefined && (clave === 'precioOferta' || clave === 'ofertaHasta') ? null : valor
+    const valorFinal = valor === undefined && BORRABLES.has(clave) ? null : valor
     fila[nombre] =
       FECHAS.has(nombre) && typeof valorFinal === 'number'
         ? new Date(valorFinal).toISOString()
@@ -74,7 +91,7 @@ export function aLaNube(
     return [{ tabla: 'negocio_configuracion', filas: [fila] }]
   }
 
-  const cabecera = aFilaPlana(objeto, negocioId)
+  const cabecera = aFilaPlana({ ...(SIEMPRE[entidad] ?? {}), ...objeto }, negocioId)
 
   if (entidad === 'venta' || entidad === 'ingreso' || entidad === 'pedido') {
     const tablaCabecera = entidad === 'venta' ? 'ventas' : entidad === 'ingreso' ? 'ingresos' : 'pedidos'
@@ -115,10 +132,14 @@ export function aLaNube(
  *  puede devolverlas como texto ("0.500"). Adentro siempre son números. */
 const CANTIDADES = new Set(['stock', 'stock_minimo', 'cantidad'])
 
+/** En la app un opcional vacío es "no está", no null. */
+const OPCIONALES = new Set(['categoria', 'limite_fiado', 'precio_oferta', 'oferta_hasta', 'anulada_en', 'motivo_anulacion', 'entradas_caja', 'salidas_caja'])
+
 export function deLaNube(tabla: string, fila: Fila): Fila {
   const local: Fila = {}
   for (const [clave, valor] of Object.entries(fila)) {
     if (clave === 'negocio_id') continue
+    if (valor === null && OPCIONALES.has(clave)) continue
     const nombre = INVERSO[clave] ?? clave
     local[nombre] =
       FECHAS.has(clave) && typeof valor === 'string'
@@ -137,5 +158,6 @@ export function preferenciasDeLaNube(fila: Fila): Fila {
     id: 'unico',
     negocioId: fila.negocio_id,
     funciones: normalizarFunciones(local.funciones),
+    ajustes: typeof local.ajustes === 'object' && local.ajustes !== null ? local.ajustes : {},
   }
 }

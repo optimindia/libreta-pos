@@ -202,9 +202,21 @@ export interface Negocio {
 /** Preferencias compartidas del negocio. Se guarda en una tabla propia para
  * no dar al cliente permisos de escritura sobre los datos administrativos de
  * `negocios`. */
+/** Ajustes del negocio que ven todos los aparatos (metas y ticket). Lo que
+ *  depende del aparato (ancho del papel, tema, menú) no va acá. */
+export interface AjustesNegocio {
+  /** Meta de ventas por día en Plata, en pesos tal como se escribió. */
+  metaPlata?: string
+  /** Meta diaria del Control Pro, en pesos. */
+  metaPro?: string
+  /** Frase al pie del ticket impreso. */
+  leyendaTicket?: string
+}
+
 export interface PreferenciasNegocio {
   id: 'unico'
   negocioId?: UUID
   funciones: FuncionesNegocio
+  ajustes?: AjustesNegocio
   actualizadoEn: number
 }

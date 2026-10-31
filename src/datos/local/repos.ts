@@ -3,6 +3,7 @@ import { CODIGO_VARIOS, esProductoVarios, MINIMO_VARIOS, NOMBRE_VARIOS, STOCK_VA
 import { db } from './db'
 import { encolar } from './cola'
 import type {
+  AjustesNegocio,
   Cierre, Cliente, Centavos, EstadoPedido, Fiado, FiadoPago, Ingreso, ItemIngreso, ItemVenta, MedioPago, MovimientoCaja, Pedido, PreferenciasNegocio, Producto, UUID, Venta,
 } from '@/dominio/tipos'
 import type { FuncionesNegocio } from '@/dominio/funciones'
@@ -51,8 +52,19 @@ async function obtenerPreferenciasLocales(): Promise<PreferenciasNegocio> {
     id: 'unico',
     negocioId: actual?.negocioId ?? negocio?.negocioId,
     funciones: normalizarFunciones(actual?.funciones),
+    ajustes: normalizarAjustes(actual?.ajustes),
     actualizadoEn: actual?.actualizadoEn ?? 0,
   }
+}
+
+/** Sólo textos conocidos y cortos: lo que viene de la nube puede ser viejo. */
+export function normalizarAjustes(crudo: unknown): AjustesNegocio {
+  const dato = (typeof crudo === 'object' && crudo !== null ? crudo : {}) as Record<string, unknown>
+  const ajustes: AjustesNegocio = {}
+  for (const clave of ['metaPlata', 'metaPro', 'leyendaTicket'] as const) {
+    if (typeof dato[clave] === 'string') ajustes[clave] = (dato[clave] as string).slice(0, 80)
+  }
+  return ajustes
 }
 
 async function cantidadesReservadas(exceptoPedidoId?: UUID): Promise<Map<UUID, number>> {
@@ -185,15 +197,22 @@ export const repos = {
         id: datos.id ?? nuevoId(),
         actualizadoEn: Date.now(),
       }
+      let anterior: Producto | undefined
       await db.transaction('rw', db.productos, async () => {
         if (codigo) {
           const otro = (await db.productos.where('codigoBarras').equals(codigo).toArray())
             .find((existente) => existente.id !== producto.id && !existente.eliminadoEn)
           if (otro) throw new ErrorCodigoRepetido(codigo, otro.nombre)
         }
+        anterior = datos.id ? await db.productos.get(datos.id) : undefined
         await db.productos.put(producto)
       })
       await encolar('producto', datos.id ? 'actualizar' : 'crear', producto)
+      // La ficha editada no lleva el stock a la nube (así una edición de
+      // precio nunca pisa una venta de otro aparato). Si el stock cambió, el
+      // cambio viaja como un ajuste, igual que desde "Ajustar stock".
+      const diferencia = anterior ? redondearCantidad(producto.stock - anterior.stock) : 0
+      if (anterior && diferencia !== 0) await encolarMovimientoStock(producto.id, diferencia, 'ajuste')
       return producto
     },
     async porCodigoBarras(codigo: string): Promise<Producto | null> {
@@ -640,6 +659,8 @@ export const repos = {
         suscripcionGraciaHasta: actual?.suscripcionGraciaHasta,
         suscripcionActualizadaEn: actual?.suscripcionActualizadaEn,
       })
+      // Nombre, logo y color son del negocio: los ven todos los aparatos.
+      if (actual?.negocioId) await encolar('negocio', 'actualizar', { id: actual.negocioId, nombre, logo, color })
     },
   },
 
@@ -656,6 +677,24 @@ export const repos = {
         id: 'unico',
         negocioId: negocio?.negocioId ?? actual.negocioId,
         funciones: normalizarFunciones({ ...actual.funciones, ...funciones }),
+        ajustes: actual.ajustes,
+        actualizadoEn: Math.max(Date.now(), actual.actualizadoEn + 1),
+      }
+      await db.preferencias.put(siguiente)
+      if (siguiente.negocioId) await encolar('preferencias', 'actualizar', siguiente)
+      return siguiente
+    },
+    /** Metas y leyenda del ticket: viajan con las preferencias del negocio. */
+    async guardarAjustes(cambio: Partial<AjustesNegocio>): Promise<PreferenciasNegocio> {
+      const [actual, negocio] = await Promise.all([
+        obtenerPreferenciasLocales(),
+        db.negocio.get('unico'),
+      ])
+      const siguiente: PreferenciasNegocio = {
+        id: 'unico',
+        negocioId: negocio?.negocioId ?? actual.negocioId,
+        funciones: actual.funciones,
+        ajustes: normalizarAjustes({ ...actual.ajustes, ...cambio }),
         actualizadoEn: Math.max(Date.now(), actual.actualizadoEn + 1),
       }
       await db.preferencias.put(siguiente)

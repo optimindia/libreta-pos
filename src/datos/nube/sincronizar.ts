@@ -1,10 +1,11 @@
 import { db, type EnCola } from '@/datos/local/db'
 import type { Table } from 'dexie'
-import { pendientes, marcarSubido, marcarFallido, marcarRechazado } from '@/datos/local/cola'
+import { pendientes, marcarSubido, marcarFallido, marcarRechazado, productoTieneCambiosPendientes } from '@/datos/local/cola'
 import { cliente } from './cliente'
 import { aLaNube, deLaNube, preferenciasDeLaNube, type Fila } from './mapeo'
 import type { UUID } from '@/dominio/tipos'
 import { enTandas, todasLasFilas } from './paginar'
+
 
 export type SubirFn = (item: EnCola) => Promise<void>
 export type TraerFn = (tabla: string) => Promise<unknown[]>
@@ -81,10 +82,22 @@ export function subirASupabase(negocioId: UUID): SubirFn {
       if (error) throw error
       return
     }
+    if (item.entidad === 'negocio') {
+      const datos = item.datos as { nombre: string; logo: string | null; color: string | null }
+      const { data, error } = await cliente
+        .from('negocios')
+        .update({ nombre: datos.nombre, logo: datos.logo, color: datos.color })
+        .eq('id', negocioId)
+        .select('id')
+      if (error) throw error
+      // Sin filas: la política no lo dejó (no es el dueño). Reintentar no cambia nada.
+      if (!data || data.length === 0) throw { code: '42501', message: 'sólo el dueño cambia los datos del negocio' }
+      return
+    }
     if (item.operacion === 'eliminar') {
       const tablas: Record<EnCola['entidad'], string> = {
         producto: 'productos', venta: 'ventas', fiado: 'fiados', fiadoPago: 'fiado_pagos',
-        ingreso: 'ingresos', cliente: 'clientes', cierre: 'cierres', movimientoCaja: 'movimientos_caja', movimientoStock: 'movimientos_stock', pedido: 'pedidos', preferencias: 'negocio_configuracion',
+        ingreso: 'ingresos', cliente: 'clientes', cierre: 'cierres', movimientoCaja: 'movimientos_caja', movimientoStock: 'movimientos_stock', pedido: 'pedidos', preferencias: 'negocio_configuracion', negocio: 'negocios',
       }
       const id = (item.datos as { id?: string }).id
       if (item.entidad !== 'preferencias' && !id) throw new Error('operación de borrado sin id')
@@ -145,12 +158,7 @@ export function subirASupabase(negocioId: UUID): SubirFn {
           // No pises una edición que ocurrió mientras la petición estaba en
           // vuelo; quedó otra operación pendiente con esa versión.
           if (local && local.actualizadoEn === versionLocal) {
-            await db.productos.put({
-              ...local,
-              ...remoto,
-              categoria: local.categoria,
-              favorito: local.favorito,
-            } as never)
+            await db.productos.put({ ...local, ...remoto } as never)
           }
         }
       } else if (CLAVE_DEL_PADRE[parte.tabla]) {
@@ -210,24 +218,14 @@ export async function bajarTodo(traer: TraerFn): Promise<number> {
         }
       } else if (tabla === 'productos') {
         for (const fila of filas as Fila[]) {
-          // Lo que la base rechazó por permisos no va a subir: la ficha de
-          // la nube es la verdadera y tiene que poder pisar la local.
-          const enCola = await db.cola.get(`producto:${fila.id as string}`)
-          const pendiente = enCola && !enCola.rechazado
-          const movimientosPendientes = (await db.cola.toArray()).some(
-            (item) => !item.rechazado && item.entidad === 'movimientoStock' && (item.datos as { productoId?: string }).productoId === fila.id,
-          )
-          if (pendiente || movimientosPendientes) continue
+          // Lo que la base rechazó o agotó no va a subir: la ficha de la
+          // nube es la verdadera y tiene que poder pisar la local.
+          if (await productoTieneCambiosPendientes(fila.id as string)) continue
           if (typeof fila.eliminadoEn === 'number') {
             await db.productos.delete(fila.id as string)
             await db.cola.delete(`producto:${fila.id as string}`)
             escritas++
             continue
-          }
-          const local = await db.productos.get(fila.id as string)
-          if (local) {
-            fila.categoria = local.categoria
-            fila.favorito = local.favorito
           }
           await destino().put(fila)
           escritas++
