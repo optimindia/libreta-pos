@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  cantidadValida, esFraccionado, formatearCantidad, importePorCantidad, leerCantidad, porMonto, porUnidad, redondearCantidad,
+  cantidadValida, esFraccionado, formatearCantidad, importePorCantidad, leerCantidad, ponerFraccion, porMonto, porUnidad, redondearCantidad,
 } from '@/dominio/cantidad'
 
 describe('cantidades fraccionadas', () => {
@@ -62,5 +62,14 @@ describe('cantidades fraccionadas', () => {
     expect(leerCantidad('500')).toBe(500)
     expect(Number.isNaN(leerCantidad('abc'))).toBe(true)
     expect(Number.isNaN(leerCantidad(''))).toBe(true)
+  })
+})
+
+describe('ponerFraccion', () => {
+  const pan = { id: 'pan', nombre: 'Pan', costo: 50000 }
+  it('agrega el renglón o reemplaza el que había', () => {
+    const una = ponerFraccion([], pan, 0.5, 95000)
+    expect(una).toEqual([{ productoId: 'pan', nombre: 'Pan', cantidad: 0.5, precio: 95000, costo: 50000 }])
+    expect(ponerFraccion(una, pan, 0.25, 95000)).toEqual([{ productoId: 'pan', nombre: 'Pan', cantidad: 0.25, precio: 95000, costo: 50000 }])
   })
 })

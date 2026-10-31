@@ -1,5 +1,6 @@
 'use client'
 
+import { formatearCantidad, unidadDe } from '@/dominio/cantidad'
 import { useState, type ReactNode } from 'react'
 import type { Producto } from '@/dominio/tipos'
 import { formatearPesos } from '@/dominio/dinero'
@@ -146,6 +147,8 @@ export function CatalogoVender({
             const oferta = tieneOfertaVigente(producto)
             const sinPrecio = precioVigente(producto) <= 0
             const estado = sinStock ? 'sin-stock' : sinPrecio ? 'sin-precio' : 'normal'
+            const unidad = unidadDe(producto)
+            const fraccion = unidad !== 'unidad'
             return (
               <div key={producto.id} className="f-producto-caja">
                 <button
@@ -164,18 +167,23 @@ export function CatalogoVender({
                       <span className="f-producto-precio f-plata">
                         {oferta && <s className="f-producto-viejo">{formatearPesos(producto.precio)}</s>}
                         {sinPrecio ? 'Sin precio' : formatearPesos(precioVigente(producto))}
+                        {fraccion && !sinPrecio && <small className="f-producto-por">/{unidad === 'kg' ? 'kg' : 'L'}</small>}
                       </span>
                       {sinStock ? (
                         <Etiqueta tono="blanco">Sin stock</Etiqueta>
                       ) : (
                         <span className="f-producto-nota" data-poco={poco ? 'true' : 'false'}>
-                          <IconoStock />{oferta ? `Oferta · quedan ${stock}` : `quedan ${stock}`}
+                          <IconoStock />{oferta ? `Oferta · quedan ${formatearCantidad(stock, unidad)}` : `quedan ${formatearCantidad(stock, unidad)}`}
                         </span>
                       )}
                     </span>
                   )}
                 </button>
-                {enVenta > 0 && <span className="f-producto-numero" aria-label={`${enVenta} en el ticket`}>{enVenta}</span>}
+                {enVenta > 0 && (
+                  <span className="f-producto-numero" aria-label={`${formatearCantidad(enVenta, unidadDe(producto))} en el ticket`}>
+                    {formatearCantidad(enVenta, unidadDe(producto))}
+                  </span>
+                )}
                 <button
                   type="button"
                   className="f-producto-estrella"

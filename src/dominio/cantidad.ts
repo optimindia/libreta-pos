@@ -1,4 +1,4 @@
-import type { Centavos, Producto, UnidadVenta } from './tipos'
+import type { Centavos, ItemVenta, Producto, UnidadVenta } from './tipos'
 
 /** Las cantidades fraccionadas se guardan con hasta tres decimales: un gramo
  *  o un mililitro. */
@@ -71,4 +71,18 @@ export function leerCantidad(texto: string): number {
   const limpio = texto.trim().replace(/\s/g, '').replace(',', '.')
   if (limpio === '' || !/^\d*\.?\d*$/.test(limpio)) return Number.NaN
   return Number(limpio)
+}
+
+/** Pone (o reemplaza) el renglón de un producto por kilo o litro con la
+ *  cantidad y el precio por unidad elegidos. */
+export function ponerFraccion(
+  items: ItemVenta[],
+  producto: Pick<Producto, 'id' | 'nombre' | 'costo'>,
+  cantidad: number,
+  precio: Centavos,
+): ItemVenta[] {
+  const renglon: ItemVenta = { productoId: producto.id, nombre: producto.nombre, cantidad: redondearCantidad(cantidad), precio, costo: producto.costo }
+  return items.some((item) => item.productoId === producto.id)
+    ? items.map((item) => (item.productoId === producto.id ? renglon : item))
+    : [...items, renglon]
 }

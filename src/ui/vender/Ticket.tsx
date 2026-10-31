@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import type { ItemVenta } from '@/dominio/tipos'
+import type { ItemVenta, UnidadVenta } from '@/dominio/tipos'
+import { formatearCantidad, porUnidad } from '@/dominio/cantidad'
 import { formatearPesos } from '@/dominio/dinero'
 import { IconoEliminar, IconoEscanear, IconoMasCantidad, IconoMenos } from '@/ui/sistema/iconos'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
@@ -95,8 +96,14 @@ export function Ticket({
   onDescuento,
   destacado,
   idVarios,
+  unidades = {},
+  onEditarFraccion,
 }: {
   items: ItemVenta[]
+  /** Los productos que se venden por kilo o litro, con su unidad. */
+  unidades?: Record<string, UnidadVenta>
+  /** Abre la hoja del producto por kilo o litro para corregir la cantidad. */
+  onEditarFraccion?: (productoId: string) => void
   /** El renglón de monto libre: se muestra como importe, sin cantidad. */
   idVarios?: string | null
   /** El renglón que acaba de cambiar: se ilumina un instante. */
@@ -146,6 +153,42 @@ export function Ticket({
               <button type="button" className="f-venta-quitar" onClick={() => onCambiarCantidad(item.productoId, 0)} aria-label={`Quitar ${item.nombre}`} title="Quitar">
                 <IconoEliminar />
               </button>
+              <span className="f-renglon-fin f-venta-subtotal">{formatearPesos(Math.round(final.precio * item.cantidad))}</span>
+            </li>
+          )
+        }
+        const unidad = unidades[item.productoId]
+        if (unidad) {
+          return (
+            <li
+              key={destello ? `${item.productoId}-${destacado.vez}` : item.productoId}
+              className="f-renglon f-venta-renglon"
+              data-destello={destello ? 'true' : undefined}
+            >
+              <span className="f-renglon-cuerpo">
+                <strong className="f-renglon-titulo">{item.nombre}</strong>
+                <span className="f-renglon-detalle f-plata">
+                  {rebajado && <s>{formatearPesos(item.precio)}</s>} {formatearPesos(final.precio)} {porUnidad(unidad)}
+                </span>
+                {onDescuento && (
+                  <button type="button" className="f-venta-descuento" onClick={() => onDescuento(item.productoId)} aria-label={`${rebajado ? 'Cambiar el descuento de' : 'Descuento para'} ${item.nombre}`}>
+                    {rebajado ? 'Cambiar descuento' : 'Descuento'}
+                  </button>
+                )}
+              </span>
+              <span className="f-paso">
+                <button
+                  type="button"
+                  className="f-fraccion-cantidad f-plata"
+                  onClick={() => onEditarFraccion?.(item.productoId)}
+                  aria-label={`${formatearCantidad(item.cantidad, unidad)} de ${item.nombre}. Tocá para cambiar`}
+                >
+                  {formatearCantidad(item.cantidad, unidad)}
+                </button>
+                <button type="button" onClick={() => onCambiarCantidad(item.productoId, 0)} aria-label={`Quitar ${item.nombre}`} title="Quitar">
+                  <IconoEliminar />
+                </button>
+              </span>
               <span className="f-renglon-fin f-venta-subtotal">{formatearPesos(Math.round(final.precio * item.cantidad))}</span>
             </li>
           )
