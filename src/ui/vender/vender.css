@@ -1073,8 +1073,8 @@
 }
 
 .f-fraccion-resultado b { font-size: 22px; font-weight: 800; }
-.f-fraccion-resultado:has(> span:only-child:not(:has(b))) { background: var(--f-superficie-2); color: var(--f-tinta-2); font-size: 15px; }
-.f-fraccion-resultado[data-error='true'] { background: var(--f-coral-suave); color: var(--f-coral); }
+.f-fraccion-resultado[data-estado='vacio'] { background: var(--f-superficie-2); color: var(--f-tinta-2); font-size: 15px; }
+.f-fraccion-resultado[data-estado='error'] { background: var(--f-coral-suave); color: var(--f-coral); }
 
 /* La cantidad de un renglón por kilo o litro: "526 g", se toca para cambiar. */
 .f-paso button.f-fraccion-cantidad {

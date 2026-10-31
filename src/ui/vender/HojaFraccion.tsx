@@ -132,7 +132,7 @@ export function HojaFraccion({
           </>
         )}
 
-        <div className="f-fraccion-resultado" aria-live="polite" data-error={pasado ? 'true' : undefined}>
+        <div className="f-fraccion-resultado" aria-live="polite" data-estado={elegido === null ? 'vacio' : pasado ? 'error' : 'listo'}>
           {elegido === null ? (
             <span>{modo === 'cantidad' ? `Escribí cuántos ${chica === 'g' ? 'gramos' : 'mililitros'} o tocá uno de arriba.` : 'Escribí la plata o tocá un monto de arriba.'}</span>
           ) : pasado ? (
