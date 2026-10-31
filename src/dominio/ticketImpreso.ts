@@ -1,3 +1,4 @@
+import { formatearCantidad } from './cantidad'
 import type { Centavos, MedioPago, Venta } from './tipos'
 import { formatearPesos } from './dinero'
 
@@ -73,7 +74,7 @@ export function resumenTicket(datos: DatosTicket): ResumenTicket {
     negocio: datos.negocio.trim() || 'Tu almacén',
     fecha: fechaHoraArgentina(venta.fecha),
     renglones: venta.items.map((item) => ({
-      cantidad: String(item.cantidad),
+      cantidad: formatearCantidad(item.cantidad),
       nombre: item.nombre,
       // Redondeo al centavo: cantidades con decimales (kilos) no dejan fracciones.
       importe: formatearPesos(Math.round(item.precio * item.cantidad)),

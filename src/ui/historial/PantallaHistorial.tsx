@@ -1,5 +1,6 @@
 'use client'
 
+import { formatearCantidad } from '@/dominio/cantidad'
 import { Portada } from '@/ui/sistema/Portada'
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -80,8 +81,8 @@ function DetalleVenta({ venta, yo, onAnulada }: { venta: Venta; yo: Identidad; o
       <ul className="fh-items">
         {venta.items.map((item) => (
           <li key={item.productoId} className="f-renglon">
-            <span className="f-renglon-cuerpo"><span className="f-renglon-titulo">{item.cantidad} × {item.nombre}</span></span>
-            <span className="f-renglon-fin">{formatearPesos(item.precio * item.cantidad)}</span>
+            <span className="f-renglon-cuerpo"><span className="f-renglon-titulo">{formatearCantidad(item.cantidad)} × {item.nombre}</span></span>
+            <span className="f-renglon-fin">{formatearPesos(Math.round(item.precio * item.cantidad))}</span>
           </li>
         ))}
       </ul>

@@ -173,3 +173,16 @@ describe('renglones con posición estable', () => {
     expect(venta.items[0]).not.toHaveProperty('posicion')
   })
 })
+
+describe('venta por kilo o litro', () => {
+  it('la unidad y las cantidades con decimales viajan tal cual', () => {
+    const [{ filas }] = aLaNube('producto', { ...producto, unidad: 'kg', stock: 3.25, stockMinimo: 0.5 }, NEGOCIO)
+    expect(filas[0]).toMatchObject({ unidad: 'kg', stock: 3.25, stock_minimo: 0.5 })
+  })
+
+  it('si la nube devuelve las cantidades como texto, adentro son números', () => {
+    const local = deLaNube('productos', { id: 'p1', stock: '3.250', stock_minimo: '0.500', unidad: 'kg' })
+    expect(local).toMatchObject({ stock: 3.25, stockMinimo: 0.5, unidad: 'kg' })
+    expect(deLaNube('venta_items', { cantidad: '0.526' })).toMatchObject({ cantidad: 0.526 })
+  })
+})

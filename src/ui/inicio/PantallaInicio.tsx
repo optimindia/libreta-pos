@@ -1,5 +1,6 @@
 'use client'
 
+import { formatearCantidad } from '@/dominio/cantidad'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Portada } from '@/ui/sistema/Portada'
@@ -268,7 +269,7 @@ export function PantallaInicio() {
                   <li key={venta.id} className="fi-venta">
                     <span className="fi-venta-icono" data-tono={venta.medioPago === 'fiado' ? 'coral' : undefined}><Icono /></span>
                     <span className="fi-venta-cuerpo">
-                      <span className="fi-venta-titulo">{venta.items.map((item) => (item.cantidad > 1 ? `${item.nombre} ×${item.cantidad}` : item.nombre)).join(', ')}</span>
+                      <span className="fi-venta-titulo">{venta.items.map((item) => (item.cantidad !== 1 ? `${item.nombre} ×${formatearCantidad(item.cantidad)}` : item.nombre)).join(', ')}</span>
                       <span className="fi-venta-detalle" data-tono={venta.medioPago === 'fiado' ? 'coral' : undefined}>
                         {HORA.format(new Date(venta.fecha))} · {MEDIO[venta.medioPago]}{venta.medioPago === 'fiado' && nombreCliente(venta.clienteId) ? ` a ${nombreCliente(venta.clienteId)}` : ''}
                       </span>

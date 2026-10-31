@@ -1,3 +1,4 @@
+import { cantidadValida, esFraccionado, redondearCantidad } from '@/dominio/cantidad'
 import { CODIGO_VARIOS, esProductoVarios, MINIMO_VARIOS, NOMBRE_VARIOS, STOCK_VARIOS } from '@/dominio/varios'
 import { db } from './db'
 import { encolar } from './cola'
@@ -86,10 +87,21 @@ export class ErrorVentaInvalida extends Error {
   }
 }
 
+/** Lo que se vende por unidad va en números enteros; lo que se vende por
+ *  kilo o litro admite decimales (de a gramo o mililitro). */
+async function cantidadesSegunUnidad(items: Array<{ productoId: UUID; cantidad: number }>): Promise<boolean> {
+  for (const item of items) {
+    if (!cantidadValida(item.cantidad)) return false
+    const producto = await db.productos.get(item.productoId)
+    if (producto && !esFraccionado(producto) && !Number.isInteger(item.cantidad)) return false
+  }
+  return true
+}
+
 function validarVenta(items: ItemVenta[], medioPago: MedioPago, clienteId: UUID | null): void {
   if (items.length === 0) throw new ErrorVentaInvalida('El ticket está vacío.')
   for (const item of items) {
-    if (!Number.isInteger(item.cantidad) || item.cantidad <= 0) {
+    if (!cantidadValida(item.cantidad)) {
       throw new ErrorVentaInvalida(`La cantidad de ${item.nombre} no es válida.`)
     }
     if (!Number.isFinite(item.precio) || item.precio <= 0) {
@@ -209,15 +221,16 @@ export const repos = {
       ))
     },
     async ajustarStock(id: UUID, cambio: number): Promise<Producto | null> {
-      if (!Number.isInteger(cambio) || cambio === 0) return null
+      if (!cantidadValida(Math.abs(cambio))) return null
       let actualizado: Producto | null = null
       await db.transaction('rw', db.productos, async () => {
         const actual = await db.productos.get(id)
         if (!actual) return
+        if (!esFraccionado(actual) && !Number.isInteger(cambio)) return
         if (cambio < 0 && actual.stock + cambio < 0) {
           throw new ErrorStockInsuficiente(actual.nombre, actual.stock)
         }
-        actualizado = { ...actual, stock: actual.stock + cambio, actualizadoEn: Date.now() }
+        actualizado = { ...actual, stock: redondearCantidad(actual.stock + cambio), actualizadoEn: Date.now() }
         await db.productos.put(actualizado)
       })
       if (!actualizado) return null
@@ -276,6 +289,7 @@ export const repos = {
       pedidoId?: UUID
     }): Promise<Venta> {
       validarVenta(datos.items, datos.medioPago, datos.clienteId)
+      if (!(await cantidadesSegunUnidad(datos.items))) throw new ErrorVentaInvalida('Hay una cantidad que no va: lo que se vende por unidad va en números enteros.')
       const vendidoPor = (await quienSoy()).usuarioId
       const venta: Venta = {
         id: nuevoId(),
@@ -305,7 +319,7 @@ export const repos = {
         for (const item of venta.items) {
           const producto = await db.productos.get(item.productoId)
           if (producto) {
-            const descontado = { ...producto, stock: producto.stock - item.cantidad, actualizadoEn: Date.now() }
+            const descontado = { ...producto, stock: redondearCantidad(producto.stock - item.cantidad), actualizadoEn: Date.now() }
             await db.productos.put(descontado)
             tocados.push(descontado)
           }
@@ -379,7 +393,7 @@ export const repos = {
         for (const [productoId, cantidad] of cantidades) {
           const producto = await db.productos.get(productoId)
           if (!producto) continue
-          const restaurado = { ...producto, stock: producto.stock + cantidad, actualizadoEn: Date.now() }
+          const restaurado = { ...producto, stock: redondearCantidad(producto.stock + cantidad), actualizadoEn: Date.now() }
           await db.productos.put(restaurado)
           tocados.push(restaurado)
           movimientosStock.push({ productoId, cantidad })
@@ -634,10 +648,8 @@ export const repos = {
   ingresos: {
     async registrar(datos: Omit<Ingreso, 'id' | 'fecha'>): Promise<Ingreso> {
       if (datos.items.length === 0) throw new ErrorIngresoInvalido('No hay productos para cargar.')
-      for (const item of datos.items) {
-        if (!Number.isInteger(item.cantidad) || item.cantidad <= 0) {
-          throw new ErrorIngresoInvalido('Cada producto tiene que entrar con una cantidad entera mayor a cero.')
-        }
+      if (!(await cantidadesSegunUnidad(datos.items))) {
+        throw new ErrorIngresoInvalido('Cada producto entra con una cantidad mayor a cero (entera si se vende por unidad).')
       }
       const ingreso: Ingreso = { ...datos, id: nuevoId(), fecha: Date.now() }
       const tocados: Producto[] = []
@@ -649,7 +661,7 @@ export const repos = {
           if (producto) {
             // Un costo en $0 (o ilegible en la foto) no pisa el que ya había.
             const costo = Number.isFinite(item.costoUnitario) && item.costoUnitario > 0 ? item.costoUnitario : producto.costo
-            const cargado = { ...producto, stock: producto.stock + item.cantidad, costo, actualizadoEn: Date.now() }
+            const cargado = { ...producto, stock: redondearCantidad(producto.stock + item.cantidad), costo, actualizadoEn: Date.now() }
             await db.productos.put(cargado)
             tocados.push(cargado)
             cargados.push(item)
@@ -677,8 +689,8 @@ export const repos = {
   pedidos: {
     async guardar(datos: Omit<Pedido, 'id' | 'fecha' | 'actualizadoEn' | 'total'> & { id?: UUID }): Promise<Pedido> {
       if (!datos.items.length) throw new Error('Un pedido necesita al menos un producto.')
-      if (datos.items.some((item) => !Number.isInteger(item.cantidad) || item.cantidad <= 0)) {
-        throw new Error('Revisá las cantidades: cada producto va con un número entero mayor a cero.')
+      if (!(await cantidadesSegunUnidad(datos.items))) {
+        throw new Error('Revisá las cantidades: mayores a cero y enteras si se venden por unidad.')
       }
       const existente = datos.id ? await db.pedidos.get(datos.id) : undefined
       // Un pedido cobrado ya es una venta: cambiarlo descuadraría stock y caja.

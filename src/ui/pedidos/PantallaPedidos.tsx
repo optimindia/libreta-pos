@@ -1,5 +1,6 @@
 'use client'
 
+import { formatearCantidad } from '@/dominio/cantidad'
 import { Portada } from '@/ui/sistema/Portada'
 import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -241,7 +242,7 @@ function PedidoCard({
 
       <ul className="f-pedidos-items">
         {pedido.items.slice(0, 4).map((item) => (
-          <li key={item.productoId}><span>{item.cantidad} × {item.nombre}</span><b>{formatearPesos(item.precio * item.cantidad)}</b></li>
+          <li key={item.productoId}><span>{formatearCantidad(item.cantidad)} × {item.nombre}</span><b>{formatearPesos(Math.round(item.precio * item.cantidad))}</b></li>
         ))}
         {pedido.items.length > 4 && <li className="f-pedidos-mas">+ {pedido.items.length - 4} productos más</li>}
       </ul>

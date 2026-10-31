@@ -146,7 +146,7 @@ export function Ticket({
               <button type="button" className="f-venta-quitar" onClick={() => onCambiarCantidad(item.productoId, 0)} aria-label={`Quitar ${item.nombre}`} title="Quitar">
                 <IconoEliminar />
               </button>
-              <span className="f-renglon-fin f-venta-subtotal">{formatearPesos(final.precio * item.cantidad)}</span>
+              <span className="f-renglon-fin f-venta-subtotal">{formatearPesos(Math.round(final.precio * item.cantidad))}</span>
             </li>
           )
         }
@@ -202,7 +202,7 @@ export function Ticket({
                 <IconoMasCantidad />
               </button>
             </span>
-            <span className="f-renglon-fin f-venta-subtotal">{formatearPesos(final.precio * item.cantidad)}</span>
+            <span className="f-renglon-fin f-venta-subtotal">{formatearPesos(Math.round(final.precio * item.cantidad))}</span>
           </li>
         )
       })}

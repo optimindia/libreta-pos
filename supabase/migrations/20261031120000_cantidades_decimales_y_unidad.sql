@@ -8,7 +8,6 @@ alter table public.productos
   add column if not exists unidad text not null default 'unidad';
 
 alter table public.productos
-  drop constraint if exists productos_unidad_valida,
   add constraint productos_unidad_valida check (unidad in ('unidad', 'kg', 'l'));
 
 alter table public.venta_items alter column cantidad type numeric(14, 3);
@@ -17,7 +16,10 @@ alter table public.ingreso_items alter column cantidad type numeric(14, 3);
 alter table public.movimientos_stock alter column cantidad type numeric(14, 3);
 
 -- La función de movimientos pasa a recibir y devolver cantidades decimales.
-drop function if exists public.registrar_movimiento_stock(uuid, uuid, uuid, integer, text, uuid);
+-- La versión entera se renombra (sin acceso desde la app) en lugar de borrarse.
+alter function public.registrar_movimiento_stock(uuid, uuid, uuid, integer, text, uuid)
+  rename to registrar_movimiento_stock_entero_v1;
+revoke all on function public.registrar_movimiento_stock_entero_v1(uuid, uuid, uuid, integer, text, uuid) from authenticated, public;
 
 create function public.registrar_movimiento_stock(
   p_movimiento_id uuid,
@@ -75,5 +77,5 @@ begin
 end
 $$;
 
-revoke all on function public.registrar_movimiento_stock(uuid, uuid, uuid, numeric, text, uuid) from public;
+revoke all on function public.registrar_movimiento_stock(uuid, uuid, uuid, numeric, text, uuid) from public, anon;
 grant execute on function public.registrar_movimiento_stock(uuid, uuid, uuid, numeric, text, uuid) to authenticated, service_role;
