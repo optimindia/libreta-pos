@@ -78,7 +78,7 @@ describe('errores asociados al campo (3.3.1)', () => {
 
   it('FormularioProducto: nombre, precio y stock apuntan a su mensaje', async () => {
     render(<FormularioProducto />)
-    fireEvent.click(screen.getByRole('button', { name: /guardar/i }))
+    fireEvent.click(screen.getByRole('button', { name: /guardar y cargar otro/i }))
     const alertas = await screen.findAllByRole('alert')
     expect(alertas.length).toBeGreaterThan(0)
     for (const campo of screen.getAllByRole('textbox').filter((c) => c.getAttribute('aria-invalid') === 'true')) {

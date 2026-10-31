@@ -1,70 +1,106 @@
 'use client'
 
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import type { Producto } from '@/dominio/tipos'
-import { pesosACentavos, pesosDeTexto } from '@/dominio/dinero'
+import type { Producto, UnidadVenta } from '@/dominio/tipos'
+import { formatearPesos, pesosACentavos, pesosDeTexto } from '@/dominio/dinero'
+import { formatearCantidad, leerCantidad, redondearCantidad } from '@/dominio/cantidad'
+import { margenProducto } from '@/dominio/inteligencia'
 import { hayErroresProducto, validarProducto, type ErroresProducto } from '@/dominio/validaciones'
 import { repos } from '@/datos/local/repos'
 import { Boton } from '@/ui/sistema/Boton'
+import { Chip } from '@/ui/sistema/Chip'
+import { Segmentado } from '@/ui/sistema/Segmentado'
+import { IconoEscanear } from '@/ui/sistema/iconos'
+import { VisorCamara } from '@/ui/escaner/VisorCamara'
 import { noSePudo } from '@/ui/sistema/textos'
 
-const CATEGORIAS_SUGERIDAS = ['Almacén', 'Bebidas', 'Lácteos', 'Limpieza', 'Golosinas', 'Congelados', 'Panificados', 'Perfumería', 'Mascotas']
+const CATEGORIAS_SUGERIDAS = ['Almacén', 'Bebidas', 'Lácteos', 'Limpieza', 'Golosinas', 'Panificados']
 
+const COMO_SE_VENDE = [
+  { valor: 'unidad' as const, texto: 'Por unidad', nombre: 'Por unidad' },
+  { valor: 'kg' as const, texto: 'Por kilo', nombre: 'Por kilo' },
+  { valor: 'l' as const, texto: 'Por litro', nombre: 'Por litro' },
+]
+
+const textoCantidad = (valor: number) => String(valor).replace('.', ',')
+
+/** La ficha de un producto, en el orden en que se carga en el mostrador:
+ *  código (con el lector o la cámara), nombre, cómo se vende, precio y
+ *  cuántos hay. Lo menos usado queda en "Más opciones". Cargando productos
+ *  nuevos, "Guardar y cargar otro" deja la ficha lista para el siguiente con
+ *  la misma categoría y forma de venta. */
 export function FormularioProducto({
   producto,
   codigoInicial,
+  escaner = false,
   onGuardado,
+  onTerminar,
   onCancel,
 }: {
   producto?: Producto | null
   codigoInicial?: string
-  onGuardado?: () => void
+  /** Muestra el botón de cámara al lado del código. */
+  escaner?: boolean
+  /** Se guardó un producto (en la tanda, cada uno). */
+  onGuardado?: (producto: Producto) => void
+  /** Cargando nuevos: se guardó y no hay más para cargar. */
+  onTerminar?: () => void
   onCancel?: () => void
 }) {
   const [nombre, setNombre] = useState(producto?.nombre ?? '')
+  const [unidad, setUnidad] = useState<UnidadVenta>(producto?.unidad ?? 'unidad')
   const [categoria, setCategoria] = useState(producto?.categoria ?? '')
-  const [categoriaPersonalizada, setCategoriaPersonalizada] = useState(false)
+  const [nuevaCategoria, setNuevaCategoria] = useState<string | null>(null)
   const [costo, setCosto] = useState(producto ? String(producto.costo / 100) : '')
   const [precio, setPrecio] = useState(producto ? String(producto.precio / 100) : '')
   const [precioOferta, setPrecioOferta] = useState(producto?.precioOferta ? String(producto.precioOferta / 100) : '')
   const [ofertaHasta, setOfertaHasta] = useState(producto?.ofertaHasta ? new Date(producto.ofertaHasta).toISOString().slice(0, 10) : '')
   const [codigo, setCodigo] = useState(producto?.codigoBarras ?? codigoInicial ?? '')
-  const [minimo, setMinimo] = useState(producto ? String(producto.stockMinimo) : '3')
-  const [stockInicial, setStockInicial] = useState(producto ? String(producto.stock) : '0')
+  const [minimo, setMinimo] = useState(producto ? textoCantidad(producto.stockMinimo) : '3')
+  const [stockInicial, setStockInicial] = useState(producto ? textoCantidad(producto.stock) : '')
   const [errores, setErrores] = useState<ErroresProducto>({})
+  const [camara, setCamara] = useState(false)
+  const [guardando, setGuardando] = useState(false)
+  const [aviso, setAviso] = useState<string | null>(null)
+  const campoCodigo = useRef<HTMLInputElement>(null)
+  const campoNombre = useRef<HTMLInputElement>(null)
   const base = useId()
   const idError = { nombre: `${base}-nombre`, dinero: `${base}-dinero`, control: `${base}-control`, stock: `${base}-stock` }
   /** Un campo con error queda inválido y apunta a su mensaje (3.3.1). */
   const enlace = (hayError: boolean, id: string) => (hayError ? { 'aria-invalid': true as const, 'aria-describedby': id } : {})
-  const [guardando, setGuardando] = useState(false)
-  const [aviso, setAviso] = useState<string | null>(null)
   const productos = useLiveQuery(() => repos.productos.todos(), [], [])
-  const categorias = [...new Set([
-    ...CATEGORIAS_SUGERIDAS,
-    ...(productos ?? []).map((item) => item.categoria).filter((item): item is string => Boolean(item?.trim())),
-    ...(producto?.categoria ? [producto.categoria] : []),
-  ])].sort((a, b) => a.localeCompare(b, 'es'))
+  const usadas = [...new Set((productos ?? []).map((item) => item.categoria?.trim()).filter((item): item is string => Boolean(item)))]
+  const categorias = [...new Set([...usadas, ...(usadas.length < 4 ? CATEGORIAS_SUGERIDAS : []), ...(categoria ? [categoria] : [])])]
+    .sort((a, b) => a.localeCompare(b, 'es'))
 
-  async function guardar(evento?: React.FormEvent<HTMLFormElement>) {
-    evento?.preventDefault()
+  const codigoLimpio = codigo.trim()
+  const yaExiste = codigoLimpio !== '' ? (productos ?? []).find((item) => item.codigoBarras === codigoLimpio && item.id !== producto?.id) : undefined
+  const precioCentavos = pesosACentavos(pesosDeTexto(precio))
+  const costoCentavos = pesosACentavos(pesosDeTexto(costo))
+  const margen = precioCentavos > 0 && costoCentavos > 0 ? margenProducto({ precio: precioCentavos, costo: costoCentavos }) : null
+  const porUnidad = unidad === 'unidad'
+  const sufijo = unidad === 'kg' ? 'kg' : unidad === 'l' ? 'L' : 'unidades'
+  const rotuloPrecio = unidad === 'kg' ? 'Precio por kilo' : unidad === 'l' ? 'Precio por litro' : 'Precio'
+
+  async function guardar(seguir: boolean) {
     setAviso(null)
     try {
-      const costoCentavos = pesosACentavos(pesosDeTexto(costo))
-      const precioCentavos = pesosACentavos(pesosDeTexto(precio))
       const ofertaCentavos = precioOferta.trim() === '' ? undefined : pesosACentavos(pesosDeTexto(precioOferta))
       const fechaOferta = ofertaHasta ? new Date(`${ofertaHasta}T23:59:59`).getTime() : undefined
-      const stockMinimo = Number(minimo) || 0
-      const stock = Number(stockInicial) || 0
+      const stockMinimo = minimo.trim() === '' ? 0 : leerCantidad(minimo)
+      const stock = stockInicial.trim() === '' ? 0 : leerCantidad(stockInicial)
       const existentes = await repos.productos.todos()
       const nuevosErrores = validarProducto({
         nombre,
         costo: costoCentavos,
         precio: precioCentavos,
-        codigoBarras: codigo.trim() || null,
+        codigoBarras: codigoLimpio || null,
         stockMinimo,
+        unidad,
       }, existentes, producto?.id)
-      if (stock < 0 || !Number.isInteger(stock)) nuevosErrores.stockInicial = 'El stock inicial tiene que ser un entero desde cero.'
+      const stockValido = Number.isFinite(stock) && stock >= 0 && (porUnidad ? Number.isInteger(stock) : redondearCantidad(stock) === stock)
+      if (!producto && !stockValido) nuevosErrores.stockInicial = porUnidad ? 'Escribí cuántas unidades tenés (un número entero).' : `Escribí cuántos ${sufijo} tenés (por ejemplo 2,5).`
       if (ofertaCentavos !== undefined && (ofertaCentavos <= 0 || ofertaCentavos >= precioCentavos)) {
         setAviso('El precio de oferta debe ser mayor a cero y menor que el precio habitual.')
         return
@@ -77,24 +113,28 @@ export function FormularioProducto({
         setErrores(nuevosErrores)
         return
       }
-
       setGuardando(true)
-      await repos.productos.guardar({
+      const guardado = await repos.productos.guardar({
         ...(producto ?? {}),
         nombre: nombre.trim(),
-        codigoBarras: codigo.trim() || null,
+        codigoBarras: codigoLimpio || null,
         costo: costoCentavos,
         precio: precioCentavos,
         stock: producto ? producto.stock : stock,
         stockMinimo,
+        unidad,
         categoria: categoria.trim() || undefined,
         precioOferta: ofertaCentavos,
         ofertaHasta: ofertaCentavos ? fechaOferta : undefined,
       })
+      onGuardado?.(guardado)
       if (!producto) {
-        setNombre(''); setCategoria(''); setCosto(''); setPrecio(''); setPrecioOferta(''); setOfertaHasta(''); setCodigo(''); setStockInicial('0')
+        // Lista para el siguiente: se queda la categoría y cómo se vende.
+        setNombre(''); setCosto(''); setPrecio(''); setPrecioOferta(''); setOfertaHasta(''); setCodigo(''); setStockInicial('')
+        setErrores({})
+        if (seguir) campoCodigo.current?.focus()
+        else onTerminar?.()
       }
-      onGuardado?.()
     } catch {
       setAviso(noSePudo('guardar', 'el producto'))
     } finally {
@@ -102,115 +142,174 @@ export function FormularioProducto({
     }
   }
 
+  function elegirCategoria(nueva: string) {
+    setCategoria((actual) => (actual === nueva ? '' : nueva))
+    setNuevaCategoria(null)
+  }
+
   return (
-    <form className="f-stock-form" onSubmit={(evento) => void guardar(evento)}>
-      <section className="f-stock-grupo">
-        <h3 className="f-stock-grupo-titulo">Identificación</h3>
+    <form className="f-stock-form f-carga" onSubmit={(evento) => { evento.preventDefault(); void guardar(true) }}>
+      <div className="f-carga-paso">
         <label className="f-campo">
-          <span>Nombre <em>obligatorio</em></span>
+          <span>Código de barras <em>opcional · pasalo con el lector o la cámara</em></span>
+          <span className="f-carga-codigo">
+            <input
+              ref={campoCodigo}
+              aria-label="Código de barras"
+              inputMode="numeric"
+              autoComplete="off"
+              autoFocus={!producto && !codigoInicial}
+              placeholder="Escaneá o escribí el código"
+              className="f-entrada"
+              value={codigo}
+              {...enlace(Boolean(errores.codigoBarras), idError.control)}
+              onChange={(evento) => { setCodigo(evento.target.value); setErrores((actuales) => ({ ...actuales, codigoBarras: undefined })) }}
+              onKeyDown={(evento) => {
+                // El lector termina con Enter: se pasa al nombre en vez de guardar.
+                if (evento.key === 'Enter') { evento.preventDefault(); campoNombre.current?.focus() }
+              }}
+            />
+            {escaner && (
+              <button type="button" className="f-carga-camara" onClick={() => setCamara(true)} aria-label="Escanear el código con la cámara" title="Escanear con la cámara">
+                <IconoEscanear />
+              </button>
+            )}
+          </span>
+          {yaExiste && <small className="f-stock-error" role="status">Este código ya es de <b>{yaExiste.nombre}</b>. Buscalo en el catálogo para editarlo.</small>}
+          {errores.codigoBarras && <small id={idError.control} className="f-stock-error" role="alert">{errores.codigoBarras}</small>}
+        </label>
+
+        <label className="f-campo">
+          <span>Nombre</span>
           <input
+            ref={campoNombre}
             aria-label="Nombre"
-            autoFocus={!producto}
-            placeholder="Ej. Yerba Playadito"
+            autoFocus={Boolean(codigoInicial) && !producto}
+            placeholder="Ej. Yerba Playadito 1 kg"
             className="f-entrada"
             value={nombre}
             {...enlace(Boolean(errores.nombre), idError.nombre)}
             onChange={(evento) => { setNombre(evento.target.value); setErrores((actuales) => ({ ...actuales, nombre: undefined })); setAviso(null) }}
           />
-          <small className="f-stock-ayuda">Un nombre corto y reconocible para encontrarlo rápido.</small>
           {errores.nombre && <small id={idError.nombre} className="f-stock-error" role="alert">{errores.nombre}</small>}
         </label>
-        <label className="f-campo">
-          <span>Categoría <em>opcional</em></span>
-          <select
-            aria-label="Categoría del producto"
-            className="f-entrada"
-            value={categoriaPersonalizada ? '__otra__' : categoria}
-            onChange={(evento) => {
-              const valor = evento.target.value
-              setCategoriaPersonalizada(valor === '__otra__')
-              setCategoria(valor === '__otra__' ? '' : valor)
-            }}
-          >
-            <option value="">Sin categoría</option>
-            {categorias.map((opcion) => <option key={opcion} value={opcion}>{opcion}</option>)}
-            <option value="__otra__">Otra categoría…</option>
-          </select>
-          {categoriaPersonalizada && (
-            <input
-              aria-label="Nueva categoría del producto"
-              placeholder="Ej. Librería"
-              className="f-entrada"
-              value={categoria}
-              onChange={(evento) => setCategoria(evento.target.value)}
-            />
-          )}
-        </label>
-      </section>
 
-      <section className="f-stock-grupo">
-        <h3 className="f-stock-grupo-titulo">Precios</h3>
-        <p className="f-stock-ayuda">El costo sirve para calcular tu ganancia. El precio es lo que ve el cliente.</p>
+        <div className="f-campo">
+          <span id={`${base}-como`}>¿Cómo se vende?</span>
+          <Segmentado etiqueta="Cómo se vende" opciones={COMO_SE_VENDE} valor={unidad} onCambiar={setUnidad} />
+          {!porUnidad && (
+            <small className="f-stock-ayuda">
+              En Vender vas a poder pedir por {unidad === 'kg' ? 'peso ("medio kilo")' : 'cantidad ("medio litro")'} o por plata (&quot;dame $500&quot;).
+            </small>
+          )}
+        </div>
+
         <div className="f-stock-fila-campos">
           <label className="f-campo">
-            <span>Costo <em>lo que pagás</em></span>
-            <div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label="Costo" inputMode="decimal" placeholder="Ej. 800" className="f-entrada" value={costo} {...enlace(Boolean(errores.costo || errores.precio), idError.dinero)} onChange={(evento) => { setCosto(evento.target.value); setErrores((actuales) => ({ ...actuales, costo: undefined })) }} /></div>
-          </label>
-          <label className="f-campo">
-            <span>Precio <em>lo que cobrás</em></span>
+            <span>{rotuloPrecio}</span>
             <div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label="Precio" inputMode="decimal" placeholder="Ej. 1.200" className="f-entrada" value={precio} {...enlace(Boolean(errores.costo || errores.precio), idError.dinero)} onChange={(evento) => { setPrecio(evento.target.value); setErrores((actuales) => ({ ...actuales, precio: undefined })) }} /></div>
           </label>
+          <label className="f-campo">
+            <span>Te cuesta <em>opcional</em></span>
+            <div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label="Costo" inputMode="decimal" placeholder="Ej. 800" className="f-entrada" value={costo} {...enlace(Boolean(errores.costo || errores.precio), idError.dinero)} onChange={(evento) => { setCosto(evento.target.value); setErrores((actuales) => ({ ...actuales, costo: undefined })) }} /></div>
+          </label>
         </div>
+        {margen !== null && (
+          <p className="f-carga-margen" data-tono={margen < 0 ? 'coral' : 'verde'}>
+            {margen < 0 ? 'Lo vendés por debajo del costo.' : <>Ganás <b>{margen}%</b> ({formatearPesos(precioCentavos - costoCentavos)} {porUnidad ? 'por unidad' : unidad === 'kg' ? 'por kilo' : 'por litro'})</>}
+          </p>
+        )}
         {(errores.costo || errores.precio) && <p id={idError.dinero} className="f-stock-error" role="alert">{errores.costo ?? errores.precio}</p>}
-      </section>
-
-      <section className="f-stock-grupo">
-        <h3 className="f-stock-grupo-titulo">Oferta <em>opcional</em></h3>
-        <p className="f-stock-ayuda">Aparece en Vender y se copia al ticket. Dejá los dos campos vacíos para quitarla.</p>
-        <div className="f-stock-fila-campos">
-          <label className="f-campo">
-            <span>Precio oferta <em>opcional</em></span>
-            <div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label="Oferta promocional" inputMode="decimal" placeholder="Ej. 1.050" className="f-entrada" value={precioOferta} onChange={(evento) => { setPrecioOferta(evento.target.value); setAviso(null) }} /></div>
-          </label>
-          <label className="f-campo">
-            <span>Válida hasta <em>opcional</em></span>
-            <input aria-label="Fin de la oferta" type="date" className="f-entrada" value={ofertaHasta} onChange={(evento) => { setOfertaHasta(evento.target.value); setAviso(null) }} />
-          </label>
-        </div>
-      </section>
-
-      <section className="f-stock-grupo">
-        <h3 className="f-stock-grupo-titulo">Control de stock</h3>
-        <div className="f-stock-fila-campos f-stock-fila-ancha">
-          <label className="f-campo">
-            <span>Código de barras <em>opcional</em></span>
-            <input aria-label="Código de barras" inputMode="numeric" placeholder="Escaneá o escribí el código" className="f-entrada" value={codigo} {...enlace(Boolean(errores.codigoBarras || errores.stockMinimo), idError.control)} onChange={(evento) => { setCodigo(evento.target.value); setErrores((actuales) => ({ ...actuales, codigoBarras: undefined })) }} />
-          </label>
-          <label className="f-campo">
-            <span>Mínimo <em>unidades</em></span>
-            <input aria-label="Mínimo" inputMode="numeric" placeholder="3" className="f-entrada" value={minimo} {...enlace(Boolean(errores.codigoBarras || errores.stockMinimo), idError.control)} onChange={(evento) => { setMinimo(evento.target.value); setErrores((actuales) => ({ ...actuales, stockMinimo: undefined })) }} />
-            <small className="f-stock-ayuda">Te avisamos cuando llegues a este número.</small>
-          </label>
-        </div>
-        {(errores.codigoBarras || errores.stockMinimo) && <p id={idError.control} className="f-stock-error" role="alert">{errores.codigoBarras ?? errores.stockMinimo}</p>}
 
         {!producto && (
           <label className="f-campo">
-            <span>Stock inicial <em>unidades disponibles hoy</em></span>
-            <input aria-label="Stock inicial" inputMode="numeric" placeholder="Ej. 12" className="f-entrada" value={stockInicial} {...enlace(Boolean(errores.stockInicial), idError.stock)} onChange={(evento) => { setStockInicial(evento.target.value); setErrores((actuales) => ({ ...actuales, stockInicial: undefined })) }} />
-            <small className="f-stock-ayuda">Si todavía no tenés unidades, dejá 0. Después podés sumar ingresos.</small>
-            {errores.stockInicial && <small id={idError.stock} className="f-stock-error" role="alert">{errores.stockInicial}</small>}
+            <span>¿Cuántos tenés? <em>{sufijo}</em></span>
+            <input aria-label="Stock inicial" inputMode={porUnidad ? 'numeric' : 'decimal'} placeholder={porUnidad ? 'Ej. 12' : 'Ej. 2,5'} className="f-entrada" value={stockInicial} {...enlace(Boolean(errores.stockInicial), idError.stock)} onChange={(evento) => { setStockInicial(evento.target.value); setErrores((actuales) => ({ ...actuales, stockInicial: undefined })) }} />
+            {errores.stockInicial
+              ? <small id={idError.stock} className="f-stock-error" role="alert">{errores.stockInicial}</small>
+              : <small className="f-stock-ayuda">Si todavía no tenés, dejalo vacío.</small>}
           </label>
         )}
-      </section>
+
+        <div className="f-campo">
+          <span>Categoría <em>opcional</em></span>
+          <div className="f-carga-categorias" role="group" aria-label="Categoría del producto">
+            {categorias.map((opcion) => (
+              <Chip key={opcion} activo={categoria === opcion} onClick={() => elegirCategoria(opcion)}>{opcion}</Chip>
+            ))}
+            {nuevaCategoria === null ? (
+              <Chip activo={false} onClick={() => setNuevaCategoria('')}>+ Nueva</Chip>
+            ) : (
+              <input
+                aria-label="Nueva categoría del producto"
+                placeholder="Nombre y Enter"
+                className="f-entrada f-carga-nueva"
+                autoFocus
+                value={nuevaCategoria}
+                onChange={(evento) => setNuevaCategoria(evento.target.value)}
+                onBlur={() => { if (nuevaCategoria.trim()) setCategoria(nuevaCategoria.trim()); setNuevaCategoria(null) }}
+                onKeyDown={(evento) => {
+                  if (evento.key === 'Enter') { evento.preventDefault(); if (nuevaCategoria.trim()) setCategoria(nuevaCategoria.trim()); setNuevaCategoria(null) }
+                  if (evento.key === 'Escape') { evento.stopPropagation(); setNuevaCategoria(null) }
+                }}
+              />
+            )}
+          </div>
+        </div>
+
+        <details className="f-carga-mas">
+          <summary>Más opciones <span>mínimo para avisar y oferta</span></summary>
+          <div className="f-carga-mas-cuerpo">
+            <label className="f-campo">
+              <span>Avisarme cuando queden <em>{sufijo}</em></span>
+              <input aria-label="Mínimo" inputMode={porUnidad ? 'numeric' : 'decimal'} placeholder="3" className="f-entrada" value={minimo} {...enlace(Boolean(errores.stockMinimo), `${idError.control}-min`)} onChange={(evento) => { setMinimo(evento.target.value); setErrores((actuales) => ({ ...actuales, stockMinimo: undefined })) }} />
+              {errores.stockMinimo && <small id={`${idError.control}-min`} className="f-stock-error" role="alert">{errores.stockMinimo}</small>}
+            </label>
+            <div className="f-stock-fila-campos">
+              <label className="f-campo">
+                <span>Precio de oferta</span>
+                <div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label="Oferta promocional" inputMode="decimal" placeholder="Ej. 1.050" className="f-entrada" value={precioOferta} onChange={(evento) => { setPrecioOferta(evento.target.value); setAviso(null) }} /></div>
+              </label>
+              <label className="f-campo">
+                <span>Oferta válida hasta</span>
+                <input aria-label="Fin de la oferta" type="date" className="f-entrada" value={ofertaHasta} onChange={(evento) => { setOfertaHasta(evento.target.value); setAviso(null) }} />
+              </label>
+            </div>
+          </div>
+        </details>
+      </div>
 
       {aviso && <p className="f-aviso" data-tono="ambar" role="alert">{aviso}</p>}
-      <div className="f-stock-acciones">
-        <Boton variante="principal" type="submit" disabled={guardando}>
-          {guardando ? 'Guardando…' : producto ? 'Guardar cambios' : 'Guardar producto'}
-        </Boton>
-        {producto && onCancel && <Boton variante="secundario" type="button" onClick={onCancel}>Cancelar</Boton>}
+      <div className="f-stock-acciones f-carga-acciones">
+        {producto ? (
+          <>
+            <Boton variante="principal" type="submit" disabled={guardando}>{guardando ? 'Guardando…' : 'Guardar cambios'}</Boton>
+            {onCancel && <Boton variante="secundario" type="button" onClick={onCancel}>Cancelar</Boton>}
+          </>
+        ) : (
+          <>
+            <Boton variante="principal" type="submit" disabled={guardando}>{guardando ? 'Guardando…' : 'Guardar y cargar otro'}</Boton>
+            <Boton variante="secundario" type="button" disabled={guardando} onClick={() => void guardar(false)}>Guardar producto y terminar</Boton>
+          </>
+        )}
       </div>
+
+      {camara && (
+        <VisorCamara
+          titulo="Escaneá el código del producto"
+          ayuda="Apuntá al código de barras con buena luz; se completa solo al leerlo."
+          onCerrar={() => setCamara(false)}
+          alLeer={(leido) => {
+            setCodigo(leido)
+            setCamara(false)
+            window.setTimeout(() => campoNombre.current?.focus(), 50)
+            return { tipo: 'ok', texto: `✓ Código ${leido}` }
+          }}
+        />
+      )}
+
+      {/* Para quien edita: lo que hay hoy, en la unidad elegida. */}
+      {producto && <p className="f-stock-ayuda">Hoy hay {formatearCantidad(producto.stock, unidad)}{porUnidad ? ' unidades' : ''}. Para cambiarlo usá “Ajustar” en el catálogo.</p>}
     </form>
   )
 }

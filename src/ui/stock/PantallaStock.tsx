@@ -13,7 +13,9 @@ import { SubirFactura } from './SubirFactura'
 import { ActualizarPrecios } from './ActualizarPrecios'
 import { CatalogoStock } from './CatalogoStock'
 import { HerramientasCatalogo } from './HerramientasCatalogo'
-import { EscanearCodigoProducto } from './EscanearCodigoProducto'
+import { formatearPesos } from '@/dominio/dinero'
+import { formatearCantidad, porUnidad, unidadDe } from '@/dominio/cantidad'
+import type { Producto } from '@/dominio/tipos'
 import { funcionActiva } from '@/dominio/funciones'
 import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
 import { usePuede } from '@/ui/sistema/usoRol'
@@ -24,8 +26,8 @@ type Pestaña = 'catalogo' | 'cargar' | 'precios'
 
 export function PantallaStock() {
   const [pestaña, setPestaña] = useState<Pestaña>('catalogo')
-  const [codigoEscaneado, setCodigoEscaneado] = useState<string | undefined>()
-  const [avisoCodigo, setAvisoCodigo] = useState<string | null>(null)
+  // Lo que se va cargando en esta tanda, el último arriba.
+  const [tanda, setTanda] = useState<Producto[]>([])
   const productos = useLiveQuery(() => repos.productos.todos(), [], [])
   const { funciones } = useFuncionesNegocio()
   const importarCatalogo = funcionActiva(funciones, 'importarCatalogo')
@@ -84,27 +86,37 @@ export function PantallaStock() {
           <div className="f-stock-cargar-cuerpo">
             <Tarjeta como="section" className="f-stock-ficha-nueva" aria-labelledby="stock-cargar-titulo">
               <div className="f-stock-ficha-cabeza">
-                <h2 id="stock-cargar-titulo" className="f-seccion">Cargar producto</h2>
-                {codigoEscaneado && <span className="f-etiqueta" data-tono="verde">Código leído</span>}
+                <h2 id="stock-cargar-titulo" className="f-seccion">Cargar productos</h2>
+                <p className="f-stock-ayuda">Uno atrás del otro: guardá y la ficha queda lista para el próximo.</p>
               </div>
-              {avisoCodigo && <p className="f-aviso" data-tono="ambar" role="status">{avisoCodigo}</p>}
-              <FormularioProducto key={codigoEscaneado ?? 'manual'} codigoInicial={codigoEscaneado} onGuardado={() => setPestaña('catalogo')} />
+              <FormularioProducto
+                escaner={escanerStock}
+                onGuardado={(producto) => setTanda((actual) => [producto, ...actual])}
+                onTerminar={() => { setTanda([]); setPestaña('catalogo') }}
+              />
             </Tarjeta>
-            {escanerStock && (
-              <aside className="f-stock-lateral">
-                <EscanearCodigoProducto onDetectar={(codigo) => {
-                  const existente = productos.find((producto) => producto.codigoBarras === codigo)
-                  setCodigoEscaneado(codigo)
-                  setAvisoCodigo(existente ? `Este código ya pertenece a ${existente.nombre}. Podés editarlo desde el catálogo.` : `Código ${codigo} leído. Completá los datos para guardar el producto.`)
-                }} />
-                <p className="f-dato">También podés escribir o pegar el código en el formulario.</p>
-              </aside>
-            )}
+            <Tarjeta como="section" className="f-carga-tanda" aria-labelledby="stock-tanda-titulo">
+              <h2 id="stock-tanda-titulo" className="f-seccion">Cargaste {tanda.length === 0 ? 'en esta tanda' : `${tanda.length} ${tanda.length === 1 ? 'producto' : 'productos'}`}</h2>
+              {tanda.length === 0 ? (
+                <p className="f-stock-ayuda">Lo que vayas guardando aparece acá, para que veas que entró bien.</p>
+              ) : (
+                <ul className="f-carga-lista">
+                  {tanda.map((producto) => (
+                    <li key={producto.id}>
+                      <span className="f-carga-lista-nombre">{producto.nombre}</span>
+                      <span className="f-carga-lista-detalle">
+                        {formatearPesos(producto.precio)} {porUnidad(unidadDe(producto))} · {formatearCantidad(producto.stock, unidadDe(producto))}{unidadDe(producto) === 'unidad' ? ' u.' : ''}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Tarjeta>
           </div>
 
           {importarFactura && (
-            <section className="f-stock-seccion" aria-labelledby="stock-factura-titulo">
-              <h2 id="stock-factura-titulo" className="f-seccion">Cargar desde una factura</h2>
+            <section className="f-stock-seccion" aria-labelledby="stock-otras-titulo">
+              <h2 id="stock-otras-titulo" className="f-seccion">¿Tenés la factura? Cargala con una foto</h2>
               <SubirFactura />
             </section>
           )}

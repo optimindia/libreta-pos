@@ -202,6 +202,25 @@ export const repos = {
     async todos(): Promise<Producto[]> {
       return db.productos.filter((producto) => !producto.eliminadoEn && !esProductoVarios(producto)).toArray()
     },
+    /** Las categorías en uso, con cuántos productos tiene cada una. */
+    async categorias(): Promise<Array<{ nombre: string; cantidad: number }>> {
+      const cuenta = new Map<string, number>()
+      for (const producto of await repos.productos.todos()) {
+        const nombre = producto.categoria?.trim()
+        if (nombre) cuenta.set(nombre, (cuenta.get(nombre) ?? 0) + 1)
+      }
+      return [...cuenta].map(([nombre, cantidad]) => ({ nombre, cantidad })).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
+    },
+    /** Cambia el nombre de una categoría en todos sus productos. Si el nombre
+     *  nuevo ya existe, las dos quedan juntas. Vacío = quitarla. */
+    async renombrarCategoria(de: string, a: string): Promise<number> {
+      const nuevo = a.trim().replace(/\s+/g, ' ')
+      const afectados = (await repos.productos.todos()).filter((producto) => producto.categoria?.trim() === de)
+      for (const producto of afectados) {
+        await repos.productos.guardar({ ...producto, categoria: nuevo || undefined })
+      }
+      return afectados.length
+    },
     /** El producto interno "Varios" (ver dominio/varios). Se crea la primera
      *  vez que se usa y se repone solo para que nunca falte stock. */
     async varios(): Promise<Producto> {

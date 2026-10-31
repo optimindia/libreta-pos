@@ -17,7 +17,7 @@ describe('PantallaStock', () => {
     fireEvent.change(await screen.findByLabelText('Nombre'), { target: { value: 'Fideos' } })
     fireEvent.change(screen.getByLabelText('Costo'), { target: { value: '800' } })
     fireEvent.change(screen.getByLabelText('Precio'), { target: { value: '1200' } })
-    fireEvent.click(screen.getByRole('button', { name: /guardar/i }))
+    fireEvent.click(screen.getByRole('button', { name: /guardar producto/i }))
 
     await waitFor(async () => {
       const productos = await repos.productos.todos()
@@ -37,7 +37,7 @@ describe('PantallaStock', () => {
   it('no guarda un producto sin nombre', async () => {
     render(<PantallaStock />)
     fireEvent.click(await screen.findByRole('button', { name: /^cargar$/i }))
-    fireEvent.click(await screen.findByRole('button', { name: /guardar/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /guardar producto/i }))
     await waitFor(async () => expect(await repos.productos.todos()).toHaveLength(0))
   })
 
@@ -143,5 +143,49 @@ describe('PantallaStock', () => {
     }
     const productos = await repos.productos.todos()
     expect(productos.map((p) => p.codigoBarras)).toEqual([null, null])
+  })
+})
+
+describe('Carga en tanda y categorías', () => {
+  it('"Guardar y cargar otro" deja la ficha lista y muestra lo cargado', async () => {
+    render(<PantallaStock />)
+    fireEvent.click(await screen.findByRole('button', { name: /^cargar$/i }))
+    fireEvent.change(await screen.findByLabelText('Nombre'), { target: { value: 'Yerba' } })
+    fireEvent.change(screen.getByLabelText('Precio'), { target: { value: '4200' } })
+    fireEvent.change(screen.getByLabelText('Stock inicial'), { target: { value: '12' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar y cargar otro' }))
+
+    expect(await screen.findByText('Cargaste 1 producto')).toBeTruthy()
+    expect((screen.getByLabelText('Nombre') as HTMLInputElement).value).toBe('')
+    fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Arroz' } })
+    fireEvent.change(screen.getByLabelText('Precio'), { target: { value: '1750' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar y cargar otro' }))
+    expect(await screen.findByText('Cargaste 2 productos')).toBeTruthy()
+    await waitFor(async () => expect(await repos.productos.todos()).toHaveLength(2))
+  })
+
+  it('un producto por kilo se carga con su precio por kilo y stock con decimales', async () => {
+    render(<PantallaStock />)
+    fireEvent.click(await screen.findByRole('button', { name: /^cargar$/i }))
+    fireEvent.change(await screen.findByLabelText('Nombre'), { target: { value: 'Queso cremoso' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Por kilo' }))
+    expect(screen.getByText('Precio por kilo')).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('Precio'), { target: { value: '9500' } })
+    fireEvent.change(screen.getByLabelText('Stock inicial'), { target: { value: '2,5' } })
+    fireEvent.click(screen.getByRole('button', { name: /guardar producto/i }))
+    await waitFor(async () => {
+      const [queso] = await repos.productos.todos()
+      expect(queso).toMatchObject({ unidad: 'kg', precio: 950000, stock: 2.5 })
+    })
+  })
+
+  it('las categorías se pueden renombrar desde el catálogo', async () => {
+    await repos.productos.guardar({ codigoBarras: null, nombre: 'Yerba', costo: 100, precio: 200, stock: 1, stockMinimo: 0, categoria: 'Almacen' })
+    render(<PantallaStock />)
+    fireEvent.click(await screen.findByRole('button', { name: /editar categorías/i }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Cambiar el nombre de Almacen' }))
+    fireEvent.change(screen.getByLabelText('Nuevo nombre para Almacen'), { target: { value: 'Almacén' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Listo' }))
+    await waitFor(async () => expect((await repos.productos.todos())[0].categoria).toBe('Almacén'))
   })
 })
