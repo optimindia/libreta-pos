@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { hayPendientes } from '@/datos/local/cola'
+import { haySinSubir } from '@/datos/local/cola'
 import { cerrarSesion } from '@/datos/nube/sesion'
 import { Boton } from './Boton'
 import { Hoja } from './Hoja'
@@ -14,7 +14,7 @@ import { IconoSalir } from './iconos'
 export function CerrarSesion({ estilo, alAbrir }: { estilo: 'lateral' | 'fila'; alAbrir?: () => void }) {
   const [abierta, setAbierta] = useState(false)
   const [saliendo, setSaliendo] = useState(false)
-  const sinSubir = useLiveQuery(() => hayPendientes(), [], false)
+  const sinSubir = useLiveQuery(() => haySinSubir(), [], false)
 
   const salir = async () => {
     setSaliendo(true)

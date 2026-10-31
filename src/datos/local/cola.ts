@@ -89,6 +89,12 @@ export async function hayPendientes(): Promise<boolean> {
   return (await pendientes()).length > 0
 }
 
+/** Todo lo que todavía no está en la nube, incluido lo agotado o rechazado.
+ *  Es lo que se perdería al borrar la copia del aparato. */
+export async function haySinSubir(): Promise<boolean> {
+  return (await db.cola.count()) > 0
+}
+
 /** Permite reactivar manualmente operaciones que agotaron sus reintentos. */
 export async function reintentarTodos(): Promise<number> {
   const agotados = (await db.cola.toArray()).filter((item) => item.intentos > 0)

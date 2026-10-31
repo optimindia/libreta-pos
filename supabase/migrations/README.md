@@ -16,3 +16,9 @@ Las versiones `20261028…` en adelante se aplican con la fecha de este repo;
 en la base figuran con la hora real de aplicación, y el contenido es el mismo.
 
 Regla: nunca editar una migración ya aplicada; se agrega otra.
+
+Regla: cada columna nueva que la app sube necesita su propio
+`grant insert (col), update (col) ... to authenticated`. Los permisos de las
+tablas del negocio son por columna; sin ese GRANT la subida falla con 42501
+y la operación queda apartada como rechazada (pasó el 29/10 con
+`vendido_por` y el 31/10 con `unidad`).
