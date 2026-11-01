@@ -24,10 +24,21 @@ describe('estilos de impresión del ticket', () => {
     expect(css.slice(0, css.indexOf('@media print'))).toMatch(/\.f-ticket-impreso\s*\{\s*display:\s*none/)
   })
 
-  it('usa fuente monoespaciada y no pinta fondos', () => {
+  it('usa fuente monoespaciada y no pinta fondos en el ticket', () => {
     expect(bloquePrint).toMatch(/font-family:[^;]*monospace/)
-    expect(bloquePrint).toMatch(/background:\s*none\s*!important/)
-    expect(bloquePrint).not.toMatch(/background(-color)?:\s*(#|rgb|var)/)
+    expect(bloquePrint).toMatch(/\.f-ticket-impreso \*\s*\{[^}]*background:\s*none\s*!important/)
+    const bloquesDelTicket = bloquePrint.match(/\.f-ticket-impreso[^{]*\{[^}]*\}/g) ?? []
+    expect(bloquesDelTicket.length).toBeGreaterThan(0)
+    for (const bloque of bloquesDelTicket) expect(bloque).not.toMatch(/background(-color)?:\s*(#|rgb|var)/)
+  })
+
+  it('el ticket se ve al imprimir aunque la impresión del PIN esconda todo', () => {
+    expect(bloquePrint).toMatch(/\.f-ticket-impreso,\s*\.f-ticket-impreso \*\s*\{[^}]*visibility:\s*visible\s*!important/)
+  })
+
+  it('la impresión sale clara aunque la app esté en tema oscuro', () => {
+    expect(bloquePrint).toMatch(/color-scheme:\s*light\s*!important/)
+    expect(bloquePrint).toMatch(/html\s*\{[^}]*background:\s*#fff\s*!important/)
   })
 
   it('no usa color-mix y la hoja está cargada en el layout', () => {
