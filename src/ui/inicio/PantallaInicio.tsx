@@ -15,7 +15,7 @@ import { rolDe } from '@/dominio/roles'
 import { deudaPorCliente } from '@/dominio/fiado'
 import { compararConLaSemanaPasada, fechaLarga } from '@/dominio/comparar'
 import {
-  detalleFranjas, fiadosVencidos, listaCorta, porDebajoDelCosto, porReponer, saludo, tareasDeHoy,
+  fiadosVencidos, listaCorta, porDebajoDelCosto, porReponer, saludo, tareasDeHoy,
 } from '@/dominio/inicio'
 import { funcionActiva } from '@/dominio/funciones'
 import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
@@ -24,13 +24,13 @@ import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { Entrar } from '@/ui/vender/Entrar'
 import {
   IconoAlerta, IconoCamara, IconoCobrar, IconoEfectivo, IconoFiados, IconoFlechaDerecha, IconoGanancia, IconoHistorial,
-  IconoConfirmar, IconoHora, IconoMasCantidad, IconoQR, IconoStock, IconoTransferencia, IconoVender, IconoWhatsApp,
+  IconoConfirmar, IconoMasCantidad, IconoQR, IconoStock, IconoTransferencia, IconoVender, IconoWhatsApp,
 } from '@/ui/sistema/iconos'
 import type { Tarea } from '@/dominio/inicio'
 import type { ComponentType, ReactNode } from 'react'
 import type { Venta } from '@/dominio/tipos'
 import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
-import { GraficoHoras } from './GraficoHoras'
+import { GraficoVentas } from './GraficoVentas'
 import { PrimerosPasos, pasosDeLaGuia } from './PrimerosPasos'
 
 const MEDIO: Record<Venta['medioPago'], string> = { efectivo: 'efectivo', transferencia: 'transferencia', qr: 'QR', fiado: 'fiado' }
@@ -74,7 +74,6 @@ export function PantallaInicio() {
 
   const ahora = new Date()
   const resumen = resumenDelDia(ventas, ahora)
-  const franjas = detalleFranjas(ventas, ahora)
   const bajoCosto = porDebajoDelCosto(ventas, ahora)
   const contraSemanaPasada = compararConLaSemanaPasada(ventas, ahora)
   const deudas = deudaPorCliente(fiados, pagos, ahora.getTime())
@@ -222,16 +221,7 @@ export function PantallaInicio() {
           </section>
         )}
 
-        <Tarjeta como="section" className="fi-horario" aria-labelledby="fi-horario-titulo">
-          <div className="fi-bloque-cabeza">
-            <span className="fi-bloque-icono" data-tono="verde"><IconoHora /></span>
-            <div>
-              <h2 id="fi-horario-titulo" className="f-seccion">Ventas de hoy por horario</h2>
-              <p className="fi-bloque-ayuda">Pasá el cursor o tocá una barra para ver cuánto vendiste en ese horario.</p>
-            </div>
-          </div>
-          <GraficoHoras franjas={franjas} />
-        </Tarjeta>
+        <GraficoVentas ventas={ventas} ahora={ahora} />
 
         {hayPlata && (
           <Tarjeta como="section" className="fi-caja" aria-labelledby="fi-caja-titulo">
