@@ -133,7 +133,7 @@ export function aLaNube(
 const CANTIDADES = new Set(['stock', 'stock_minimo', 'cantidad'])
 
 /** En la app un opcional vacío es "no está", no null. */
-const OPCIONALES = new Set(['categoria', 'limite_fiado', 'precio_oferta', 'oferta_hasta', 'anulada_en', 'motivo_anulacion', 'entradas_caja', 'salidas_caja'])
+const OPCIONALES = new Set(['categoria', 'limite_fiado', 'eliminado_en', 'precio_oferta', 'oferta_hasta', 'anulada_en', 'motivo_anulacion', 'entradas_caja', 'salidas_caja'])
 
 export function deLaNube(tabla: string, fila: Fila): Fila {
   const local: Fila = {}

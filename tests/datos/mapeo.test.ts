@@ -212,3 +212,12 @@ describe('venta por kilo o litro', () => {
     expect(deLaNube('venta_items', { cantidad: '0.526' })).toMatchObject({ cantidad: 0.526 })
   })
 })
+
+describe('clientes archivados', () => {
+  it('quitar un cliente viaja como eliminado_en, y un cliente activo no lo manda', () => {
+    const [{ filas: baja }] = aLaNube('cliente', { id: 'k1', nombre: 'Rosa', telefono: null, eliminadoEn: Date.UTC(2026, 10, 1) }, NEGOCIO)
+    expect(baja[0]).toMatchObject({ eliminado_en: '2026-11-01T00:00:00.000Z' })
+    expect(deLaNube('clientes', { id: 'k1', eliminado_en: null })).not.toHaveProperty('eliminadoEn')
+    expect(deLaNube('clientes', { id: 'k1', eliminado_en: '2026-11-01T00:00:00.000Z' })).toMatchObject({ eliminadoEn: Date.UTC(2026, 10, 1) })
+  })
+})

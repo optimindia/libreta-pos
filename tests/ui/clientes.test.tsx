@@ -23,7 +23,7 @@ describe('PantallaClientes', () => {
     expect(await screen.findByText(/cliente eliminado/i)).toBeDefined()
   })
 
-  it('explica por qué no elimina un cliente con fiado', async () => {
+  it('explica que no se puede quitar un cliente que todavía debe', async () => {
     const cliente = await repos.clientes.guardar({ nombre: 'Marta', telefono: null })
     await repos.fiados.anotar({ clienteId: cliente.id, ventaId: null, monto: 500000, vence: null })
 
@@ -31,7 +31,7 @@ describe('PantallaClientes', () => {
     fireEvent.click(await screen.findByRole('button', { name: /eliminar cliente marta/i }))
     fireEvent.click(screen.getByRole('button', { name: /sí, eliminar/i }))
 
-    expect(await screen.findByText(/no se puede eliminar este cliente porque tiene historial/i)).toBeDefined()
+    expect(await screen.findByText(/todavía debe/i)).toBeDefined()
     expect(await repos.clientes.todos()).toHaveLength(1)
   })
 

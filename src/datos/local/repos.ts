@@ -10,7 +10,8 @@ import type { FuncionesNegocio } from '@/dominio/funciones'
 import { normalizarFunciones } from '@/dominio/funciones'
 import { nuevoId } from '@/dominio/id'
 import { totalTicket } from '@/dominio/ticket'
-import { saldoFiado } from '@/dominio/fiado'
+import { deudaPorCliente, saldoFiado } from '@/dominio/fiado'
+import { formatearPesos } from '@/dominio/dinero'
 import { pedidoReservaStock, totalPedido } from '@/dominio/pedidos'
 
 /** Quita acentos y pasa a minúscula, para buscar "playadito" y encontrar "Playadito". */
@@ -152,19 +153,10 @@ export class ErrorCodigoRepetido extends Error {
   }
 }
 
-export class ErrorClienteConHistorial extends Error {
-  constructor(
-    public readonly ventas: number,
-    public readonly fiados: number,
-    public readonly pedidos: number,
-  ) {
-    const referencias = [
-      ventas > 0 ? `${ventas} ${ventas === 1 ? 'venta' : 'ventas'}` : null,
-      fiados > 0 ? `${fiados} ${fiados === 1 ? 'fiado' : 'fiados'}` : null,
-      pedidos > 0 ? `${pedidos} ${pedidos === 1 ? 'pedido' : 'pedidos'}` : null,
-    ].filter(Boolean).join(', ')
-    super(`No se puede eliminar este cliente porque tiene historial: ${referencias}. Conservamos esos registros para cuidar tus cuentas.`)
-    this.name = 'ErrorClienteConHistorial'
+export class ErrorClienteConDeuda extends Error {
+  constructor(public readonly saldo: Centavos, nombre: string) {
+    super(`${nombre} todavía debe ${formatearPesos(saldo)}. Cobrá el fiado antes de quitarlo de tu cartera.`)
+    this.name = 'ErrorClienteConDeuda'
   }
 }
 
@@ -486,42 +478,43 @@ export const repos = {
       return cliente
     },
     async todos(): Promise<Cliente[]> {
-      return db.clientes.toArray()
+      return (await db.clientes.toArray()).filter((cliente) => !cliente.eliminadoEn)
     },
     async buscar(texto: string): Promise<Cliente[]> {
       const aguja = normalizar(texto)
-      const clientes = await db.clientes.toArray()
+      const clientes = await repos.clientes.todos()
       if (aguja === '') return clientes
       return clientes.filter((cliente) => normalizar(`${cliente.nombre} ${cliente.telefono ?? ''}`).includes(aguja))
     },
     async actualizar(id: UUID, datos: Partial<Omit<Cliente, 'id'>>): Promise<Cliente | null> {
       const actual = await db.clientes.get(id)
-      if (!actual) return null
+      if (!actual || actual.eliminadoEn) return null
       const actualizado = { ...actual, ...datos, id }
       await db.clientes.put(actualizado)
       await encolar('cliente', 'actualizar', actualizado)
       return actualizado
     },
+    /** Quita al cliente de la cartera. Si todavía debe, no se puede: la deuda
+     *  tiene que cobrarse antes. Si no debe, se archiva: sus ventas, fiados
+     *  pagados y pedidos siguen en el historial con su nombre. */
     async eliminar(id: UUID): Promise<boolean> {
-      let eliminado = false
+      let eliminadoEn: number | null = null
 
-      await db.transaction('rw', [db.clientes, db.ventas, db.fiados, db.pedidos], async () => {
+      await db.transaction('rw', [db.clientes, db.fiados, db.fiadoPagos], async () => {
         const cliente = await db.clientes.get(id)
-        if (!cliente) return
+        if (!cliente || cliente.eliminadoEn) return
 
-        const ventas = (await db.ventas.toArray()).filter((venta) => venta.clienteId === id)
         const fiados = await db.fiados.where('clienteId').equals(id).toArray()
-        const pedidos = await db.pedidos.where('clienteId').equals(id).toArray()
-        if (ventas.length > 0 || fiados.length > 0 || pedidos.length > 0) {
-          throw new ErrorClienteConHistorial(ventas.length, fiados.length, pedidos.length)
-        }
+        const pagos = await db.fiadoPagos.toArray()
+        const deuda = deudaPorCliente(fiados, pagos, Date.now()).find((d) => d.clienteId === id)?.saldo ?? 0
+        if (deuda > 0) throw new ErrorClienteConDeuda(deuda, cliente.nombre)
 
-        await db.clientes.delete(id)
-        eliminado = true
+        eliminadoEn = Date.now()
+        await db.clientes.put({ ...cliente, eliminadoEn })
       })
 
-      if (eliminado) await encolar('cliente', 'eliminar', { id })
-      return eliminado
+      if (eliminadoEn !== null) await encolar('cliente', 'eliminar', { id, eliminadoEn })
+      return eliminadoEn !== null
     },
   },
 

@@ -105,6 +105,8 @@ export interface Cliente {
   telefono: string | null
   /** Límite opcional para alertar antes de seguir fiando. */
   limiteFiado?: Centavos
+  /** Quitado de la cartera: no se borra, así el historial sigue entero. */
+  eliminadoEn?: number
 }
 
 export interface Fiado {

@@ -116,3 +116,11 @@ export async function productoTieneCambiosPendientes(id: string): Promise<boolea
   const cola = await db.cola.toArray()
   return cola.some((item) => vivo(item) && item.entidad === 'movimientoStock' && (item.datos as { productoId?: string }).productoId === id)
 }
+
+/** Una edición de cliente que todavía no se confirmó en la nube. Incluye lo
+ *  agotado por error de red: se pierde si la bajada la pisa. Sólo lo
+ *  rechazado por permisos deja de contar. */
+export async function clienteTieneEdicionPendiente(id: string): Promise<boolean> {
+  const item = await db.cola.get(`cliente:${id}`)
+  return Boolean(item && !item.rechazado)
+}

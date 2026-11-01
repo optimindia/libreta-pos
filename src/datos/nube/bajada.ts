@@ -1,6 +1,6 @@
 import { db } from '@/datos/local/db'
 import type { Table } from 'dexie'
-import { productoTieneCambiosPendientes } from '@/datos/local/cola'
+import { clienteTieneEdicionPendiente, productoTieneCambiosPendientes } from '@/datos/local/cola'
 import { cliente } from './cliente'
 import { deLaNube, preferenciasDeLaNube, type Fila } from './mapeo'
 import { DESTINO, SesionVencida, esErrorDeSesion, itemsDe, rearmarItems } from './sincronizar'
@@ -84,6 +84,14 @@ async function escribirExtra(tabla: string, fila: Fila): Promise<boolean> {
 }
 
 async function escribir(tabla: string, fila: Fila): Promise<boolean> {
+  if (tabla === 'clientes') {
+    // Una edición de este aparato todavía sin confirmar (límite, nombre,
+    // teléfono) gana sobre la copia de la nube, que todavía no la tiene. Si
+    // la nube dice que el cliente fue quitado, eso gana. Lo rechazado por
+    // permisos no cuenta: la nube es la verdad.
+    const quitadoEnLaNube = typeof fila.eliminadoEn === 'number'
+    if (!quitadoEnLaNube && await clienteTieneEdicionPendiente(fila.id as string)) return false
+  }
   if (tabla === 'negocio_configuracion') {
     const local = await db.preferencias.get('unico')
     const nueva = fila.actualizadoEn as number

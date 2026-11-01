@@ -10,7 +10,7 @@ import { normalizarTexto } from '@/dominio/validaciones'
 import { formatearPesos, pesosACentavos, pesosDeTexto } from '@/dominio/dinero'
 import { enlaceWhatsApp, mensajeCobro } from '@/dominio/mensajes'
 import { db } from '@/datos/local/db'
-import { ErrorClienteConHistorial, repos } from '@/datos/local/repos'
+import { ErrorClienteConDeuda, repos } from '@/datos/local/repos'
 import { Boton, clasesBoton } from '@/ui/sistema/Boton'
 import { CampoBusqueda } from '@/ui/sistema/CampoBusqueda'
 import { Chip, Chips } from '@/ui/sistema/Chip'
@@ -87,7 +87,7 @@ export function PantallaClientes() {
   const borra = usePuede('borrarClientes')
   const [ahora] = useState(() => Date.now())
   const datos = useLiveQuery(async () => {
-    const [clientes, ventas, fiados, pagos] = await Promise.all([db.clientes.toArray(), db.ventas.toArray(), db.fiados.toArray(), db.fiadoPagos.toArray()])
+    const [clientes, ventas, fiados, pagos] = await Promise.all([repos.clientes.todos(), db.ventas.toArray(), db.fiados.toArray(), db.fiadoPagos.toArray()])
     const perfiles = construirPerfiles(clientes, ventas, fiados, pagos, ahora)
     return { perfiles, ventas }
   }, [ahora], { perfiles: [], ventas: [] })
@@ -134,7 +134,7 @@ export function PantallaClientes() {
       setAviso(`Cliente eliminado. ${TEXTOS.avisoEliminado}`)
     } catch (error) {
       setClienteAEliminar(null)
-      if (error instanceof ErrorClienteConHistorial) {
+      if (error instanceof ErrorClienteConDeuda) {
         setAviso(error.message)
         return
       }

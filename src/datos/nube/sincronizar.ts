@@ -101,7 +101,7 @@ export function subirASupabase(negocioId: UUID): SubirFn {
       }
       const id = (item.datos as { id?: string }).id
       if (item.entidad !== 'preferencias' && !id) throw new Error('operación de borrado sin id')
-      if (item.entidad === 'producto') {
+      if (item.entidad === 'producto' || item.entidad === 'cliente') {
         const eliminadoEn = (item.datos as { eliminadoEn?: number }).eliminadoEn ?? Date.now()
         const { error } = await cliente
           .from(tablas[item.entidad])
