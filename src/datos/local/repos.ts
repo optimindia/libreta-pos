@@ -3,13 +3,15 @@ import { CODIGO_VARIOS, esProductoVarios, MINIMO_VARIOS, NOMBRE_VARIOS, STOCK_VA
 import { db } from './db'
 import { encolar } from './cola'
 import type {
+  AjustesNegocio,
   Cierre, Cliente, Centavos, EstadoPedido, Fiado, FiadoPago, Ingreso, ItemIngreso, ItemVenta, MedioPago, MovimientoCaja, Pedido, PreferenciasNegocio, Producto, UUID, Venta,
 } from '@/dominio/tipos'
 import type { FuncionesNegocio } from '@/dominio/funciones'
 import { normalizarFunciones } from '@/dominio/funciones'
 import { nuevoId } from '@/dominio/id'
 import { totalTicket } from '@/dominio/ticket'
-import { saldoFiado } from '@/dominio/fiado'
+import { deudaPorCliente, saldoFiado } from '@/dominio/fiado'
+import { formatearPesos } from '@/dominio/dinero'
 import { pedidoReservaStock, totalPedido } from '@/dominio/pedidos'
 
 /** Quita acentos y pasa a minúscula, para buscar "playadito" y encontrar "Playadito". */
@@ -51,8 +53,19 @@ async function obtenerPreferenciasLocales(): Promise<PreferenciasNegocio> {
     id: 'unico',
     negocioId: actual?.negocioId ?? negocio?.negocioId,
     funciones: normalizarFunciones(actual?.funciones),
+    ajustes: normalizarAjustes(actual?.ajustes),
     actualizadoEn: actual?.actualizadoEn ?? 0,
   }
+}
+
+/** Sólo textos conocidos y cortos: lo que viene de la nube puede ser viejo. */
+export function normalizarAjustes(crudo: unknown): AjustesNegocio {
+  const dato = (typeof crudo === 'object' && crudo !== null ? crudo : {}) as Record<string, unknown>
+  const ajustes: AjustesNegocio = {}
+  for (const clave of ['metaPlata', 'metaPro', 'leyendaTicket'] as const) {
+    if (typeof dato[clave] === 'string') ajustes[clave] = (dato[clave] as string).slice(0, 80)
+  }
+  return ajustes
 }
 
 async function cantidadesReservadas(exceptoPedidoId?: UUID): Promise<Map<UUID, number>> {
@@ -140,19 +153,10 @@ export class ErrorCodigoRepetido extends Error {
   }
 }
 
-export class ErrorClienteConHistorial extends Error {
-  constructor(
-    public readonly ventas: number,
-    public readonly fiados: number,
-    public readonly pedidos: number,
-  ) {
-    const referencias = [
-      ventas > 0 ? `${ventas} ${ventas === 1 ? 'venta' : 'ventas'}` : null,
-      fiados > 0 ? `${fiados} ${fiados === 1 ? 'fiado' : 'fiados'}` : null,
-      pedidos > 0 ? `${pedidos} ${pedidos === 1 ? 'pedido' : 'pedidos'}` : null,
-    ].filter(Boolean).join(', ')
-    super(`No se puede eliminar este cliente porque tiene historial: ${referencias}. Conservamos esos registros para cuidar tus cuentas.`)
-    this.name = 'ErrorClienteConHistorial'
+export class ErrorClienteConDeuda extends Error {
+  constructor(public readonly saldo: Centavos, nombre: string) {
+    super(`${nombre} todavía debe ${formatearPesos(saldo)}. Cobrá el fiado antes de quitarlo de tu cartera.`)
+    this.name = 'ErrorClienteConDeuda'
   }
 }
 
@@ -185,15 +189,22 @@ export const repos = {
         id: datos.id ?? nuevoId(),
         actualizadoEn: Date.now(),
       }
+      let anterior: Producto | undefined
       await db.transaction('rw', db.productos, async () => {
         if (codigo) {
           const otro = (await db.productos.where('codigoBarras').equals(codigo).toArray())
             .find((existente) => existente.id !== producto.id && !existente.eliminadoEn)
           if (otro) throw new ErrorCodigoRepetido(codigo, otro.nombre)
         }
+        anterior = datos.id ? await db.productos.get(datos.id) : undefined
         await db.productos.put(producto)
       })
       await encolar('producto', datos.id ? 'actualizar' : 'crear', producto)
+      // La ficha editada no lleva el stock a la nube (así una edición de
+      // precio nunca pisa una venta de otro aparato). Si el stock cambió, el
+      // cambio viaja como un ajuste, igual que desde "Ajustar stock".
+      const diferencia = anterior ? redondearCantidad(producto.stock - anterior.stock) : 0
+      if (anterior && diferencia !== 0) await encolarMovimientoStock(producto.id, diferencia, 'ajuste')
       return producto
     },
     async porCodigoBarras(codigo: string): Promise<Producto | null> {
@@ -467,42 +478,43 @@ export const repos = {
       return cliente
     },
     async todos(): Promise<Cliente[]> {
-      return db.clientes.toArray()
+      return (await db.clientes.toArray()).filter((cliente) => !cliente.eliminadoEn)
     },
     async buscar(texto: string): Promise<Cliente[]> {
       const aguja = normalizar(texto)
-      const clientes = await db.clientes.toArray()
+      const clientes = await repos.clientes.todos()
       if (aguja === '') return clientes
       return clientes.filter((cliente) => normalizar(`${cliente.nombre} ${cliente.telefono ?? ''}`).includes(aguja))
     },
     async actualizar(id: UUID, datos: Partial<Omit<Cliente, 'id'>>): Promise<Cliente | null> {
       const actual = await db.clientes.get(id)
-      if (!actual) return null
+      if (!actual || actual.eliminadoEn) return null
       const actualizado = { ...actual, ...datos, id }
       await db.clientes.put(actualizado)
       await encolar('cliente', 'actualizar', actualizado)
       return actualizado
     },
+    /** Quita al cliente de la cartera. Si todavía debe, no se puede: la deuda
+     *  tiene que cobrarse antes. Si no debe, se archiva: sus ventas, fiados
+     *  pagados y pedidos siguen en el historial con su nombre. */
     async eliminar(id: UUID): Promise<boolean> {
-      let eliminado = false
+      let eliminadoEn: number | null = null
 
-      await db.transaction('rw', [db.clientes, db.ventas, db.fiados, db.pedidos], async () => {
+      await db.transaction('rw', [db.clientes, db.fiados, db.fiadoPagos], async () => {
         const cliente = await db.clientes.get(id)
-        if (!cliente) return
+        if (!cliente || cliente.eliminadoEn) return
 
-        const ventas = (await db.ventas.toArray()).filter((venta) => venta.clienteId === id)
         const fiados = await db.fiados.where('clienteId').equals(id).toArray()
-        const pedidos = await db.pedidos.where('clienteId').equals(id).toArray()
-        if (ventas.length > 0 || fiados.length > 0 || pedidos.length > 0) {
-          throw new ErrorClienteConHistorial(ventas.length, fiados.length, pedidos.length)
-        }
+        const pagos = await db.fiadoPagos.toArray()
+        const deuda = deudaPorCliente(fiados, pagos, Date.now()).find((d) => d.clienteId === id)?.saldo ?? 0
+        if (deuda > 0) throw new ErrorClienteConDeuda(deuda, cliente.nombre)
 
-        await db.clientes.delete(id)
-        eliminado = true
+        eliminadoEn = Date.now()
+        await db.clientes.put({ ...cliente, eliminadoEn })
       })
 
-      if (eliminado) await encolar('cliente', 'eliminar', { id })
-      return eliminado
+      if (eliminadoEn !== null) await encolar('cliente', 'eliminar', { id, eliminadoEn })
+      return eliminadoEn !== null
     },
   },
 
@@ -640,6 +652,8 @@ export const repos = {
         suscripcionGraciaHasta: actual?.suscripcionGraciaHasta,
         suscripcionActualizadaEn: actual?.suscripcionActualizadaEn,
       })
+      // Nombre, logo y color son del negocio: los ven todos los aparatos.
+      if (actual?.negocioId) await encolar('negocio', 'actualizar', { id: actual.negocioId, nombre, logo, color })
     },
   },
 
@@ -656,6 +670,24 @@ export const repos = {
         id: 'unico',
         negocioId: negocio?.negocioId ?? actual.negocioId,
         funciones: normalizarFunciones({ ...actual.funciones, ...funciones }),
+        ajustes: actual.ajustes,
+        actualizadoEn: Math.max(Date.now(), actual.actualizadoEn + 1),
+      }
+      await db.preferencias.put(siguiente)
+      if (siguiente.negocioId) await encolar('preferencias', 'actualizar', siguiente)
+      return siguiente
+    },
+    /** Metas y leyenda del ticket: viajan con las preferencias del negocio. */
+    async guardarAjustes(cambio: Partial<AjustesNegocio>): Promise<PreferenciasNegocio> {
+      const [actual, negocio] = await Promise.all([
+        obtenerPreferenciasLocales(),
+        db.negocio.get('unico'),
+      ])
+      const siguiente: PreferenciasNegocio = {
+        id: 'unico',
+        negocioId: negocio?.negocioId ?? actual.negocioId,
+        funciones: actual.funciones,
+        ajustes: normalizarAjustes({ ...actual.ajustes, ...cambio }),
         actualizadoEn: Math.max(Date.now(), actual.actualizadoEn + 1),
       }
       await db.preferencias.put(siguiente)

@@ -8,7 +8,7 @@ import type { VentaAbierta } from '@/dominio/ventaAbierta'
 /** Una operación pendiente de subir a la nube. */
 export interface EnCola {
   id: string
-  entidad: 'venta' | 'producto' | 'movimientoStock' | 'fiado' | 'fiadoPago' | 'ingreso' | 'cliente' | 'cierre' | 'movimientoCaja' | 'pedido' | 'preferencias'
+  entidad: 'venta' | 'producto' | 'movimientoStock' | 'fiado' | 'fiadoPago' | 'ingreso' | 'cliente' | 'cierre' | 'movimientoCaja' | 'pedido' | 'preferencias' | 'negocio'
   operacion: 'crear' | 'actualizar' | 'eliminar'
   datos: unknown
   intentos: number

@@ -1,15 +1,14 @@
 'use client'
 
-import { useCallback, useSyncExternalStore } from 'react'
+import { useCallback, useMemo, useSyncExternalStore } from 'react'
+import { useAjustesNegocio } from './usoAjustesNegocio'
 import {
   normalizarPreferenciasTicket,
   PREFERENCIAS_TICKET_INICIALES,
   type PreferenciasTicket,
 } from '@/dominio/ticketImpreso'
 
-/** Ancho del papel y leyenda del ticket: una preferencia de cada aparato
- *  (la impresora está en el mostrador, no en la cuenta), así que vive en
- *  localStorage y no se sincroniza. */
+/** Copia de este aparato: el ancho del papel vive sólo acá. */
 const CLAVE = 'libreta-ticket'
 const EVENTO = 'libreta-ticket-cambio'
 
@@ -49,9 +48,17 @@ function suscribirse(avisar: () => void): () => void {
   }
 }
 
+/** El ancho del papel es de este aparato (la impresora está en el
+ *  mostrador); la frase del pie es del negocio y la ven todos los aparatos. */
 export function useTicket(): [PreferenciasTicket, (cambio: Partial<PreferenciasTicket>) => void] {
-  const preferencias = useSyncExternalStore(suscribirse, leer, () => PREFERENCIAS_TICKET_INICIALES)
+  const delAparato = useSyncExternalStore(suscribirse, leer, () => PREFERENCIAS_TICKET_INICIALES)
+  const [ajustes, cambiarAjustes] = useAjustesNegocio()
+  const preferencias = useMemo(
+    () => normalizarPreferenciasTicket({ ...delAparato, ...(ajustes.leyendaTicket !== undefined ? { leyenda: ajustes.leyendaTicket } : {}) }),
+    [delAparato, ajustes.leyendaTicket],
+  )
   const cambiar = useCallback((cambio: Partial<PreferenciasTicket>) => {
+    if (cambio.leyenda !== undefined) cambiarAjustes({ leyendaTicket: cambio.leyenda })
     const siguiente = normalizarPreferenciasTicket({ ...leer(), ...cambio })
     try {
       window.localStorage.setItem(CLAVE, JSON.stringify(siguiente))
@@ -60,6 +67,6 @@ export function useTicket(): [PreferenciasTicket, (cambio: Partial<PreferenciasT
       enMemoria = siguiente
     }
     window.dispatchEvent(new Event(EVENTO))
-  }, [])
+  }, [cambiarAjustes])
   return [preferencias, cambiar]
 }

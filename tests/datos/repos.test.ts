@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { db } from '@/datos/local/db'
-import { ErrorClienteConHistorial, ErrorProductoConHistorial, ErrorStockInsuficiente, repos } from '@/datos/local/repos'
+import { ErrorClienteConDeuda, ErrorProductoConHistorial, ErrorStockInsuficiente, repos } from '@/datos/local/repos'
 import { pendientes } from '@/datos/local/cola'
 import type { Producto } from '@/dominio/tipos'
 
@@ -237,18 +237,18 @@ describe('repos.clientes', () => {
 
     await expect(repos.clientes.eliminar(cliente.id)).resolves.toBe(true)
 
-    expect(await db.clientes.get(cliente.id)).toBeUndefined()
+    expect((await db.clientes.get(cliente.id))?.eliminadoEn).toBeDefined()
     const cola = await pendientes()
     expect(cola).toHaveLength(1)
     expect(cola[0]).toMatchObject({ entidad: 'cliente', operacion: 'eliminar', datos: { id: cliente.id } })
   })
 
-  it('conserva un cliente que tiene historial de fiado', async () => {
+  it('no quita un cliente que todavía debe', async () => {
     const cliente = await repos.clientes.guardar({ nombre: 'Marta', telefono: null })
     await repos.fiados.anotar({ clienteId: cliente.id, ventaId: null, monto: 500000, vence: null })
 
-    await expect(repos.clientes.eliminar(cliente.id)).rejects.toBeInstanceOf(ErrorClienteConHistorial)
-    expect(await db.clientes.get(cliente.id)).toBeDefined()
+    await expect(repos.clientes.eliminar(cliente.id)).rejects.toBeInstanceOf(ErrorClienteConDeuda)
+    expect((await db.clientes.get(cliente.id))?.eliminadoEn).toBeUndefined()
   })
 })
 

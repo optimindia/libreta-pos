@@ -1,5 +1,6 @@
 'use client'
 
+import { useAjustesNegocio } from '@/ui/sistema/usoAjustesNegocio'
 import { useState } from 'react'
 import type { Cliente, Producto, Venta } from '@/dominio/tipos'
 import { formatearPesos } from '@/dominio/dinero'
@@ -44,10 +45,10 @@ export function InteligenciaPlata({
   const topClientes = clientesValiosos(ventas, clientes).slice(0, 5)
   const alertas = productosConAlertas(productos)
   const dormidos = productosDormidos(productos, ventas, ahora).slice(0, 4)
-  const [objetivo, setObjetivo] = useState(() => {
-    if (typeof window === 'undefined') return ''
-    return window.localStorage.getItem('libreta-objetivo-periodo') ?? ''
-  })
+  const [ajustes, cambiarAjustes] = useAjustesNegocio()
+  // Mientras se escribe manda el borrador; al salir del campo, lo guardado.
+  const [borrador, setBorrador] = useState<string | null>(null)
+  const objetivo = borrador ?? ajustes.metaPlata ?? ''
 
   const comparacion = periodo === 'todo' ? null : (() => {
     const rango = rangoReporte(periodo, ahora)
@@ -84,10 +85,10 @@ export function InteligenciaPlata({
           <span>Meta de ventas <em>importe en pesos</em></span>
           <span className="fp-prefijo">
             <span aria-hidden="true">$</span>
-            <input aria-label="Objetivo del período" inputMode="decimal" className="f-entrada fp-entrada-grande tabular" placeholder="Ej. 50.000" value={objetivo} onChange={(evento) => { setObjetivo(evento.target.value); window.localStorage.setItem('libreta-objetivo-periodo', evento.target.value) }} />
+            <input aria-label="Objetivo del período" inputMode="decimal" className="f-entrada fp-entrada-grande tabular" placeholder="Ej. 50.000" value={objetivo} onChange={(evento) => { setBorrador(evento.target.value); cambiarAjustes({ metaPlata: evento.target.value }) }} onBlur={() => setBorrador(null)} />
             <span className="fp-sufijo">/día</span>
           </span>
-          <span className="f-dato">Se guarda solo en este dispositivo.</span>
+          <span className="f-dato">La ven todos los aparatos del negocio.</span>
         </label>
         {objetivoCentavos > 0 && (
           <div className="fp-progreso" data-cumplido={avance.cumplido ? 'true' : undefined}>

@@ -105,3 +105,22 @@ export async function reintentarTodos(): Promise<number> {
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(EVENTO_DATOS_PENDIENTES))
   return agotados.length
 }
+
+/** Un producto con una edición o un movimiento de stock que todavía va a
+ *  subir: la bajada no lo pisa. Lo rechazado o agotado ya no sube solo, y si
+ *  frenara la bajada ese producto dejaría de actualizarse para siempre. */
+export async function productoTieneCambiosPendientes(id: string): Promise<boolean> {
+  const vivo = (item: EnCola) => !item.rechazado && item.intentos < MAX_INTENTOS
+  const propio = await db.cola.get(`producto:${id}`)
+  if (propio && vivo(propio)) return true
+  const cola = await db.cola.toArray()
+  return cola.some((item) => vivo(item) && item.entidad === 'movimientoStock' && (item.datos as { productoId?: string }).productoId === id)
+}
+
+/** Una edición de cliente que todavía no se confirmó en la nube. Incluye lo
+ *  agotado por error de red: se pierde si la bajada la pisa. Sólo lo
+ *  rechazado por permisos deja de contar. */
+export async function clienteTieneEdicionPendiente(id: string): Promise<boolean> {
+  const item = await db.cola.get(`cliente:${id}`)
+  return Boolean(item && !item.rechazado)
+}

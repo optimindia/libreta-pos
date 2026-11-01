@@ -1,5 +1,6 @@
 'use client'
 
+import { useAjustesNegocio } from '@/ui/sistema/usoAjustesNegocio'
 import { Portada } from '@/ui/sistema/Portada'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
@@ -170,10 +171,9 @@ function nivelEtiqueta(nivel: NivelOperacion): TonoEtiqueta {
 
 export function CentroPro() {
   const [periodo, setPeriodo] = useState<PeriodoOperacion>('7dias')
-  const [metaPesos, setMetaPesos] = useState(() => {
-    if (typeof window === 'undefined') return '50000'
-    return window.localStorage.getItem('libreta:objetivo-pro-pesos') ?? '50000'
-  })
+  const [ajustes, cambiarAjustes] = useAjustesNegocio()
+  const [borradorMeta, setMetaPesos] = useState<string | null>(null)
+  const metaPesos = borradorMeta ?? ajustes.metaPro ?? '50000'
   const [aviso, setAviso] = useState<string | null>(null)
 
   const datos = useLiveQuery(async () => {
@@ -258,8 +258,9 @@ export function CentroPro() {
       setAviso('Escribí una meta válida en pesos.')
       return
     }
-    window.localStorage.setItem('libreta:objetivo-pro-pesos', String(valor))
-    setAviso('Meta diaria guardada en este dispositivo.')
+    cambiarAjustes({ metaPro: String(valor) })
+    setMetaPesos(null)
+    setAviso('Meta diaria guardada para todos los aparatos del negocio.')
   }
 
   function compartirResumen() {

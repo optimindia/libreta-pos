@@ -7,20 +7,25 @@ import { SesionVencida, sincronizar, subirASupabase } from '@/datos/nube/sincron
 import { notificarCambioAcceso } from '@/datos/nube/acceso'
 import { bajarCambios, traerCambiosDeSupabase } from '@/datos/nube/bajada'
 import { escucharCambios } from '@/datos/nube/realtime'
-import { EVENTO_DATOS_PENDIENTES, reintentarTodos } from '@/datos/local/cola'
+import { conectarReservas, desconectarReservas } from '@/datos/nube/reservasEnVivo'
+import { EVENTO_DATOS_PENDIENTES, encolar, reintentarTodos } from '@/datos/local/cola'
+import { db } from '@/datos/local/db'
+import { compartirAjustesDelAparato } from './usoAjustesNegocio'
 
 const CADA_MS = 12_000
 /** El timbre realtime llega en ráfagas (una venta toca varias tablas):
  *  esperar dos segundos junta la ráfaga en una sola bajada. */
 const DEBOUNCE_MS = 2_000
-const TABLAS = ['productos', 'ventas', 'clientes', 'fiados', 'fiado_pagos', 'ingresos', 'cierres', 'movimientos_caja', 'pedidos', 'negocio_configuracion']
+const TABLAS = ['productos', 'ventas', 'clientes', 'fiados', 'fiado_pagos', 'ingresos', 'cierres', 'movimientos_caja', 'pedidos', 'negocio_configuracion', 'negocios', 'borrados']
 
-/** Una sola vez por aparato: el 31/10 la base rechazaba ventas, cobros de
- *  fiado y productos por permisos que faltaban. Ya están; lo que quedó
- *  apartado se vuelve a mandar solo, sin que nadie tenga que tocar nada. */
-const MARCA_REINTENTO = 'libreta.reintento.permisos-2026-10-31'
+/** Una sola vez por aparato (31/10): la base rechazaba ventas, anulaciones,
+ *  cierres y cobros por columnas y permisos que faltaban. Ya están: lo que
+ *  quedó apartado se reenvía solo, y lo que antes vivía sólo en este aparato
+ *  (categorías, favoritos, límites de fiado, metas, leyenda del ticket) se
+ *  comparte con los demás. */
+const MARCA_REINTENTO = 'libreta.sync-completa-2026-10-31'
 
-async function reintentarApartadosUnaVez(): Promise<void> {
+async function ponerAlDiaUnaVez(): Promise<void> {
   try {
     if (localStorage.getItem(MARCA_REINTENTO)) return
     localStorage.setItem(MARCA_REINTENTO, '1')
@@ -28,6 +33,13 @@ async function reintentarApartadosUnaVez(): Promise<void> {
     return // sin almacenamiento no se puede marcar: no se arriesga un bucle
   }
   await reintentarTodos()
+  for (const producto of await db.productos.toArray()) {
+    if (producto.categoria || producto.favorito) await encolar('producto', 'actualizar', producto)
+  }
+  for (const cliente of await db.clientes.toArray()) {
+    if (cliente.limiteFiado !== undefined) await encolar('cliente', 'actualizar', cliente)
+  }
+  await compartirAjustesDelAparato()
 }
 
 /** El token venció y no se renueva solo (por ejemplo, la sesión se cerró en
@@ -61,7 +73,7 @@ export function Sincronizador() {
       const negocioId = await negocioDeLaNube()
       if (!negocioId) return // todavía sin respaldo: no hay a dónde subir
       try {
-        await reintentarApartadosUnaVez()
+        await ponerAlDiaUnaVez()
         await sincronizar(subirASupabase(negocioId))
         await bajarCambios(traerCambiosDeSupabase)
       } catch (error) {
@@ -115,6 +127,7 @@ export function Sincronizador() {
       const negocioId = await negocioDeLaNube()
       if (!vivo || !negocioId || pararEscucha) return
       pararEscucha = escucharCambios(TABLAS, timbre)
+      conectarReservas(negocioId)
     }
     void actualizarEscucha()
     const auth = cliente?.auth.onAuthStateChange(() => {
@@ -134,6 +147,7 @@ export function Sincronizador() {
       if (bajandoPendiente) clearTimeout(bajandoPendiente)
       if (subidaPendiente) clearTimeout(subidaPendiente)
       pararEscucha?.()
+      desconectarReservas()
       auth?.data.subscription.unsubscribe()
     }
   }, [])

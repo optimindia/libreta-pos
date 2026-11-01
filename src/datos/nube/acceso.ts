@@ -124,11 +124,15 @@ async function guardarAccesoLocal(
   suscripcion: Suscripcion | null,
   vinculo: { rol?: unknown; nombre?: unknown } = {},
 ): Promise<Negocio> {
+  // Si este aparato cambió el nombre, logo o color y todavía no subió, se
+  // conserva lo local: si no, la verificación lo pisaría con lo viejo.
+  const editadoAca = (await db.cola.toArray()).some((item) => item.entidad === 'negocio' && !item.rechazado)
+  const deLaNube = remoto && !editadoAca
   const negocio: Negocio = {
     id: 'unico',
-    nombre: typeof remoto?.nombre === 'string' ? remoto.nombre : (base?.nombre ?? 'Mi almacén'),
-    logo: typeof remoto?.logo === 'string' ? remoto.logo : (base?.logo ?? null),
-    color: typeof remoto?.color === 'string' ? remoto.color : (base?.color ?? null),
+    nombre: deLaNube && typeof remoto.nombre === 'string' ? remoto.nombre : (base?.nombre ?? 'Mi almacén'),
+    logo: deLaNube ? ((remoto.logo as string | null | undefined) ?? null) : (base?.logo ?? null),
+    color: deLaNube ? ((remoto.color as string | null | undefined) ?? null) : (base?.color ?? null),
     negocioId,
     telefono: base?.telefono,
     usuarioId,
