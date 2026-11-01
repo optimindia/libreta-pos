@@ -214,8 +214,27 @@
 .fi-barra-boton:last-child .fi-barra-globo::after { left: auto; right: 14px; transform: none; }
 .fi-barra-boton:last-child[data-activa='true'] .fi-barra-globo { transform: translate(0, 0); }
 
+/* Con muchas barras, las de los costados también tienen que abrir el globo
+   hacia adentro: el de la última barra del celu se corta si va centrado. */
+.fi-barra-boton:nth-last-child(-n+3) .fi-barra-globo { left: auto; right: 0; transform: translate(0, 4px); }
+.fi-barra-boton:nth-last-child(-n+3) .fi-barra-globo::after { left: auto; right: 14px; transform: none; }
+.fi-barra-boton:nth-last-child(-n+3)[data-activa='true'] .fi-barra-globo { transform: translate(0, 0); }
+.fi-barra-boton:nth-child(-n+2) .fi-barra-globo { left: 0; right: auto; transform: translate(0, 4px); }
+.fi-barra-boton:nth-child(-n+2) .fi-barra-globo::after { left: 20px; right: auto; transform: none; }
+.fi-barra-boton:nth-child(-n+2)[data-activa='true'] .fi-barra-globo { transform: translate(0, 0); }
+
 .fi-horas { display: flex; gap: 8px; margin-top: 6px; }
 .fi-horas span { flex: 1; color: var(--f-tinta-2); font-size: 13px; font-weight: 700; text-align: center; }
+
+/* Selector de la mirada: hoy, últimos días, día de la semana, por mes. */
+.fi-vistas { margin: 0 0 var(--f-3); }
+.fi-vistas .f-chip { min-height: 40px; padding: 0 14px; font-size: 14px; }
+
+/* Doce barras (por mes) entran en el celu: más juntas y con rótulo más chico. */
+.fi-barras[data-cantidad='12'] { gap: 4px; }
+.fi-horas[data-cantidad='12'] { gap: 4px; }
+.fi-horas[data-cantidad='12'] span { font-size: 11px; letter-spacing: -0.2px; }
+.fi-horas[data-cantidad='12'] span { overflow: hidden; text-overflow: clip; white-space: nowrap; }
 
 .fi-grafico-lectura {
   display: flex;
