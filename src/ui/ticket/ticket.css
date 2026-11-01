@@ -18,17 +18,31 @@
 }
 
 @media print {
+  /* Con el tema oscuro el papel salía negro y el ticket (texto negro) no se
+     veía: la impresión siempre es clara, sin importar el tema de la app. */
+  html {
+    color-scheme: light !important;
+    background: #fff !important;
+  }
+
   html,
   body {
     margin: 0 !important;
     padding: 0 !important;
-    background: none !important;
+    background: #fff !important;
     color: #000 !important;
   }
 
   /* Todo lo que cuelga del body (la app, la hoja abierta, avisos) se va. */
   body > *:not(.f-ticket-impreso) {
     display: none !important;
+  }
+
+  /* La impresión del PIN (pin.css) esconde todo con visibility: hidden. El
+     ticket tiene que quedar visible aunque esa regla exista. */
+  .f-ticket-impreso,
+  .f-ticket-impreso * {
+    visibility: visible !important;
   }
 
   .f-ticket-impreso {
