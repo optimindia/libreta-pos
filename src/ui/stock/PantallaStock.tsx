@@ -22,10 +22,11 @@ import { usePuede } from '@/ui/sistema/usoRol'
 import { Portada } from '@/ui/sistema/Portada'
 import { Proveedores } from './Proveedores'
 import { Etiquetas } from './Etiquetas'
+import { ConteoInventario } from './ConteoInventario'
 import './stock.css'
 import { useDestino } from '@/ui/sistema/destino'
 
-type Pestaña = 'catalogo' | 'cargar' | 'precios' | 'etiquetas' | 'proveedores'
+type Pestaña = 'catalogo' | 'cargar' | 'precios' | 'etiquetas' | 'contar' | 'proveedores'
 
 export function PantallaStock() {
   const [pestaña, setPestaña] = useState<Pestaña>('catalogo')
@@ -79,6 +80,7 @@ export function PantallaStock() {
           <Chip activo={pestaña === 'cargar'} onClick={() => setPestaña('cargar')}>Cargar</Chip>
           <Chip activo={pestaña === 'precios'} onClick={() => setPestaña('precios')}>Precios</Chip>
           <Chip activo={pestaña === 'etiquetas'} onClick={() => setPestaña('etiquetas')}>Etiquetas</Chip>
+          <Chip activo={pestaña === 'contar'} onClick={() => setPestaña('contar')}>Contar</Chip>
           <Chip activo={pestaña === 'proveedores'} onClick={() => setPestaña('proveedores')}>Proveedores</Chip>
         </Chips>
       )}
@@ -135,6 +137,8 @@ export function PantallaStock() {
       {vista === 'proveedores' && <Proveedores />}
 
       {vista === 'etiquetas' && <Etiquetas productos={productos} />}
+
+      {vista === 'contar' && <ConteoInventario productos={productos} />}
 
       {vista === 'precios' && <ActualizarPrecios />}
     </div>
