@@ -37,6 +37,7 @@ import type { Venta } from '@/dominio/tipos'
 import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
 import { GraficoVentas } from './GraficoVentas'
 import { PrimerosPasos, pasosDeLaGuia } from './PrimerosPasos'
+import { Bienvenida } from './Bienvenida'
 
 const MEDIO: Record<Venta['medioPago'], string> = { efectivo: 'efectivo', transferencia: 'transferencia', qr: 'QR', fiado: 'fiado' }
 const ICONO_MEDIO: Record<Venta['medioPago'], ComponentType> = {
@@ -58,7 +59,7 @@ export function PantallaInicio() {
   useEffect(() => { entradaVista = true }, [])
   const { funciones } = useFuncionesNegocio()
   const datos = useLiveQuery(async () => {
-    const [ventas, fiados, pagos, productos, negocio, pendientes, cantidadVentas, clientes] = await Promise.all([
+    const [ventas, fiados, pagos, productos, negocio, pendientes, cantidadVentas, clientes, cierres] = await Promise.all([
       repos.ventas.todas(),
       db.fiados.toArray(),
       repos.fiados.pagos(),
@@ -67,13 +68,14 @@ export function PantallaInicio() {
       hayPendientes(),
       db.ventas.count(),
       repos.clientes.todos(),
+      db.cierres.count(),
     ])
-    return { ventas, fiados, pagos, productos, negocio, pendientes, cantidadVentas, clientes }
+    return { ventas, fiados, pagos, productos, negocio, pendientes, cantidadVentas, clientes, cierres }
   })
 
   if (!datos) return <div className="fi-pagina"><EstadoCarga texto="Preparando tu inicio…" /></div>
 
-  const { ventas, fiados, pagos, productos, negocio, pendientes, cantidadVentas, clientes } = datos
+  const { ventas, fiados, pagos, productos, negocio, pendientes, cantidadVentas, clientes, cierres } = datos
   const aparatoNuevo =
     !deCero && productos.length === 0 && cantidadVentas === 0 && !negocio?.negocioId && nubeActiva()
 
@@ -121,6 +123,9 @@ export function PantallaInicio() {
   return (
     <div className="fi-pagina" data-entrada={entrada ? 'true' : undefined}>
       {aparatoNuevo && <Entrar onListo={() => setDeCero(true)} />}
+      {esDueno && negocio?.negocioId && productos.length === 0 && cantidadVentas === 0 && (
+        <Bienvenida negocioId={negocio.negocioId} nombre={negocio.nombreUsuario?.trim().split(' ')[0] ?? ''} />
+      )}
 
       <Portada
         id="inicio"
@@ -161,6 +166,8 @@ export function PantallaInicio() {
             productos: productos.length,
             ventas: cantidadVentas,
             nombreConfigurado: nombre !== 'Tu almacén',
+            clientes: hayFiados ? clientes.length : undefined,
+            cierres: hayPlata ? cierres : undefined,
           })}
         />
 

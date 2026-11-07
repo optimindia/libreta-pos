@@ -26,11 +26,13 @@ beforeEach(async () => {
 })
 
 describe('Primeros pasos en Inicio', () => {
-  it('en un negocio nuevo muestra la guía con los tres pasos del dueño y 0 de 3', async () => {
+  it('en un negocio nuevo muestra la guía con los cinco pasos del dueño y 0 de 5', async () => {
     render(<PantallaInicio />)
     const guia = await screen.findByRole('region', { name: 'Primeros pasos' })
 
-    expect(within(guia).getByText('0 de 3 listos')).toBeTruthy()
+    expect(within(guia).getByText('0 de 5 listos')).toBeTruthy()
+    expect(within(guia).getByRole('link', { name: /ir a clientes/i }).getAttribute('href')).toBe('/clientes')
+    expect(within(guia).getByRole('link', { name: /ir a plata/i }).getAttribute('href')).toBe('/plata')
     expect(within(guia).getByRole('link', { name: /ir a stock/i }).getAttribute('href')).toBe('/stock')
     expect(within(guia).getByRole('link', { name: /ir a vender/i }).getAttribute('href')).toBe('/vender')
     expect(within(guia).getByRole('link', { name: /ir a ajustes/i }).getAttribute('href')).toBe('/config')
@@ -42,11 +44,11 @@ describe('Primeros pasos en Inicio', () => {
     const yerba = await cargarProducto()
     render(<PantallaInicio />)
     const guia = await screen.findByRole('region', { name: 'Primeros pasos' })
-    expect(within(guia).getByText('1 de 3 listos')).toBeTruthy()
+    expect(within(guia).getByText('1 de 5 listos')).toBeTruthy()
     expect(within(guia).queryByRole('link', { name: /ir a stock/i })).toBeNull()
 
     await vender(yerba.id)
-    await waitFor(() => expect(within(guia).getByText('2 de 3 listos')).toBeTruthy())
+    await waitFor(() => expect(within(guia).getByText('2 de 5 listos')).toBeTruthy())
     expect(within(guia).getByRole('progressbar').getAttribute('value')).toBe('2')
   })
 
@@ -55,7 +57,7 @@ describe('Primeros pasos en Inicio', () => {
     render(<PantallaInicio />)
     const guia = await screen.findByRole('region', { name: 'Primeros pasos' })
 
-    expect(within(guia).getByText('1 de 3 listos')).toBeTruthy()
+    expect(within(guia).getByText('1 de 5 listos')).toBeTruthy()
     expect(within(guia).queryByRole('link', { name: /ir a ajustes/i })).toBeNull()
   })
 
@@ -63,6 +65,8 @@ describe('Primeros pasos en Inicio', () => {
     const yerba = await cargarProducto()
     await vender(yerba.id)
     await repos.negocio.guardarAjustes('Almacén Don Raúl', null, null)
+    await repos.clientes.guardar({ nombre: 'Marta', telefono: null })
+    await repos.cierres.registrar({ fondoInicial: 0, ventasEfectivo: 420000, pagosFiadoEfectivo: 0, entradasCaja: 0, salidasCaja: 0, esperado: 420000, contado: 420000 })
     render(<PantallaInicio />)
     await screen.findByRole('link', { name: /^vender/i })
 
@@ -128,10 +132,36 @@ describe('Primeros pasos en Inicio', () => {
     const guia = await screen.findByRole('region', { name: 'Primeros pasos' })
 
     expect(within(guia).getByRole('heading', { name: 'Primeros pasos' })).toBeTruthy()
-    expect(within(guia).getAllByRole('listitem')).toHaveLength(3)
+    expect(within(guia).getAllByRole('listitem')).toHaveLength(5)
     const boton = within(guia).getByRole('button', { name: 'Ocultar guía' })
     expect(boton.getAttribute('type')).toBe('button')
     expect(boton.getAttribute('tabindex')).toBeNull()
     for (const enlace of within(guia).getAllByRole('link')) expect(enlace.getAttribute('tabindex')).not.toBe('-1')
+  })
+})
+
+describe('Bienvenida', () => {
+  it('se ve una sola vez en una cuenta nueva del dueño, y "Saltar" la recuerda', async () => {
+    await db.negocio.put({ id: 'unico', nombre: 'Almacén', logo: null, color: null, negocioId: 'n-9', rol: 'dueno', nombreUsuario: 'Jesús Heredia' })
+    const { unmount } = render(<PantallaInicio />)
+    const hoja = await screen.findByRole('dialog', { name: /Bienvenido a Libreta, Jesús/ })
+    expect(within(hoja).getByText('Cargá tus productos')).toBeTruthy()
+    fireEvent.click(within(hoja).getByRole('button', { name: 'Siguiente' }))
+    expect(within(hoja).getByText('Vendé en dos toques')).toBeTruthy()
+    fireEvent.click(within(hoja).getByRole('button', { name: 'Saltar' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(window.localStorage.getItem('libreta.bienvenida.n-9')).toBe('1')
+    unmount()
+    render(<PantallaInicio />)
+    await screen.findByRole('region', { name: 'Primeros pasos' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('no aparece si ya hay productos', async () => {
+    await db.negocio.put({ id: 'unico', nombre: 'Almacén', logo: null, color: null, negocioId: 'n-9', rol: 'dueno' })
+    await cargarProducto()
+    render(<PantallaInicio />)
+    await screen.findByRole('region', { name: 'Primeros pasos' })
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 })
