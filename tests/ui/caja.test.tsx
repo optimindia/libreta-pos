@@ -60,3 +60,16 @@ describe('CierreCaja', () => {
     await waitFor(() => expect((screen.getByLabelText(/fondo inicial/i) as HTMLInputElement).value).toBe('4200'))
   })
 })
+describe('Arqueo por billetes', () => {
+  it('cuenta billete por billete y el total cuadra la caja', async () => {
+    render(<CierreCaja />)
+    fireEvent.click(await screen.findByRole('button', { name: /cerrar caja/i }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Contar por billetes' }))
+    fireEvent.change(screen.getByLabelText('Billetes de $2.000'), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Uno más de $200' }))
+    expect(screen.getByRole('status').textContent).toContain('3 billetes')
+    expect(await screen.findByText(/la caja cuadra/i)).toBeDefined()
+    fireEvent.click(screen.getByRole('button', { name: 'Uno menos de $200' }))
+    expect(await screen.findByText(/te faltó/i)).toBeDefined()
+  })
+})

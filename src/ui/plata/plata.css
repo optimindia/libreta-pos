@@ -382,3 +382,28 @@
 @media (min-width: 720px) {
   .fp-fijos-form { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto; }
 }
+
+/* ───────────── Arqueo por billetes ───────────── */
+
+.fp-contar-modo { display: flex; align-items: center; justify-content: space-between; gap: var(--f-3); }
+.fp-contar-modo .f-hoja-subtitulo { margin: 0; }
+.fp-contar-cambiar { min-height: 44px; padding: 0 14px; border: 1.5px solid var(--f-borde); border-radius: 999px; background: transparent; color: var(--f-tinta); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.fp-contar-cambiar:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+.fp-arqueo { display: flex; flex-direction: column; gap: var(--f-2); }
+.fp-arqueo-lista { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.fp-arqueo-lista li { display: grid; min-height: 52px; grid-template-columns: 84px auto minmax(0, 1fr); align-items: center; gap: var(--f-3); border-top: 1px solid var(--f-superficie-2); }
+.fp-arqueo-lista li:first-child { border-top: 0; }
+.fp-arqueo-billete { color: var(--f-tinta-2); font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.fp-arqueo-lista li[data-con='true'] .fp-arqueo-billete { color: var(--f-tinta); }
+.fp-arqueo-control { display: flex; align-items: center; gap: 4px; }
+.fp-arqueo-control button { width: 44px; height: 44px; border: 1.5px solid var(--f-borde); border-radius: 999px; background: transparent; color: var(--f-tinta); font: inherit; font-size: 20px; font-weight: 800; line-height: 1; cursor: pointer; }
+.fp-arqueo-control button:disabled { opacity: 0.35; cursor: default; }
+.fp-arqueo-control button:focus-visible, .fp-arqueo-control input:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+.fp-arqueo-control input { width: 56px; height: 44px; padding: 0 4px; border: 1.5px solid var(--f-borde); border-radius: 12px; background: var(--f-superficie); color: var(--f-tinta); font: inherit; font-size: 17px; font-weight: 800; text-align: center; }
+.fp-arqueo-monedas { gap: var(--f-2); }
+.fp-arqueo-monedas > span { color: var(--f-tinta-2); font-weight: 800; }
+.fp-arqueo-monedas input { width: 148px; text-align: left; padding: 0 12px; }
+.fp-arqueo-subtotal { color: var(--f-tinta-2); font-size: 15px; font-weight: 700; text-align: right; }
+.fp-arqueo-total { display: flex; align-items: center; justify-content: space-between; gap: var(--f-3); margin: 0; padding: var(--f-3); border-radius: 14px; background: var(--f-superficie-2); }
+.fp-arqueo-total span { color: var(--f-tinta-2); font-size: 14px; font-weight: 700; }
+.fp-arqueo-total strong { font-size: 22px; font-weight: 800; }
