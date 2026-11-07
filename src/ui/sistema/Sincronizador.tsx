@@ -16,7 +16,7 @@ const CADA_MS = 12_000
 /** El timbre realtime llega en ráfagas (una venta toca varias tablas):
  *  esperar dos segundos junta la ráfaga en una sola bajada. */
 const DEBOUNCE_MS = 2_000
-const TABLAS = ['productos', 'ventas', 'clientes', 'fiados', 'fiado_pagos', 'ingresos', 'cierres', 'movimientos_caja', 'pedidos', 'negocio_configuracion', 'negocios', 'borrados']
+const TABLAS = ['productos', 'ventas', 'clientes', 'fiados', 'fiado_pagos', 'ingresos', 'cierres', 'movimientos_caja', 'pedidos', 'negocio_configuracion', 'negocios', 'borrados', 'proveedores']
 
 /** Una sola vez por aparato (31/10): la base rechazaba ventas, anulaciones,
  *  cierres y cobros por columnas y permisos que faltaban. Ya están: lo que

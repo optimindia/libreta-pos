@@ -43,6 +43,7 @@ const CAMPOS: Record<string, string> = {
   limiteFiado: 'limite_fiado',
   entradasCaja: 'entradas_caja',
   salidasCaja: 'salidas_caja',
+  proveedorId: 'proveedor_id',
 }
 
 const FECHAS = new Set(['fecha', 'vence', 'anulado_en', 'anulada_en', 'actualizado_en', 'oferta_hasta', 'eliminado_en', 'fecha_entrega'])
@@ -54,12 +55,12 @@ const INVERSO: Record<string, string> = Object.fromEntries(
 /** Un opcional que se borra (quitar la categoría, la oferta o el límite)
  *  tiene que viajar como null: un undefined desaparece del JSON y la nube se
  *  quedaría con el valor viejo. */
-const BORRABLES = new Set(['precioOferta', 'ofertaHasta', 'categoria', 'limiteFiado'])
+const BORRABLES = new Set(['precioOferta', 'ofertaHasta', 'categoria', 'limiteFiado', 'proveedorId'])
 
 /** Lo que no se manda queda como estaba en la nube: estas claves se fuerzan
  *  para que "sin categoría" o "sin límite" también lleguen a los demás. */
 const SIEMPRE: Record<string, Record<string, unknown>> = {
-  producto: { categoria: null, favorito: false },
+  producto: { categoria: null, favorito: false, proveedorId: null },
   cliente: { limiteFiado: null },
 }
 
@@ -124,6 +125,7 @@ export function aLaNube(
     cierre: 'cierres',
     movimientoCaja: 'movimientos_caja',
     pedido: 'pedidos',
+    proveedor: 'proveedores',
   }
   return [{ tabla: TABLA[entidad], filas: [cabecera] }]
 }
@@ -133,7 +135,7 @@ export function aLaNube(
 const CANTIDADES = new Set(['stock', 'stock_minimo', 'cantidad'])
 
 /** En la app un opcional vacío es "no está", no null. */
-const OPCIONALES = new Set(['pagos', 'devoluciones', 'categoria', 'limite_fiado', 'eliminado_en', 'precio_oferta', 'oferta_hasta', 'anulada_en', 'motivo_anulacion', 'entradas_caja', 'salidas_caja'])
+const OPCIONALES = new Set(['proveedor_id', 'pagos', 'devoluciones', 'categoria', 'limite_fiado', 'eliminado_en', 'precio_oferta', 'oferta_hasta', 'anulada_en', 'motivo_anulacion', 'entradas_caja', 'salidas_caja'])
 
 export function deLaNube(tabla: string, fila: Fila): Fila {
   const local: Fila = {}

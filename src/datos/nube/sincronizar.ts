@@ -97,11 +97,11 @@ export function subirASupabase(negocioId: UUID): SubirFn {
     if (item.operacion === 'eliminar') {
       const tablas: Record<EnCola['entidad'], string> = {
         producto: 'productos', venta: 'ventas', fiado: 'fiados', fiadoPago: 'fiado_pagos',
-        ingreso: 'ingresos', cliente: 'clientes', cierre: 'cierres', movimientoCaja: 'movimientos_caja', movimientoStock: 'movimientos_stock', pedido: 'pedidos', preferencias: 'negocio_configuracion', negocio: 'negocios',
+        ingreso: 'ingresos', cliente: 'clientes', cierre: 'cierres', movimientoCaja: 'movimientos_caja', movimientoStock: 'movimientos_stock', pedido: 'pedidos', preferencias: 'negocio_configuracion', negocio: 'negocios', proveedor: 'proveedores',
       }
       const id = (item.datos as { id?: string }).id
       if (item.entidad !== 'preferencias' && !id) throw new Error('operación de borrado sin id')
-      if (item.entidad === 'producto' || item.entidad === 'cliente') {
+      if (item.entidad === 'producto' || item.entidad === 'cliente' || item.entidad === 'proveedor') {
         const eliminadoEn = (item.datos as { eliminadoEn?: number }).eliminadoEn ?? Date.now()
         const { error } = await cliente
           .from(tablas[item.entidad])
@@ -197,6 +197,7 @@ export const DESTINO: Record<string, () => Table<unknown, unknown>> = {
   movimientos_caja: () => db.movimientosCaja as unknown as Table<unknown, unknown>,
   pedidos: () => db.pedidos as unknown as Table<unknown, unknown>,
   negocio_configuracion: () => db.preferencias as unknown as Table<unknown, unknown>,
+  proveedores: () => db.proveedores as unknown as Table<unknown, unknown>,
 }
 
 /** Primera apertura en un teléfono nuevo: la nube devuelve lo que el
