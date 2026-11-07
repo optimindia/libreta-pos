@@ -74,8 +74,8 @@ export function InteligenciaPlata({
         </div>
         <div className="fp-dato-caja">
           <span>Pronóstico próximos días</span>
-          <b className="f-plata f-plata-16 fp-grande">{formatearPesos(pronostico.proyectado)}</b>
-          <small>confianza {pronostico.confianza} · {formatearPesos(pronostico.promedioDiario)}/día</small>
+          <b className="f-plata f-plata-16 fp-grande">{formatearPesos(Math.round(pronostico.proyectado / 100) * 100)}</b>
+          <small>confianza {pronostico.confianza} · {formatearPesos(Math.round(pronostico.promedioDiario / 100) * 100)}/día</small>
         </div>
       </div>
 

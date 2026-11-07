@@ -407,3 +407,25 @@
 .fp-arqueo-total { display: flex; align-items: center; justify-content: space-between; gap: var(--f-3); margin: 0; padding: var(--f-3); border-radius: 14px; background: var(--f-superficie-2); }
 .fp-arqueo-total span { color: var(--f-tinta-2); font-size: 14px; font-weight: 700; }
 .fp-arqueo-total strong { font-size: 22px; font-weight: 800; }
+
+/* ───────────── Rendimiento por vendedor ───────────── */
+
+.fp-rendimiento { display: flex; flex-direction: column; gap: var(--f-3); }
+.fp-rendimiento-cabeza { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--f-3); }
+.fp-rendimiento-cabeza .f-dato { margin: 2px 0 0; }
+.fp-rendimiento-lista { display: flex; flex-direction: column; gap: var(--f-3); margin: 0; padding: 0; list-style: none; }
+.fp-rendimiento-fila { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--f-3); }
+.fp-rendimiento-nombre, .fp-rendimiento-montos { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.fp-rendimiento-montos { align-items: flex-end; text-align: right; }
+.fp-rendimiento-nombre strong { overflow: hidden; font-size: 16px; text-overflow: ellipsis; white-space: nowrap; }
+.fp-rendimiento-nombre span, .fp-rendimiento-montos span { color: var(--f-tinta-2); font-size: 13px; font-weight: 600; }
+.fp-rendimiento-montos strong { font-size: 17px; font-weight: 800; }
+.fp-rendimiento-montos span { color: var(--f-verde); font-weight: 700; }
+.fp-rendimiento-barra { position: relative; display: flex; align-items: center; gap: var(--f-2); margin-top: 6px; }
+.fp-rendimiento-barra span { display: block; height: 8px; border-radius: 999px; background: var(--f-verde); }
+.fp-rendimiento-barra em { color: var(--f-tinta-2); font-size: 12px; font-style: normal; font-weight: 800; }
+.fp-vendedores-form { display: flex; flex-direction: column; gap: var(--f-3); }
+.fp-vendedores-campos { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: var(--f-2); margin: 0; padding: 0; border: 0; min-width: 0; }
+.fp-vendedores-campos legend { grid-column: 1 / -1; margin-bottom: 6px; padding: 0; font-size: 14px; font-weight: 800; }
+.fp-vendedores-pct { display: flex; align-items: center; gap: 6px; }
+.fp-vendedores-pct span { color: var(--f-tinta-2); font-weight: 800; }

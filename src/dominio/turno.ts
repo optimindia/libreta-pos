@@ -37,9 +37,12 @@ export function vendedoresPresentes(filas: ConVendedor[]): { ids: UUID[]; haySin
 export function etiquetaVendedor(
   id: string | null | undefined,
   yo: { usuarioId?: UUID; nombre?: string | null },
+  nombres: Record<string, { nombre?: string }> = {},
 ): string {
   if (!id || id === SIN_DATO) return 'Sin dato'
-  if (id === yo.usuarioId) return yo.nombre?.trim() || 'Vos'
+  const anotado = nombres[id]?.nombre?.trim()
+  if (id === yo.usuarioId) return yo.nombre?.trim() || anotado || 'Vos'
+  if (anotado) return anotado
   return `Vendedor ${id.slice(-4)}`
 }
 
