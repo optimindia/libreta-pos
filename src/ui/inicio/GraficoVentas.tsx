@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { alturasDeBarras } from '@/dominio/inicio'
 import {
-  AYUDA_VISTA, barrasDe, mejorBarraDeVista, resumenDeBarras, TITULO_VISTA, type VistaVentas,
+  AYUDA_VISTA, barrasDe, comparacionAnual, mejorBarraDeVista, resumenComparacion, resumenDeBarras, TITULO_VISTA, type VistaVentas,
 } from '@/dominio/tendencia'
 import type { Venta } from '@/dominio/tipos'
+import { formatearPesos } from '@/dominio/dinero'
 import { Chip, Chips } from '@/ui/sistema/Chip'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { IconoHora } from '@/ui/sistema/iconos'
@@ -23,10 +24,23 @@ const VISTAS: { id: VistaVentas; etiqueta: string; nombre: string }[] = [
 export function GraficoVentas({ ventas, ahora }: { ventas: Venta[]; ahora: Date }) {
   const [vista, setVista] = useState<VistaVentas>('hoy')
   const [activa, setActiva] = useState<number | null>(null)
+  const [comparar, setComparar] = useState(false)
   const barras = barrasDe(vista, ventas, ahora)
-  const alturas = alturasDeBarras(barras.map((barra) => barra.monto))
+  const comparando = vista === 'meses' && comparar
+  const comparacion = comparando ? comparacionAnual(ventas, ahora, barras.length) : null
+  const anteriores = comparacion?.anteriores ?? []
+  const todasLasAlturas = alturasDeBarras([...barras.map((barra) => barra.monto), ...anteriores])
+  const alturas = todasLasAlturas.slice(0, barras.length)
+  const alturasAnteriores = todasLasAlturas.slice(barras.length)
   const mejor = mejorBarraDeVista(vista, barras)
-  const linea = activa !== null ? barras[activa].lectura : resumenDeBarras(vista, barras)
+  const lecturaDe = (i: number) => {
+    if (!comparacion) return barras[i].lectura
+    const antes = anteriores[i]
+    if (antes <= 0) return `${barras[i].lectura} · un año antes: sin ventas`
+    const cambio = Math.round((barras[i].monto / antes - 1) * 100)
+    return `${barras[i].lectura} · un año antes: ${formatearPesos(antes)} (${cambio >= 0 ? '+' : '−'}${Math.abs(cambio)}%)`
+  }
+  const linea = activa !== null ? lecturaDe(activa) : comparacion ? resumenComparacion(comparacion, ahora) : resumenDeBarras(vista, barras)
 
   function elegir(nueva: VistaVentas) {
     setVista(nueva)
@@ -49,6 +63,22 @@ export function GraficoVentas({ ventas, ahora }: { ventas: Venta[]; ahora: Date 
         ))}
       </Chips>
 
+      {vista === 'meses' && (
+        <div className="fi-comparar">
+          <label className="fi-comparar-interruptor">
+            <input type="checkbox" checked={comparar} onChange={(evento) => { setComparar(evento.target.checked); setActiva(null) }} />
+            <span>Comparar con el año pasado</span>
+          </label>
+          {comparando && (
+            <span className="fi-comparar-leyenda" aria-hidden="true">
+              <span><i data-serie="actual" />Últimos 12 meses</span>
+              <span><i data-serie="anterior" />Un año antes</span>
+            </span>
+          )}
+          {comparando && <p className="fi-comparar-nota">Son pesos de cada momento, sin ajustar por inflación.</p>}
+        </div>
+      )}
+
       <div className="fi-grafico" onMouseLeave={() => setActiva(null)}>
         <div className="fi-barras" role="group" aria-label={`Ventas: ${VISTAS.find((v) => v.id === vista)?.nombre}`} data-cantidad={barras.length}>
           {barras.map((barra, i) => (
@@ -58,8 +88,9 @@ export function GraficoVentas({ ventas, ahora }: { ventas: Venta[]; ahora: Date 
               className="fi-barra-boton"
               data-fuerte={i === mejor ? 'true' : undefined}
               data-activa={i === activa ? 'true' : undefined}
-              aria-label={barra.lectura}
-              style={{ '--alto': `${alturas[i]}%`, '--i': i } as React.CSSProperties}
+              aria-label={lecturaDe(i)}
+              data-comparando={comparando ? 'true' : undefined}
+              style={{ '--alto': `${alturas[i]}%`, '--alto-antes': `${alturasAnteriores[i] ?? 0}%`, '--i': i } as React.CSSProperties}
               onMouseEnter={() => setActiva(i)}
               onFocus={() => setActiva(i)}
               onBlur={() => setActiva((actual) => (actual === i ? null : actual))}
@@ -67,8 +98,11 @@ export function GraficoVentas({ ventas, ahora }: { ventas: Venta[]; ahora: Date 
             >
               <span className="fi-barra-globo" aria-hidden="true">
                 <strong>{barra.valor}</strong>
-                <small>{barra.detalle ? `${barra.titulo} · ${barra.detalle}` : barra.titulo}</small>
+                <small>{comparando
+                  ? `${barra.titulo} · un año antes ${anteriores[i] > 0 ? formatearPesos(anteriores[i]) : 'sin ventas'}`
+                  : barra.detalle ? `${barra.titulo} · ${barra.detalle}` : barra.titulo}</small>
               </span>
+              {comparando && <span className="fi-barra-antes" />}
               <span className="fi-barra" />
             </button>
           ))}
