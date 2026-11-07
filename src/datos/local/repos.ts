@@ -1,3 +1,4 @@
+import { historialConCambio } from '@/dominio/historialPrecios'
 import { cantidadValida, esFraccionado, redondearCantidad } from '@/dominio/cantidad'
 import { CODIGO_VARIOS, esProductoVarios, MINIMO_VARIOS, NOMBRE_VARIOS, STOCK_VARIOS } from '@/dominio/varios'
 import { db } from './db'
@@ -214,6 +215,9 @@ export const repos = {
           if (otro) throw new ErrorCodigoRepetido(codigo, otro.nombre)
         }
         anterior = datos.id ? await db.productos.get(datos.id) : undefined
+        const historial = historialConCambio(anterior, producto, producto.actualizadoEn ?? Date.now())
+        if (historial) producto.historialPrecios = historial
+        else delete producto.historialPrecios
         await db.productos.put(producto)
       })
       await encolar('producto', datos.id ? 'actualizar' : 'crear', producto)
@@ -844,7 +848,9 @@ export const repos = {
           if (producto) {
             // Un costo en $0 (o ilegible en la foto) no pisa el que ya había.
             const costo = Number.isFinite(item.costoUnitario) && item.costoUnitario > 0 ? item.costoUnitario : producto.costo
-            const cargado = { ...producto, stock: redondearCantidad(producto.stock + item.cantidad), costo, actualizadoEn: Date.now() }
+            const cargado: Producto = { ...producto, stock: redondearCantidad(producto.stock + item.cantidad), costo, actualizadoEn: Date.now() }
+            const historial = historialConCambio(producto, cargado, cargado.actualizadoEn ?? Date.now())
+            if (historial) cargado.historialPrecios = historial
             await db.productos.put(cargado)
             tocados.push(cargado)
             cargados.push(item)
