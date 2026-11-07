@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   barrasDeHoy, barrasDeLosMeses, barrasDeLosUltimosDias, barrasDePromedioPorDiaDeLaSemana,
-  mejorBarra, mejorBarraDeVista, resumenDeBarras,
+  comparacionAnual, mejorBarra, mejorBarraDeVista, resumenComparacion, resumenDeBarras,
 } from '@/dominio/tendencia'
 import type { Venta } from '@/dominio/tipos'
 
@@ -83,5 +83,32 @@ describe('hoy por horario', () => {
     expect(barras[1]).toMatchObject({ titulo: '8 a 10 h', valor: '$4.200', detalle: '1 venta' })
     expect(barras[1].lectura).toBe('8 a 10 h · $4.200 · 1 venta')
     expect(resumenDeBarras('hoy', barras)).toBe('Tu mejor horario: 8 a 10 h')
+  })
+})
+
+describe('comparación con el año pasado', () => {
+  const ahora = new Date('2026-11-07T12:00:00')
+  const v = (fecha: string, total: number) => ({ id: fecha, fecha: new Date(fecha).getTime(), total, medioPago: 'efectivo' as const, clienteId: null, items: [] })
+
+  it('pone cada mes al lado del mismo mes del año anterior', () => {
+    const r = comparacionAnual([v('2025-11-03T10:00:00', 1000), v('2026-11-02T10:00:00', 1500), v('2025-06-10T10:00:00', 700)], ahora)
+    expect(r.anteriores).toHaveLength(12)
+    expect(r.anteriores[11]).toBe(1000)
+    expect(r.anteriores[6]).toBe(700)
+    expect(r.hayDatos).toBe(true)
+  })
+
+  it('compara lo que va del año con el mismo tramo del año pasado', () => {
+    const r = comparacionAnual([v('2025-03-01T10:00:00', 1000), v('2025-12-20T10:00:00', 9999), v('2026-02-01T10:00:00', 1200)], ahora)
+    expect(r.esteAnio).toBe(1200)
+    expect(r.anioPasado).toBe(1000)
+    expect(r.variacion).toBe(20)
+    expect(resumenComparacion(r, ahora)).toContain('20% más que a esta altura de 2025')
+  })
+
+  it('sin ventas de hace un año lo dice', () => {
+    const r = comparacionAnual([v('2026-10-01T10:00:00', 100)], ahora)
+    expect(r.hayDatos).toBe(false)
+    expect(resumenComparacion(r, ahora)).toMatch(/Cuando tengas un año/)
   })
 })

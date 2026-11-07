@@ -215,3 +215,50 @@ export const AYUDA_VISTA: Record<VistaVentas, string> = {
   semana: 'Cuánto vendés en promedio cada día de la semana.',
   meses: 'Cuánto vendiste en cada uno de los últimos doce meses.',
 }
+
+/* ───────────── Comparar con el año pasado ───────────── */
+
+export interface ComparacionAnual {
+  /** Lo vendido en el mismo mes un año antes, barra por barra. */
+  anteriores: Centavos[]
+  /** Si hay al menos una venta de hace más de un año para comparar. */
+  hayDatos: boolean
+  /** Lo que va del año contra el mismo tramo del año pasado (mismo día). */
+  esteAnio: Centavos
+  anioPasado: Centavos
+  variacion: number | null
+}
+
+/** Para la vista por mes: cada barra junto al mismo mes del año anterior,
+ *  y lo que va del año contra el mismo tramo del año pasado. */
+export function comparacionAnual(ventas: Venta[], ahora: Date, meses = 12): ComparacionAnual {
+  const totales = sumarPor(ventas, (fecha) => claveMes(fecha))
+  const anteriores = Array.from({ length: meses }, (_, i) => {
+    const mes = new Date(ahora.getFullYear() - 1, ahora.getMonth() - (meses - 1 - i), 1)
+    return totales.get(claveMes(mes))?.monto ?? 0
+  })
+  const inicioEste = new Date(ahora.getFullYear(), 0, 1).getTime()
+  const inicioPasado = new Date(ahora.getFullYear() - 1, 0, 1).getTime()
+  const mismoDiaPasado = new Date(ahora.getFullYear() - 1, ahora.getMonth(), ahora.getDate() + 1).getTime()
+  let esteAnio = 0
+  let anioPasado = 0
+  let hayDatos = false
+  const haceUnAnio = new Date(ahora.getFullYear() - 1, ahora.getMonth(), ahora.getDate()).getTime()
+  for (const venta of ventas) {
+    if (venta.estado === 'anulada') continue
+    if (venta.fecha <= haceUnAnio) hayDatos = true
+    if (venta.fecha >= inicioEste && venta.fecha <= ahora.getTime()) esteAnio += venta.total
+    else if (venta.fecha >= inicioPasado && venta.fecha < mismoDiaPasado) anioPasado += venta.total
+  }
+  const variacion = anioPasado > 0 ? Math.round((esteAnio / anioPasado - 1) * 100) : null
+  return { anteriores, hayDatos, esteAnio, anioPasado, variacion }
+}
+
+/** La frase de abajo cuando se compara con el año pasado. */
+export function resumenComparacion(comparacion: ComparacionAnual, ahora: Date): string {
+  if (!comparacion.hayDatos) return 'Cuando tengas un año de ventas, acá las comparás con el año anterior'
+  const anio = ahora.getFullYear()
+  if (comparacion.variacion === null) return `En ${anio} llevás ${formatearPesos(comparacion.esteAnio)}; a esta altura de ${anio - 1} no había ventas`
+  const sentido = comparacion.variacion === 0 ? 'igual que' : comparacion.variacion > 0 ? `${comparacion.variacion}% más que` : `${-comparacion.variacion}% menos que`
+  return `En lo que va de ${anio} vendiste ${formatearPesos(comparacion.esteAnio)}: ${sentido} a esta altura de ${anio - 1} (${formatearPesos(comparacion.anioPasado)})`
+}
