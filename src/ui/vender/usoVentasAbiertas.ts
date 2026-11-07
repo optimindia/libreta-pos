@@ -101,6 +101,21 @@ export function useVentasAbiertas() {
     cambiarActiva((venta) => ({ ...venta, mayorista, actualizada: Date.now() }))
   }, [cambiarActiva])
 
+  /** El cliente de la venta. Cambiarlo saca el premio que se estuviera usando. */
+  const setCliente = useCallback((clienteId: UUID | undefined) => {
+    cambiarActiva((venta) => ({
+      ...venta,
+      clienteId,
+      ...(venta.canjeFidelidad ? { canjeFidelidad: false, descuentoTotal: null } : {}),
+      actualizada: Date.now(),
+    }))
+  }, [cambiarActiva])
+
+  /** Usar (o dejar de usar) el premio de fidelidad: es el descuento de la venta. */
+  const setCanje = useCallback((premio: Descuento | null) => {
+    cambiarActiva((venta) => ({ ...venta, canjeFidelidad: premio !== null, descuentoTotal: premio, actualizada: Date.now() }))
+  }, [cambiarActiva])
+
   /** Suelta la venta activa si quedó vacía, para que no se acumulen pestañas
    *  en blanco al ir de una a otra. */
   const sinVaciaActiva = (previo: Estado): { ventas: VentaAbierta[]; sacada: UUID | null } => {
@@ -159,6 +174,8 @@ export function useVentasAbiertas() {
     setDescuentoItem,
     setDescuentoTotal,
     setMayorista,
+    setCliente,
+    setCanje,
     nueva,
     elegir,
     cerrar,

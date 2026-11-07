@@ -1,5 +1,6 @@
 import { promoValida } from '@/dominio/promos'
 import { normalizarVendedores } from '@/dominio/vendedores'
+import { normalizarFidelidad } from '@/dominio/fidelidad'
 import { historialConCambio } from '@/dominio/historialPrecios'
 import { cantidadValida, esFraccionado, redondearCantidad } from '@/dominio/cantidad'
 import { CODIGO_VARIOS, esProductoVarios, MINIMO_VARIOS, NOMBRE_VARIOS, STOCK_VARIOS } from '@/dominio/varios'
@@ -78,6 +79,8 @@ export function normalizarAjustes(crudo: unknown): AjustesNegocio {
       .slice(0, 50)
       .map((g) => ({ id: g.id, nombre: g.nombre.slice(0, 60), monto: g.monto }))
   }
+  const fidelidad = normalizarFidelidad(dato.fidelidad)
+  if (fidelidad) ajustes.fidelidad = fidelidad
   const vendedores = normalizarVendedores(dato.vendedores)
   if (vendedores) ajustes.vendedores = vendedores
   if (Array.isArray(dato.promos)) {
@@ -357,6 +360,8 @@ export const repos = {
       pedidoId?: UUID
       /** Pago dividido: las partes tienen que sumar el total. */
       pagos?: PartePago[]
+      /** El cliente usó su premio de fidelidad en esta compra. */
+      canjeFidelidad?: boolean
     }): Promise<Venta> {
       const pagos = datos.pagos && datos.pagos.length > 0 ? datos.pagos.map((parte) => ({ medio: parte.medio, monto: parte.monto })) : undefined
       if (pagos) {
@@ -381,6 +386,7 @@ export const repos = {
         referenciaPago: datos.referenciaPago?.trim() || undefined,
         pedidoId: datos.pedidoId,
         ...(vendidoPor ? { vendidoPor } : {}),
+        ...(datos.canjeFidelidad && datos.clienteId ? { canjeFidelidad: true } : {}),
       }
       const tocados: Producto[] = []
       let fiado: Fiado | null = null

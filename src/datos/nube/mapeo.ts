@@ -48,6 +48,7 @@ const CAMPOS: Record<string, string> = {
   venceEl: 'vence_el',
   precioMayorista: 'precio_mayorista',
   mayoristaDesde: 'mayorista_desde',
+  canjeFidelidad: 'canje_fidelidad',
 }
 
 const FECHAS = new Set(['fecha', 'vence', 'vence_el', 'anulado_en', 'anulada_en', 'actualizado_en', 'oferta_hasta', 'eliminado_en', 'fecha_entrega'])

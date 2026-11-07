@@ -23,6 +23,7 @@ import './clientes.css'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 import { TEXTOS, noSePudo } from '@/ui/sistema/textos'
 import { useDestino } from '@/ui/sistema/destino'
+import { ProgramaFidelidad } from './ProgramaFidelidad'
 import { armarCumple, cuandoCumple, diasHastaCumple, limpiarNota, MESES_LARGOS, partesCumple, textoCumple } from '@/dominio/cumpleanos'
 
 type FiltroCliente = 'todos' | 'con_deuda' | 'activos' | 'favoritos'
@@ -91,6 +92,7 @@ export function PantallaClientes() {
   const [eliminando, setEliminando] = useState(false)
   // El vendedor carga y edita clientes; borrarlos es del dueño.
   const borra = usePuede('borrarClientes')
+  const esDueno = usePuede('editarProductos')
   const [ahora] = useState(() => Date.now())
   const datos = useLiveQuery(async () => {
     const [clientes, ventas, fiados, pagos] = await Promise.all([repos.clientes.todos(), db.ventas.toArray(), db.fiados.toArray(), db.fiadoPagos.toArray()])
@@ -175,6 +177,8 @@ export function PantallaClientes() {
           </Boton>
         )}
       />
+
+      {esDueno && <ProgramaFidelidad />}
 
       <div className="f-clientes-resumen">
         <Tarjeta relleno="normal" className="f-clientes-datos">

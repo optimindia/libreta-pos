@@ -244,3 +244,11 @@
 .f-clientes-nota-campo { min-height: 88px; padding-top: 12px; resize: vertical; line-height: 1.4; }
 .f-clientes-nota { margin: 0; padding: var(--f-3); border-left: 4px solid var(--f-ambar); border-radius: 0 12px 12px 0; background: var(--f-superficie-2); font-size: 15px; line-height: 1.45; white-space: pre-line; }
 .f-clientes-etiquetas { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+
+/* ───────────── La décima gratis ───────────── */
+
+.f-fidelidad-cabeza { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--f-3); }
+.f-fidelidad-cabeza .f-dato { margin: 2px 0 0; max-width: 62ch; }
+.f-fidelidad-acciones { display: flex; gap: var(--f-2); }
+.f-fidelidad-form { display: flex; flex-direction: column; gap: var(--f-3); }
+.f-campo-titulo { font-size: 14px; font-weight: 700; }
