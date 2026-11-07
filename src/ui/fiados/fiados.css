@@ -364,3 +364,10 @@
 .f-fiados-avisos li[data-avisado='true'] .f-fiados-avisos-cuerpo span { color: var(--f-verde); font-weight: 700; }
 .f-fiados-avisos a { flex: 0 0 auto; }
 .f-fiados-wsp[data-vacio='true'] { background: transparent; }
+
+/* ───────────── Link de la cuenta del cliente ───────────── */
+
+.f-compartir-cuenta { display: flex; flex-direction: column; gap: var(--f-3); }
+.f-compartir-url { display: block; overflow: hidden; padding: 12px 14px; border-radius: 12px; background: var(--f-superficie-2); color: var(--f-tinta-2); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.f-compartir-cortar { align-self: center; min-height: 44px; padding: 0 12px; border: 0; background: transparent; color: var(--f-coral); font: inherit; font-size: 15px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.f-compartir-cortar:disabled { opacity: 0.5; cursor: default; }

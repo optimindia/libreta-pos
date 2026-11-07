@@ -1,0 +1,20 @@
+.f-saldo { display: flex; width: 100%; max-width: 560px; flex-direction: column; gap: var(--f-3); margin: 0 auto; padding: 32px 16px 48px; color: var(--f-tinta); }
+.f-saldo h1 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
+.f-saldo h2 { margin: var(--f-3) 0 0; color: var(--f-tinta-2); font-size: 14px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.f-saldo-negocio { margin: 0; color: var(--f-tinta-2); font-size: 15px; font-weight: 700; }
+.f-saldo-aviso { margin: 0; color: var(--f-tinta-2); font-size: 16px; line-height: 1.45; }
+.f-saldo-total { display: flex; flex-direction: column; gap: 4px; padding: var(--f-4); border-radius: var(--f-radio-tarjeta); background: var(--f-superficie); box-shadow: inset 0 0 0 1.5px var(--f-coral); }
+.f-saldo-total span { color: var(--f-tinta-2); font-size: 16px; font-weight: 700; }
+.f-saldo-total strong { color: var(--f-coral); font-size: 44px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.f-saldo-total[data-al-dia='true'] { box-shadow: inset 0 0 0 1.5px var(--f-verde); }
+.f-saldo-total[data-al-dia='true'] span { color: var(--f-verde); font-size: 22px; font-weight: 800; }
+.f-saldo-lista { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.f-saldo-lista li { display: grid; min-height: 56px; grid-template-columns: 60px minmax(0, 1fr) auto; align-items: center; gap: var(--f-3); border-top: 1px solid var(--f-superficie-2); }
+.f-saldo-lista li:first-child { border-top: 0; }
+.f-saldo-fecha { color: var(--f-tinta-2); font-size: 14px; font-weight: 700; }
+.f-saldo-detalle { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.f-saldo-detalle strong { font-size: 15px; }
+.f-saldo-detalle span { overflow: hidden; color: var(--f-tinta-2); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.f-saldo-monto { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.f-saldo-lista li[data-tipo='pago'] .f-saldo-monto { color: var(--f-verde); }
+.f-saldo-pie { margin: var(--f-4) 0 0; color: var(--f-tinta-2); font-size: 13px; line-height: 1.45; }
