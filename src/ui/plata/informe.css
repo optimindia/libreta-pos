@@ -1,0 +1,54 @@
+/* Resumen mensual: en pantalla, una vista previa como hoja; al imprimir,
+   sólo el informe en A4. Siempre papel claro, también con el tema oscuro. */
+
+.f-informe-controles { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--f-3); align-items: end; }
+@media (min-width: 560px) {
+  .f-informe-controles { grid-template-columns: minmax(0, 1fr) auto; }
+}
+.f-informe-papel { overflow: hidden; margin-top: var(--f-3); border-radius: 12px; background: #fff; }
+.f-informe-papel .f-informe { padding: 18px; }
+
+.f-informe { color: #111; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 12px; line-height: 1.4; }
+.f-informe h1 { margin: 2px 0 0; color: #111; font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+.f-informe h2 { margin: 0 0 8px; color: #111; font-size: 13px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.f-informe-cabeza { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 2px solid #111; }
+.f-informe-negocio { margin: 0; color: #555; font-size: 12px; font-weight: 700; }
+.f-informe-fecha { margin: 0; color: #777; font-size: 11px; }
+.f-informe-numeros { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 14px 0; }
+@media (min-width: 640px) {
+  .f-informe-numeros { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.f-informe-numeros > div { display: flex; flex-direction: column; gap: 2px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+.f-informe-numeros span { color: #555; font-size: 11px; font-weight: 700; }
+.f-informe-numeros strong { color: #111; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.f-informe-numeros strong[data-negativo='true'] { color: #b42318; }
+.f-informe-numeros small { color: #666; font-size: 10.5px; }
+.f-informe-bloque { margin-bottom: 14px; break-inside: avoid; }
+.f-informe-barras { display: flex; height: 90px; align-items: flex-end; gap: 2px; padding-bottom: 2px; border-bottom: 1px solid #bbb; }
+.f-informe-barras span { flex: 1 1 0; min-width: 0; border-radius: 2px 2px 0 0; background: #9aa5a1; }
+.f-informe-barras span[data-mejor='true'] { background: #1f7a5a; }
+.f-informe-dias { display: flex; justify-content: space-between; color: #777; font-size: 10px; }
+.f-informe-nota { margin: 6px 0 0; color: #555; font-size: 11px; }
+.f-informe-columnas { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+@media (min-width: 640px) {
+  .f-informe-columnas { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+}
+.f-informe table { width: 100%; margin-bottom: 10px; border-collapse: collapse; }
+.f-informe th, .f-informe td { padding: 5px 4px; border-bottom: 1px solid #e5e5e5; text-align: left; font-variant-numeric: tabular-nums; }
+.f-informe th { color: #555; font-size: 10.5px; font-weight: 800; text-transform: uppercase; }
+.f-informe td:last-child, .f-informe th:last-child { text-align: right; white-space: nowrap; }
+.f-informe td:nth-child(2):not(:last-child), .f-informe th:nth-child(2):not(:last-child) { text-align: right; }
+
+.f-informe-impreso { display: none; }
+
+@media print {
+  /* Más específico que la regla del ticket que esconde todo lo demás. */
+  html body > div.f-informe-impreso {
+    display: block !important;
+    visibility: visible !important;
+    background: #fff !important;
+  }
+  .f-informe-impreso * { visibility: visible !important; }
+  .f-informe-impreso .f-informe-numeros { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .f-informe-impreso .f-informe-columnas { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+}
