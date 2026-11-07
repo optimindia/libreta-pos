@@ -24,6 +24,7 @@ import {
   IconoTemaAuto, IconoVender, IconoVisible, IconoBuscar,
 } from './iconos'
 import { BuscadorGeneral, abrirBuscador } from './BuscadorGeneral'
+import { useAvisosLocales } from './avisosLocales'
 import type { SeccionBuscable } from '@/dominio/buscador'
 
 type Seccion = { href: string; texto: string; Icono: () => React.JSX.Element; funcion: ClaveFuncion | null }
@@ -204,6 +205,7 @@ export function Navegacion() {
   const conCuenta = Boolean(negocio?.negocioId)
   const buscables: SeccionBuscable[] = visibles.map((id) => ({ id, texto: SECCIONES[id].texto, href: SECCIONES[id].href, sinonimos: SINONIMOS[id] }))
   const conProveedores = rolDe(negocio?.rol) === 'dueno'
+  useAvisosLocales(true)
 
   // ¿Quedan secciones fuera de la vista? Se muestra "Más" y un degradado.
   const lista = useRef<HTMLElement>(null)

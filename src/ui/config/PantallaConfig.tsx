@@ -12,6 +12,7 @@ import { TusDatos } from './TusDatos'
 import { TemaControl } from './TemaControl'
 import { TicketControl } from './TicketControl'
 import { InstalarApp } from './InstalarApp'
+import { AvisosControl } from './AvisosControl'
 import { EstadoSincronizacion } from './EstadoSincronizacion'
 import { EstadoCuenta } from '@/ui/cuenta/EstadoCuenta'
 import { IconoSubir } from '@/ui/sistema/iconos'
@@ -133,6 +134,7 @@ export function PantallaConfig() {
         </div>
 
         <div className="f-config-col">
+          <AvisosControl />
           <FuncionesControl />
           {funcionActiva(funciones, 'respaldoLocal') && <Respaldo />}
           <TusDatos />
