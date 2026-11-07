@@ -7,13 +7,15 @@ import { normalizarAjustes, repos } from '@/datos/local/repos'
 import type { AjustesNegocio } from '@/dominio/tipos'
 
 /** Dónde vivían estos ajustes antes de compartirse entre aparatos. */
-const CLAVES_VIEJAS: Record<keyof AjustesNegocio, string> = {
+type AjusteDeTexto = 'metaPlata' | 'metaPro' | 'leyendaTicket'
+
+const CLAVES_VIEJAS: Record<AjusteDeTexto, string> = {
   metaPlata: 'libreta-objetivo-periodo',
   metaPro: 'libreta:objetivo-pro-pesos',
   leyendaTicket: 'libreta-ticket',
 }
 
-function leerViejo(clave: keyof AjustesNegocio): string | undefined {
+function leerViejo(clave: AjusteDeTexto): string | undefined {
   try {
     const crudo = window.localStorage.getItem(CLAVES_VIEJAS[clave])
     if (crudo === null) return undefined
@@ -33,7 +35,7 @@ export function useAjustesNegocio(): [AjustesNegocio, (cambio: Partial<AjustesNe
   const ajustes = useMemo(() => {
     const base = normalizarAjustes(guardados?.ajustes)
     if (typeof window === 'undefined') return base
-    for (const clave of Object.keys(CLAVES_VIEJAS) as Array<keyof AjustesNegocio>) {
+    for (const clave of Object.keys(CLAVES_VIEJAS) as AjusteDeTexto[]) {
       if (base[clave] === undefined) {
         const viejo = leerViejo(clave)
         if (viejo !== undefined) base[clave] = viejo
@@ -52,7 +54,7 @@ export function useAjustesNegocio(): [AjustesNegocio, (cambio: Partial<AjustesNe
 export async function compartirAjustesDelAparato(): Promise<void> {
   const actuales = normalizarAjustes((await db.preferencias.get('unico'))?.ajustes)
   const cambio: Partial<AjustesNegocio> = {}
-  for (const clave of Object.keys(CLAVES_VIEJAS) as Array<keyof AjustesNegocio>) {
+  for (const clave of Object.keys(CLAVES_VIEJAS) as AjusteDeTexto[]) {
     if (actuales[clave] !== undefined) continue
     const viejo = leerViejo(clave)
     if (viejo !== undefined) cambio[clave] = viejo

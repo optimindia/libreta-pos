@@ -353,3 +353,32 @@
 .fp-vendedores { display: flex; flex-direction: column; gap: var(--f-2); margin-top: var(--f-3); }
 .fp-vendedores .fp-subtitulo { margin: 0; }
 .fp-vendedores .f-renglon-detalle { overflow-wrap: anywhere; }
+
+/* ───────────── Ganancia real ───────────── */
+
+.fp-real { display: flex; flex-direction: column; gap: var(--f-3); }
+.fp-real-cabeza { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--f-3); }
+.fp-real-cabeza .f-dato { margin: 2px 0 0; }
+.fp-real-total { font-size: 36px; font-weight: 800; line-height: 1; }
+.fp-real-total[data-tono='verde'] { color: var(--f-verde); }
+.fp-real-total[data-tono='coral'] { color: var(--f-coral); }
+.fp-real-cuentas { display: flex; flex-direction: column; margin: 0; }
+.fp-real-cuentas > div { display: flex; min-height: 40px; align-items: center; justify-content: space-between; gap: var(--f-3); border-top: 1px solid var(--f-superficie-2); }
+.fp-real-cuentas > div:first-child { border-top: 0; }
+.fp-real-cuentas dt { color: var(--f-tinta-2); font-size: 15px; font-weight: 600; }
+.fp-real-cuentas dd { margin: 0; font-size: 16px; font-weight: 700; }
+.fp-real-cuentas .fp-real-queda dt { color: var(--f-tinta); font-weight: 800; }
+.fp-real-cuentas .fp-real-queda dd { font-size: 18px; font-weight: 800; }
+.fp-real-equilibrio { margin: 0; padding: var(--f-3); border-radius: 14px; background: var(--f-superficie-2); font-size: 15px; font-weight: 600; line-height: 1.4; }
+.fp-fijos { display: flex; flex-direction: column; gap: var(--f-3); }
+.fp-fijos-lista { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.fp-fijos-lista li { display: grid; min-height: 52px; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: var(--f-3); border-top: 1px solid var(--f-superficie-2); }
+.fp-fijos-lista li:first-child { border-top: 0; }
+.fp-fijos-lista span { overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.fp-fijos-quitar { min-height: 44px; padding: 0 14px; border: 1.5px solid var(--f-borde); border-radius: 999px; background: transparent; color: var(--f-tinta); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.fp-fijos-quitar:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+.fp-fijos-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--f-2); }
+
+@media (min-width: 720px) {
+  .fp-fijos-form { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto; }
+}

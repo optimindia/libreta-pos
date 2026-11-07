@@ -221,6 +221,8 @@ export interface AjustesNegocio {
   metaPro?: string
   /** Frase al pie del ticket impreso. */
   leyendaTicket?: string
+  /** Gastos fijos de cada mes (alquiler, luz, sueldos…), en centavos. */
+  gastosFijos?: Array<{ id: string; nombre: string; monto: Centavos }>
 }
 
 export interface PreferenciasNegocio {

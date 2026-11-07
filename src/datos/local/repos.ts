@@ -68,6 +68,13 @@ export function normalizarAjustes(crudo: unknown): AjustesNegocio {
   for (const clave of ['metaPlata', 'metaPro', 'leyendaTicket'] as const) {
     if (typeof dato[clave] === 'string') ajustes[clave] = (dato[clave] as string).slice(0, 80)
   }
+  if (Array.isArray(dato.gastosFijos)) {
+    ajustes.gastosFijos = dato.gastosFijos
+      .filter((g): g is { id: string; nombre: string; monto: number } =>
+        typeof g === 'object' && g !== null && typeof g.id === 'string' && typeof g.nombre === 'string' && Number.isInteger(g.monto) && g.monto > 0)
+      .slice(0, 50)
+      .map((g) => ({ id: g.id, nombre: g.nombre.slice(0, 60), monto: g.monto }))
+  }
   return ajustes
 }
 
