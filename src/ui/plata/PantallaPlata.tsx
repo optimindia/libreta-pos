@@ -21,6 +21,7 @@ import { useIdentidad } from '@/ui/sistema/usoVendedor'
 import { FiltroVendedor } from '@/ui/sistema/FiltroVendedor'
 import { SIN_DATO, filtrarPorVendedor } from '@/dominio/turno'
 import { MovimientosCaja } from './MovimientosCaja'
+import { GananciaReal } from './GananciaReal'
 import { InteligenciaPlata } from './InteligenciaPlata'
 import { CentroAcciones } from './CentroAcciones'
 import { estadoVencimiento } from '@/dominio/inteligencia'
@@ -192,6 +193,8 @@ export function PantallaPlata() {
             </>
           )}
         </Tarjeta>
+
+        {yo?.rol === 'dueno' && <GananciaReal ventas={datos.todas} />}
 
         <InteligenciaPlata
           ventas={datos.ventas}
