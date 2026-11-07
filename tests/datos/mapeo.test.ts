@@ -84,7 +84,7 @@ describe('deLaNube', () => {
 
   it('ida y vuelta devuelve el mismo producto (sin la marca, que es de la base)', () => {
     const [{ filas }] = aLaNube('producto', producto, NEGOCIO)
-    const esperado: Partial<typeof producto> & { favorito: boolean } = { ...producto, favorito: false }
+    const esperado: Partial<typeof producto> & { favorito: boolean; sinControlStock: boolean } = { ...producto, favorito: false, sinControlStock: false }
     delete esperado.actualizadoEn
     expect(deLaNube('productos', filas[0])).toEqual(esperado)
   })

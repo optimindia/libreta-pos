@@ -12,6 +12,7 @@ import { Chip, Chips } from '@/ui/sistema/Chip'
 import { Etiqueta } from '@/ui/sistema/Etiqueta'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 import { TEXTOS } from '@/ui/sistema/textos'
+import { controlaStock } from '@/dominio/stock'
 
 /** Quita acentos y pasa a minúscula, igual que repos.productos.buscar. */
 function normalizar(texto: string): string {
@@ -171,6 +172,8 @@ export function CatalogoVender({
                       </span>
                       {sinStock ? (
                         <Etiqueta tono="blanco">Sin stock</Etiqueta>
+                      ) : !controlaStock(producto) ? (
+                        oferta ? <span className="f-producto-nota">Oferta</span> : null
                       ) : (
                         <span className="f-producto-nota" data-poco={poco ? 'true' : 'false'}>
                           <IconoStock />{oferta ? `Oferta · quedan ${formatearCantidad(stock, unidad)}` : `quedan ${formatearCantidad(stock, unidad)}`}

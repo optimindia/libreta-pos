@@ -2,6 +2,7 @@ import type { Centavos, ItemVenta, Producto, UUID, Venta } from './tipos'
 import { agregarProducto, precioVigente } from './ticket'
 import { aplicarPromos, type Promo } from './promos'
 import { aplicarMayorista, type MapaMayorista } from './mayorista'
+import { controlaStock } from './stock'
 
 /** Cuántas ventas se pueden tener abiertas a la vez en un aparato. */
 export const MAX_VENTAS_ABIERTAS = 10
@@ -137,7 +138,7 @@ export function masVendidos(ventas: Venta[], productos: Producto[], desde: numbe
     for (const item of venta.items) unidades.set(item.productoId, (unidades.get(item.productoId) ?? 0) + item.cantidad)
   }
   return productos
-    .filter((producto) => unidades.has(producto.id) && producto.stock > 0 && precioVigente(producto) > 0)
+    .filter((producto) => unidades.has(producto.id) && (!controlaStock(producto) || producto.stock > 0) && precioVigente(producto) > 0)
     .sort((a, b) => (unidades.get(b.id) ?? 0) - (unidades.get(a.id) ?? 0) || a.nombre.localeCompare(b.nombre, 'es'))
     .slice(0, limite)
 }

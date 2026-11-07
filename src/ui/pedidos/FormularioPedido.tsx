@@ -14,6 +14,7 @@ import { IconoClientes, IconoConfirmar, IconoEntrega, IconoUbicacion } from '@/u
 import './pedidos.css'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 import { noSePudo } from '@/ui/sistema/textos'
+import { controlaStock } from '@/dominio/stock'
 
 function fechaInput(epoch: number | null | undefined): string {
   return epoch ? new Date(epoch).toISOString().slice(0, 10) : ''
@@ -193,10 +194,10 @@ export function FormularioPedido({
           {busquedaProducto.trim() !== '' && (
             <div className="f-pedidos-opciones">
               {productosVisibles.length === 0 ? <EstadoVacio compacto titulo="No encontramos ese producto" texto="Probá con otro nombre o cargalo primero en Stock." /> : productosVisibles.map((producto) => {
-                const disponible = Math.max(0, producto.stock - (reservadas.get(producto.id) ?? 0) + (pedido?.reservarStock && pedidoReservaDelProducto(pedido, producto.id) ? pedidoCantidad(pedido, producto.id) : 0))
+                const disponible = !controlaStock(producto) ? Number.POSITIVE_INFINITY : Math.max(0, producto.stock - (reservadas.get(producto.id) ?? 0) + (pedido?.reservarStock && pedidoReservaDelProducto(pedido, producto.id) ? pedidoCantidad(pedido, producto.id) : 0))
                 return (
                   <button type="button" key={producto.id} className="f-pedidos-opcion" disabled={disponible <= 0} onClick={() => { setItems((actuales) => agregarItemPedido(actuales, producto)); setBusquedaProducto(''); setAviso(null) }}>
-                    <span className="f-renglon-cuerpo"><span className="f-renglon-titulo">{producto.nombre}</span><span className="f-renglon-detalle">{disponible > 0 ? `${disponible} disponibles para reservar` : 'Sin unidades disponibles'}</span></span>
+                    <span className="f-renglon-cuerpo"><span className="f-renglon-titulo">{producto.nombre}</span><span className="f-renglon-detalle">{!Number.isFinite(disponible) ? 'Sin control de stock' : disponible > 0 ? `${disponible} disponibles para reservar` : 'Sin unidades disponibles'}</span></span>
                     <span className="f-pedidos-precio">{tieneOfertaVigente(producto) && <del>{formatearPesos(producto.precio)}</del>}{formatearPesos(precioVigente(producto))}</span>
                   </button>
                 )

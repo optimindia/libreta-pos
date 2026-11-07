@@ -23,10 +23,12 @@ import { Portada } from '@/ui/sistema/Portada'
 import { Proveedores } from './Proveedores'
 import { Etiquetas } from './Etiquetas'
 import { Promos } from './Promos'
+import { ControlStockNegocio } from './ControlStockNegocio'
 import { porVencer, textoVence } from '@/dominio/vencimientos'
 import { ConteoInventario } from './ConteoInventario'
 import './stock.css'
 import { useDestino } from '@/ui/sistema/destino'
+import { controlaStock } from '@/dominio/stock'
 
 type Pestaña = 'catalogo' | 'cargar' | 'precios' | 'etiquetas' | 'contar' | 'proveedores'
 
@@ -51,6 +53,8 @@ export function PantallaStock() {
   const editaCatalogo = usePuede('editarProductos')
   const vista: Pestaña = editaCatalogo ? pestaña : 'catalogo'
   const inventario = valorStock(productos)
+  // Si no se lleva la cuenta de ningún producto, no hay mercadería que valuar.
+  const muestraInventario = editaCatalogo && productos.some(controlaStock)
   const cuantos = `${productos.length} ${productos.length === 1 ? 'producto' : 'productos'}`
 
   return (
@@ -58,9 +62,9 @@ export function PantallaStock() {
       <Portada
         id="stock"
         titulo="Stock"
-        rotulo={editaCatalogo ? 'Mercadería que tenés, a costo' : 'Productos cargados'}
-        valor={editaCatalogo ? inventario.costo : productos.length}
-        formato={editaCatalogo ? 'pesos' : 'numero'}
+        rotulo={muestraInventario ? 'Mercadería que tenés, a costo' : 'Productos cargados'}
+        valor={muestraInventario ? inventario.costo : productos.length}
+        formato={muestraInventario ? 'pesos' : 'numero'}
         detalle={(
           <>
             <p>{cuantos}</p>
@@ -105,6 +109,7 @@ export function PantallaStock() {
         <>
           <CatalogoStock productos={productos} onCargar={editaCatalogo ? () => setPestaña('cargar') : undefined} />
           {importarCatalogo && editaCatalogo && <HerramientasCatalogo productos={productos} />}
+          {editaCatalogo && productos.length > 0 && <ControlStockNegocio productos={productos} />}
         </>
       )}
 

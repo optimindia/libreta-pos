@@ -27,6 +27,7 @@ import {
   type RiesgoFiado,
 } from './inteligencia'
 import { filtrarVentas, rangoReporte, type PeriodoReporte } from './reportes'
+import { controlaStock } from './stock'
 
 const DIA_EN_MS = 24 * 60 * 60 * 1000
 
@@ -215,7 +216,7 @@ export function scoreOperacion(
   const catalogo = saludCatalogoOperacion(productos)
   const vencidos = vencimientosCarteraOperacion(fiados, pagos, [], ahora).filter((item) => item.estado === 'vencido').length
   const atrasados = pedidosAtrasadosOperacion(pedidos, [], ahora).length
-  const criticos = productos.filter((producto) => producto.stock <= 0 || producto.precio <= 0 || producto.precio < producto.costo).length
+  const criticos = productos.filter((producto) => (controlaStock(producto) && producto.stock <= 0) || producto.precio <= 0 || producto.precio < producto.costo).length
   if (productos.length === 0) score -= 25
   else score -= Math.min(15, Math.round((1 - catalogo.porcentajeCompleto / 100) * 15))
   score -= Math.min(20, criticos * 4)
@@ -235,7 +236,7 @@ export function alertasPriorizadas(
   ahora: number = Date.now(),
 ): AlertaOperacion[] {
   const alertas: AlertaOperacion[] = []
-  const agotados = productos.filter((producto) => producto.stock <= 0).length
+  const agotados = productos.filter((producto) => controlaStock(producto) && producto.stock <= 0).length
   const margen = alertasMargenOperacion(productos).length
   const vencidos = vencimientosCarteraOperacion(fiados, pagos, [], ahora).filter((item) => item.estado === 'vencido').length
   const atrasados = pedidosAtrasadosOperacion(pedidos, [], ahora).length
@@ -417,7 +418,7 @@ export function estadoCierreOperacion(
 
 /** 11. Valor inmovilizado del inventario a costo, a venta y margen potencial. */
 export function valorInventarioOperacion(productos: Producto[]): ValorInventarioOperacion {
-  const positivos = productos.filter((producto) => producto.stock > 0)
+  const positivos = productos.filter((producto) => controlaStock(producto) && producto.stock > 0)
   const aCosto = sumar(...positivos.map((producto) => multiplicar(producto.costo, producto.stock)))
   const aPrecio = sumar(...positivos.map((producto) => multiplicar(producto.precio, producto.stock)))
   return {
@@ -434,7 +435,7 @@ export function coberturaStockOperacion(
   ventas: Venta[],
   ahora: number = Date.now(),
 ): CoberturaOperacion[] {
-  return productos.map((producto) => {
+  return productos.filter(controlaStock).map((producto) => {
     const rotacion = rotacionStock(producto, ventas, ahora)
     const estado: CoberturaOperacion['estado'] = producto.stock <= 0
       ? 'agotado'
@@ -502,7 +503,7 @@ export function saludCatalogoOperacion(productos: Producto[]): SaludCatalogoOper
   const sinCosto = productos.filter((producto) => producto.costo <= 0).length
   const sinPrecio = productos.filter((producto) => producto.precio <= 0).length
   const debajoDelCosto = productos.filter((producto) => producto.precio > 0 && producto.precio < producto.costo).length
-  const sinStock = productos.filter((producto) => producto.stock <= 0).length
+  const sinStock = productos.filter((producto) => controlaStock(producto) && producto.stock <= 0).length
   const completos = productos.filter((producto) => producto.nombre.trim().length >= 2 && Boolean(producto.codigoBarras?.trim()) && producto.costo > 0 && producto.precio > 0 && producto.precio >= producto.costo).length
   return {
     total,
@@ -529,6 +530,7 @@ export function reservasEnRiesgoOperacion(
   for (const pedido of activos) {
     for (const item of pedido.items) {
       const producto = porId.get(item.productoId)
+      if (producto && !controlaStock(producto)) continue
       const stock = producto?.stock ?? 0
       const reservado = porProducto.get(item.productoId) ?? 0
       const disponibleDespuesDeReservas = stock - reservado
@@ -708,7 +710,7 @@ export function integridadOperacion(
     if (codigo && codigos.has(codigo)) codigosDuplicados += 1
     if (codigo) codigos.add(codigo)
   }
-  const stockNegativo = productos.filter((producto) => producto.stock < 0).length
+  const stockNegativo = productos.filter((producto) => controlaStock(producto) && producto.stock < 0).length
   const ventasSinCliente = ventasVigentes(ventas).filter((venta) => venta.medioPago === 'fiado' && !venta.clienteId).length
   const pedidosSinItems = pedidos.filter((pedido) => pedido.items.length === 0).length
   const pagosExcedidos = fiados.filter((fiado) => pagos.filter((pago) => pago.fiadoId === fiado.id).reduce((total, pago) => total + pago.monto, 0) > fiado.monto).length

@@ -1,4 +1,5 @@
 import type { Producto } from './tipos'
+import { controlaStock } from './stock'
 
 export type EstadoVence = 'vencido' | 'hoy' | 'pronto' | 'lejos'
 
@@ -39,7 +40,7 @@ export function textoVence(dias: number): string {
  *  urgente primero. Sin stock no importa: no hay nada que sacar. */
 export function porVencer(productos: Producto[], ahora: number): Array<{ producto: Producto; dias: number }> {
   return productos
-    .filter((producto) => producto.stock > 0)
+    .filter((producto) => !controlaStock(producto) || producto.stock > 0)
     .map((producto) => ({ producto, dias: diasParaVencer(producto, ahora) }))
     .filter((item): item is { producto: Producto; dias: number } => item.dias !== null && item.dias <= DIAS_AVISO)
     .sort((a, b) => a.dias - b.dias || a.producto.nombre.localeCompare(b.producto.nombre, 'es'))

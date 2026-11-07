@@ -25,12 +25,13 @@ import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
 import { TEXTOS, noSePudo } from '@/ui/sistema/textos'
 import { useDestino } from '@/ui/sistema/destino'
+import { controlaStock } from '@/dominio/stock'
 
 type Orden = 'nombre' | 'stock' | 'precio' | 'margen'
 type Filtro = 'reponer' | 'sin-stock' | 'sin-precio'
 
 function enMinimo(producto: Producto): boolean {
-  return producto.stockMinimo > 0 && producto.stock <= producto.stockMinimo
+  return controlaStock(producto) && producto.stockMinimo > 0 && producto.stock <= producto.stockMinimo
 }
 
 function AjustarStock({ producto, onTerminado }: { producto: Producto; onTerminado: () => void }) {
@@ -130,7 +131,7 @@ const FILTROS: { id: Filtro; titulo: string; detalle: string; tono: 'ambar' | 'g
 
 function cumple(producto: Producto, filtro: Filtro): boolean {
   if (filtro === 'reponer') return enMinimo(producto)
-  if (filtro === 'sin-stock') return producto.stock <= 0
+  if (filtro === 'sin-stock') return controlaStock(producto) && producto.stock <= 0
   return precioVigente(producto) <= 0
 }
 
@@ -302,7 +303,9 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
                   </div>
                   <button type="button" aria-label={producto.favorito ? 'Quitar favorito' : 'Agregar favorito'} title={producto.nombre} className="f-icono-boton f-stock-fav" data-active={producto.favorito ? 'true' : 'false'} onClick={() => void repos.productos.marcarFavorito(producto.id, !producto.favorito)}><IconoFavorito /></button>
                   <div className="f-stock-hay">
-                    {producto.stock <= 0
+                    {!controlaStock(producto)
+                      ? <span className="f-stock-cantidad f-stock-libre" title="No se controla el stock de este producto">Sin control</span>
+                      : producto.stock <= 0
                       ? <Etiqueta tono="gris">Sin stock</Etiqueta>
                       : enMinimo(producto)
                         ? <Etiqueta tono="ambar"><span className="f-stock-solo-celu">Quedan&nbsp;</span>{formatearCantidad(producto.stock, unidadDe(producto))}</Etiqueta>
@@ -320,7 +323,9 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
                   {(editaCatalogo || ajustaStock) && (
                     <div className="f-stock-acciones-fila">
                       {editaCatalogo && <Boton variante="secundario" tamano="chico" aria-label={`Editar ${producto.nombre}`} onClick={() => setEditando(producto)}>Editar</Boton>}
-                      {ajustaStock && <button type="button" className="f-icono-boton f-stock-accion" aria-label={`Ajustar stock de ${producto.nombre}`} title="Ajustar cuántos hay" onClick={() => setAjustando(producto)}><IconoMovimiento /></button>}
+                      {ajustaStock && (controlaStock(producto)
+                        ? <button type="button" className="f-icono-boton f-stock-accion" aria-label={`Ajustar stock de ${producto.nombre}`} title="Ajustar cuántos hay" onClick={() => setAjustando(producto)}><IconoMovimiento /></button>
+                        : <span className="f-stock-accion-hueco" aria-hidden="true" />)}
                       {editaCatalogo && <button type="button" className="f-icono-boton f-stock-accion" aria-label={`Ver rendimiento de ${producto.nombre}`} title="Ver cuánto rinde" onClick={() => setDetalle(producto)}><IconoPlata /></button>}
                       {editaCatalogo && <button type="button" className="f-icono-boton f-stock-borrar" aria-label={`Eliminar ${producto.nombre}`} title="Eliminar producto" onClick={() => solicitarEliminacion(producto)}><IconoEliminar /></button>}
                     </div>

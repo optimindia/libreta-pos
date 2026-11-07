@@ -1,4 +1,5 @@
 import type { Producto, UUID, Venta } from './tipos'
+import { controlaStock } from './stock'
 
 const DIA_EN_MS = 24 * 60 * 60 * 1000
 const VENTANA_DIAS = 14
@@ -46,6 +47,7 @@ export function listaDeCompra(
   const sugerencias: SugerenciaCompra[] = []
 
   for (const producto of productos) {
+    if (!controlaStock(producto)) continue
     const diasRestantes = diasHastaAgotar(producto, ventas, ahora)
     const seAgotaPronto = diasRestantes !== null && diasRestantes <= UMBRAL_AVISO_DIAS
     const faltanteSinDatos =

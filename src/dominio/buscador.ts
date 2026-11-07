@@ -84,7 +84,7 @@ export function buscarEnTodo(busqueda: string, fuentes: FuentesBusqueda): Array<
       tipo: 'producto' as const,
       id: p.id,
       titulo: p.nombre,
-      detalle: `${fuentes.formatearPesos(p.precio)} · ${p.stock <= 0 ? 'sin stock' : `quedan ${p.stock}`}`,
+      detalle: p.sinControlStock ? fuentes.formatearPesos(p.precio) : `${fuentes.formatearPesos(p.precio)} · ${p.stock <= 0 ? 'sin stock' : `quedan ${p.stock}`}`,
       href: `/stock?buscar=${deParametro(p.nombre)}`,
       puntaje: Math.max(porCodigo, coincidencia(p.nombre, texto)),
     }

@@ -37,6 +37,7 @@ import { funcionActiva } from '@/dominio/funciones'
 import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
 import { useMarcarVentaAbierta } from '@/ui/sistema/actualizacionSW'
 import { AnuncioVivo } from '@/ui/sistema/AnuncioVivo'
+import { controlaStock } from '@/dominio/stock'
 
 /** Mientras el almacenero no configure su negocio, el ticket lleva el
  *  mismo nombre provisorio que muestra la cabecera. */
@@ -83,7 +84,7 @@ export function PantallaVender() {
   // Lo que otro aparato del negocio tiene en una venta todavía sin cobrar,
   // avisado en vivo: tampoco se puede vender acá.
   const enOtrosAparatos = useReservasEnVivo(ventas)
-  const disponible = (producto: Producto) =>
+  const disponible = (producto: Producto) => !controlaStock(producto) ? STOCK_VARIOS :
     Math.max(0, producto.stock - (reservadas.get(producto.id) ?? 0) - (enOtrasVentas.get(producto.id) ?? 0) - (enOtrosAparatos.get(producto.id) ?? 0))
   const disponibles: Record<UUID, number> = Object.fromEntries(productos.map((producto) => [producto.id, disponible(producto)]))
   // "Varios" (monto libre) no está en el catálogo y nunca se queda sin stock.
