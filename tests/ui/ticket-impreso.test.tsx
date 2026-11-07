@@ -129,3 +129,17 @@ describe('Config: ticket impreso', () => {
     expect((screen.getByLabelText('Frase al pie del ticket') as HTMLInputElement).value).toBe('Gracias por tu compra')
   })
 })
+
+describe('Vista previa del ticket', () => {
+  it('muestra en pantalla el mismo ticket que se imprime, sin abrir la impresión', async () => {
+    render(<BotonesTicket datos={{ negocio: NEGOCIO.nombre, venta: VENTA }} />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Ver cómo sale el ticket' }))
+    const vista = screen.getByRole('region', { name: 'Vista previa del ticket' })
+    expect(within(vista).getByText('Almacén Rosales')).toBeTruthy()
+    expect(within(vista).getByText('Yerba Playadito')).toBeTruthy()
+    expect(within(vista).getAllByText('$8.400').length).toBeGreaterThan(0)
+    expect(window.print).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Ocultar el ticket' }))
+    expect(screen.queryByRole('region', { name: 'Vista previa del ticket' })).toBeNull()
+  })
+})
