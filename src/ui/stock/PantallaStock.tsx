@@ -21,9 +21,10 @@ import { useFuncionesNegocio } from '@/ui/sistema/usoFuncionesNegocio'
 import { usePuede } from '@/ui/sistema/usoRol'
 import { Portada } from '@/ui/sistema/Portada'
 import { Proveedores } from './Proveedores'
+import { Etiquetas } from './Etiquetas'
 import './stock.css'
 
-type Pestaña = 'catalogo' | 'cargar' | 'precios' | 'proveedores'
+type Pestaña = 'catalogo' | 'cargar' | 'precios' | 'etiquetas' | 'proveedores'
 
 export function PantallaStock() {
   const [pestaña, setPestaña] = useState<Pestaña>('catalogo')
@@ -72,6 +73,7 @@ export function PantallaStock() {
           <Chip activo={pestaña === 'catalogo'} onClick={() => setPestaña('catalogo')}>Catálogo ({productos.length})</Chip>
           <Chip activo={pestaña === 'cargar'} onClick={() => setPestaña('cargar')}>Cargar</Chip>
           <Chip activo={pestaña === 'precios'} onClick={() => setPestaña('precios')}>Precios</Chip>
+          <Chip activo={pestaña === 'etiquetas'} onClick={() => setPestaña('etiquetas')}>Etiquetas</Chip>
           <Chip activo={pestaña === 'proveedores'} onClick={() => setPestaña('proveedores')}>Proveedores</Chip>
         </Chips>
       )}
@@ -126,6 +128,8 @@ export function PantallaStock() {
       )}
 
       {vista === 'proveedores' && <Proveedores />}
+
+      {vista === 'etiquetas' && <Etiquetas productos={productos} />}
 
       {vista === 'precios' && <ActualizarPrecios />}
     </div>
