@@ -19,6 +19,7 @@ import '../ui/historial/historial.css'
 import '../ui/ticket/ticket.css'
 import { RegistrarSW } from '@/ui/sistema/RegistrarSW'
 import { Sincronizador } from '@/ui/sistema/Sincronizador'
+import { AvisoSinSubir } from '@/ui/sistema/AvisoSinSubir'
 import { TemaInicial } from '@/ui/sistema/TemaInicial'
 import { ControlAcceso } from '@/ui/sistema/ControlAcceso'
 import { SaltarAlContenido } from '@/ui/sistema/SaltarAlContenido'
@@ -61,6 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Sincronizador />
         <TemaInicial />
         <ControlAcceso>{children}</ControlAcceso>
+        <AvisoSinSubir />
       </body>
     </html>
   )

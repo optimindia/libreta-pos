@@ -11,6 +11,47 @@
   display: none;
 }
 
+/* Vista previa en pantalla: el mismo ticket, como un pedazo de papel térmico
+   (siempre blanco, también con el tema oscuro). Al imprimir no aparece: vive
+   dentro de la app, que la impresión esconde entera. */
+.f-ticket-papel {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+  padding: 16px 12px 20px;
+  border-radius: 14px;
+  background: var(--f-superficie-2);
+}
+
+.f-ticket-papel .f-ticket-vista {
+  display: block;
+  width: 100%;
+  max-width: 236px;
+  padding: 14px 12px 18px;
+  background: #fff;
+  color: #111;
+  font-family: 'Courier New', Courier, ui-monospace, monospace;
+  font-size: 12.5px;
+  line-height: 1.35;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.12), 0 8px 24px rgb(0 0 0 / 0.12);
+  /* Borde de abajo cortado en zigzag, como el papel arrancado. */
+  -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 8px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 12px 8px repeat-x;
+  mask: linear-gradient(#000 0 0) top / 100% calc(100% - 8px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 12px 8px repeat-x;
+}
+
+.f-ticket-papel .f-ticket-vista[data-ancho='80'] { max-width: 320px; }
+.f-ticket-vista h1 { margin: 0; font-size: 1.2em; font-weight: 700; overflow-wrap: anywhere; }
+.f-ticket-vista p, .f-ticket-vista ul, .f-ticket-vista dl, .f-ticket-vista dd { margin: 0; padding: 0; }
+.f-ticket-vista .f-ticket-cabecera { padding-bottom: 8px; border-bottom: 1px dashed #111; text-align: center; }
+.f-ticket-vista .f-ticket-renglones { padding: 8px 0; border-bottom: 1px dashed #111; list-style: none; }
+.f-ticket-vista .f-ticket-renglones li { display: grid; grid-template-columns: auto 1fr auto; column-gap: 6px; align-items: baseline; }
+.f-ticket-vista .f-ticket-nombre { overflow-wrap: anywhere; }
+.f-ticket-vista .f-ticket-importe, .f-ticket-vista .f-ticket-totales dd { text-align: right; white-space: nowrap; }
+.f-ticket-vista .f-ticket-totales { padding: 8px 0; }
+.f-ticket-vista .f-ticket-totales > div { display: flex; justify-content: space-between; gap: 8px; }
+.f-ticket-vista .f-ticket-total { font-size: 1.2em; font-weight: 700; }
+.f-ticket-vista .f-ticket-leyenda { padding-top: 8px; border-top: 1px dashed #111; text-align: center; overflow-wrap: anywhere; }
+
 /* Tamaño de papel base (58 mm). El de 80 mm lo pisa el <style> del ticket. */
 @page {
   size: 58mm auto;

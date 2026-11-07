@@ -130,9 +130,15 @@ Qué hace cada pieza (todo se decide en el servidor, la pantalla sólo pide):
   lleva a quién se le hizo; nunca PIN, código, hash ni teléfono. Nada de eso
   se escribe tampoco en consola (hay un test que lo vigila).
 
-### Activación (nada de esto está hecho todavía)
+### Activación (hecha el 7/11/2026)
 
-El código queda inerte hasta que se haga, en este orden:
+La migración se aplicó (ver `20261107010000_permisos_vendedor_aplicados.sql`)
+y las funciones `ingresar` (sin verificación de JWT) y `admin` están
+desplegadas. Todavía **sin** `LIBRETA_PIN_PEPPER`: las contraseñas siguen en
+v1; cuando se configure el secreto en ambas funciones, cada cuenta pasa sola a
+v2 en su próximo ingreso. Falta sólo el paso 4 (cada dueño genera su código).
+
+Pasos, en el orden en que se hicieron:
 
 1. Aplicar `supabase/migrations/20261030120000_recuperacion_pin.sql` (aditiva:
    tabla `recuperacion_pin_codigos` cerrada por RLS, sin políticas, sólo

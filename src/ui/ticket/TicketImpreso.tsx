@@ -3,12 +3,14 @@ import { resumenTicket, type AnchoPapel, type DatosTicket } from '@/dominio/tick
 /** El ticket para la impresora térmica. En pantalla está oculto; sólo se ve
  *  al imprimir (ver ticket.css). Se arma con los mismos datos que el texto
  *  que se comparte, así los dos dicen lo mismo. */
-export function TicketImpreso({ datos, ancho }: { datos: DatosTicket; ancho: AnchoPapel }) {
+/** `vista`: la copia en pantalla (vista previa). No define la página de
+ *  impresión ni se anuncia como el ticket que se imprime. */
+export function TicketImpreso({ datos, ancho, vista = false }: { datos: DatosTicket; ancho: AnchoPapel; vista?: boolean }) {
   const r = resumenTicket(datos)
   return (
-    <article className="f-ticket-impreso" data-ancho={ancho} aria-label="Ticket de la venta">
+    <article className={vista ? 'f-ticket-impreso f-ticket-vista' : 'f-ticket-impreso'} data-ancho={ancho} aria-label={vista ? 'Así sale el ticket' : 'Ticket de la venta'}>
       {/* El tamaño de página depende del rollo elegido. */}
-      <style>{`@page { size: ${ancho}mm auto; margin: 2mm; }`}</style>
+      {!vista && <style>{`@page { size: ${ancho}mm auto; margin: 2mm; }`}</style>}
       <header className="f-ticket-cabecera">
         <h1>{r.negocio}</h1>
         <p>{r.fecha}</p>

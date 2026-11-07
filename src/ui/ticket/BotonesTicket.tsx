@@ -18,6 +18,8 @@ export function BotonesTicket({ datos }: { datos: Omit<DatosTicket, 'leyenda'> }
   const [preferencias] = useTicket()
   const [pedidos, setPedidos] = useState(0)
   const [aviso, setAviso] = useState<string | null>(null)
+  // La vista previa: el mismo ticket que sale por la impresora, como papel.
+  const [viendo, setViendo] = useState(false)
   const sabeCompartir = useSyncExternalStore(sinSuscripcion, puedeCompartir, () => false)
   const completos: DatosTicket = { ...datos, leyenda: preferencias.leyenda }
 
@@ -39,9 +41,17 @@ export function BotonesTicket({ datos }: { datos: Omit<DatosTicket, 'leyenda'> }
   return (
     <>
       <div className="f-ticket-botones">
+        <Boton variante="secundario" ancho aria-expanded={viendo} onClick={() => setViendo((v) => !v)}>
+          {viendo ? 'Ocultar el ticket' : 'Ver cómo sale el ticket'}
+        </Boton>
         <Boton variante="secundario" ancho onClick={() => setPedidos((n) => n + 1)}>Imprimir ticket</Boton>
         {sabeCompartir && <Boton variante="secundario" ancho onClick={() => void compartir()}>Compartir</Boton>}
       </div>
+      {viendo && (
+        <div className="f-ticket-papel" role="region" aria-label="Vista previa del ticket">
+          <TicketImpreso datos={completos} ancho={preferencias.ancho} vista />
+        </div>
+      )}
       {aviso && <p className="f-aviso" role="alert">{aviso}</p>}
       {pedidos > 0 && createPortal(<TicketImpreso datos={completos} ancho={preferencias.ancho} />, document.body)}
     </>
