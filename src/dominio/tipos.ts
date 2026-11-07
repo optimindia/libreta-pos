@@ -1,4 +1,5 @@
 import type { Promo } from './promos'
+import type { ConfigVendedores } from './vendedores'
 import type { FuncionesNegocio } from './funciones'
 
 export type UUID = string
@@ -243,6 +244,8 @@ export interface AjustesNegocio {
   gastosFijos?: Array<{ id: string; nombre: string; monto: Centavos }>
   /** Promociones automáticas (3x2, por cantidad, combos). */
   promos?: Promo[]
+  /** Nombre y comisión de cada vendedor (por id de usuario). */
+  vendedores?: ConfigVendedores
 }
 
 export interface PreferenciasNegocio {

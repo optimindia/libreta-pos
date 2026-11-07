@@ -138,13 +138,13 @@ describe('Plata: filtro y cierre por vendedor (dueño)', () => {
     await sembrar()
     await db.cierres.put({ id: 'ct', fecha: AHORA - 500, fondoInicial: 0, ventasEfectivo: 100000, pagosFiadoEfectivo: 0, esperado: 100000, contado: 90000, alcance: 'turno', usuarioId: V1 })
     render(<PantallaPlata />)
-    const seccion = await screen.findByRole('region', { name: /por vendedor/i })
+    const seccion = await screen.findByRole('region', { name: 'Hoy por vendedor' })
     const filaV1 = within(seccion).getByText('Vendedor 1111').closest('li') as HTMLElement
     expect(filaV1.textContent).toMatch(/Faltó/)
     expect(filaV1.textContent).toContain('$100')
     expect(within(seccion).getByText('Vendedor 2222').closest('li')?.textContent).toMatch(/Sin cerrar/)
     expect(within(seccion).getByText('Sin dato')).toBeTruthy()
     // El cierre de turno no pisa el cierre del día del dueño.
-    expect(screen.getByRole('button', { name: /cerrar caja/i })).toBeTruthy()
+    expect(await screen.findByRole('button', { name: /cerrar caja/i })).toBeTruthy()
   })
 })

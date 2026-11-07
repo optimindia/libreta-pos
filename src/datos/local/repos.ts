@@ -1,4 +1,5 @@
 import { promoValida } from '@/dominio/promos'
+import { normalizarVendedores } from '@/dominio/vendedores'
 import { historialConCambio } from '@/dominio/historialPrecios'
 import { cantidadValida, esFraccionado, redondearCantidad } from '@/dominio/cantidad'
 import { CODIGO_VARIOS, esProductoVarios, MINIMO_VARIOS, NOMBRE_VARIOS, STOCK_VARIOS } from '@/dominio/varios'
@@ -77,6 +78,8 @@ export function normalizarAjustes(crudo: unknown): AjustesNegocio {
       .slice(0, 50)
       .map((g) => ({ id: g.id, nombre: g.nombre.slice(0, 60), monto: g.monto }))
   }
+  const vendedores = normalizarVendedores(dato.vendedores)
+  if (vendedores) ajustes.vendedores = vendedores
   if (Array.isArray(dato.promos)) {
     ajustes.promos = dato.promos.filter(promoValida).slice(0, 100).map((promo) => ({ ...promo, nombre: promo.nombre.slice(0, 60) }))
   }
