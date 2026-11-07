@@ -2,7 +2,8 @@
 
 import { useAjustesNegocio } from '@/ui/sistema/usoAjustesNegocio'
 import { aplicarPromos } from '@/dominio/promos'
-import { useEffect, useRef, useState } from 'react'
+import { ahorroMayorista, aplicarMayorista, mapaMayorista } from '@/dominio/mayorista'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { Centavos, ItemVenta, MedioPago, Negocio, Producto, UUID, Venta } from '@/dominio/tipos'
 import { CODIGO_VARIOS, STOCK_VARIOS, sumarMontoLibre } from '@/dominio/varios'
@@ -42,7 +43,7 @@ const SIN_VENTA = ventaNueva('sin-cargar', 0)
 const NEGOCIO_POR_DEFECTO: Negocio = { id: 'unico', nombre: 'Tu almacén', logo: null, color: null }
 
 export function PantallaVender() {
-  const { ventas, activa: activaGuardada, items, setItems, setNombre, setDescuentoItem, setDescuentoTotal, nueva, elegir, cerrar } = useVentasAbiertas()
+  const { ventas, activa: activaGuardada, items, setItems, setNombre, setDescuentoItem, setDescuentoTotal, setMayorista, nueva, elegir, cerrar } = useVentasAbiertas()
   // Mientras se leen las ventas guardadas (un instante) se muestra una en blanco.
   const activa = activaGuardada ?? SIN_VENTA
   const [descontando, setDescontando] = useState<{ productoId: UUID | null } | null>(null)
@@ -119,11 +120,14 @@ export function PantallaVender() {
   const [ajustesNegocio] = useAjustesNegocio()
   const promos = ajustesNegocio.promos ?? []
   // Lo que se cobra es el ticket con sus descuentos; la venta guarda el precio de lista.
-  const cobrables = itemsParaCobrar(activa, promos)
+  const mayoristas = useMemo(() => mapaMayorista(productos), [productos])
+  const hayMayorista = Object.keys(mayoristas).length > 0
+  const cobrables = itemsParaCobrar(activa, promos, mayoristas)
   const total = totalTicket(cobrables)
-  const ahorro = ahorroTotal(activa, promos)
-  const promosAplicadas = aplicarPromos(activa.items, promos).aplicadas
-  const ahorroPromos = ahorroTotal({ ...activa, descuentoItems: {}, descuentoTotal: null }, promos)
+  const ahorro = ahorroTotal(activa, promos, mayoristas)
+  const ahorroPorMayor = ahorroMayorista(activa.items, mayoristas, activa.mayorista === true)
+  const promosAplicadas = aplicarPromos(aplicarMayorista(activa.items, mayoristas, activa.mayorista === true), promos).aplicadas
+  const ahorroPromos = ahorroTotal({ ...activa, descuentoItems: {}, descuentoTotal: null }, promos, mayoristas) - ahorroPorMayor
   const masVendidosHoy = useLiveQuery(async () => {
     const desde = Date.now() - 30 * 24 * 60 * 60 * 1000
     return db.ventas.where('fecha').above(desde).toArray()
@@ -394,7 +398,7 @@ export function PantallaVender() {
   const sobreDescuento = descontando
     ? descontando.productoId
       ? { titulo: 'Descuento del producto', inicial: activa.descuentoItems[descontando.productoId] ?? null, base: (() => { const renglon = activa.items.find((item) => item.productoId === descontando.productoId); return renglon ? renglon.precio * renglon.cantidad : 0 })() }
-      : { titulo: 'Descuento de la venta', inicial: activa.descuentoTotal, base: totalTicket(itemsParaCobrar({ ...activa, descuentoTotal: null }, promos)) }
+      : { titulo: 'Descuento de la venta', inicial: activa.descuentoTotal, base: totalTicket(itemsParaCobrar({ ...activa, descuentoTotal: null }, promos, mayoristas)) }
     : null
 
   return (
@@ -404,7 +408,7 @@ export function PantallaVender() {
         <h1 className="f-sr">Vender</h1>
 
         {!aparatoNuevo && (ventas.length > 1 || hayVentaAbierta) && (
-          <TiraVentas ventas={ventas} promos={promos} activaId={activa.id} llena={ventas.length >= MAX_VENTAS_ABIERTAS} onElegir={(id) => { elegir(id); setVerTicket(false) }} onNueva={nuevaVenta} />
+          <TiraVentas ventas={ventas} promos={promos} mayoristas={mayoristas} activaId={activa.id} llena={ventas.length >= MAX_VENTAS_ABIERTAS} onElegir={(id) => { elegir(id); setVerTicket(false) }} onNueva={nuevaVenta} />
         )}
 
         {aparatoNuevo ? (
@@ -492,6 +496,13 @@ export function PantallaVender() {
                     <Boton variante="secundario" tamano="chico" onClick={ajustarAlStock}>Ajustar el ticket</Boton>
                   </div>
                 )}
+                {hayMayorista && hayItems && (
+                  <label className="f-venta-mayorista" data-activo={activa.mayorista ? 'true' : undefined}>
+                    <input type="checkbox" checked={activa.mayorista === true} onChange={(evento) => setMayorista(evento.target.checked)} />
+                    <span>Venta por mayor</span>
+                    {ahorroPorMayor > 0 && <strong>−{formatearPesos(ahorroPorMayor)}</strong>}
+                  </label>
+                )}
                 {promosAplicadas.length > 0 && (
                   <ul className="f-venta-promos" aria-label="Promociones aplicadas">
                     {promosAplicadas.map(({ promo, veces, ahorro: ahorroPromo }) => (
@@ -501,7 +512,7 @@ export function PantallaVender() {
                 )}
                 {hayItems && (
                   <div className="f-venta-descuento-fila">
-                    {ahorro - ahorroPromos > 0 && <span className="f-dato">{ahorroPromos > 0 ? 'Otros descuentos' : 'Descuento'} −{formatearPesos(ahorro - ahorroPromos)}</span>}
+                    {ahorro - ahorroPromos - ahorroPorMayor > 0 && <span className="f-dato">{ahorroPromos + ahorroPorMayor > 0 ? 'Otros descuentos' : 'Descuento'} −{formatearPesos(ahorro - ahorroPromos - ahorroPorMayor)}</span>}
                     <button type="button" className="f-venta-descuento" onClick={() => setDescontando({ productoId: null })}>
                       {activa.descuentoTotal ? 'Cambiar descuento de la venta' : 'Descuento a toda la venta'}
                     </button>

@@ -58,6 +58,8 @@ export function FormularioProducto({
   const [precioOferta, setPrecioOferta] = useState(producto?.precioOferta ? String(producto.precioOferta / 100) : '')
   const [ofertaHasta, setOfertaHasta] = useState(producto?.ofertaHasta ? new Date(producto.ofertaHasta).toISOString().slice(0, 10) : '')
   const [vence, setVence] = useState(textoDeVence(producto?.venceEl))
+  const [mayorista, setMayorista] = useState(producto?.precioMayorista ? String(producto.precioMayorista / 100) : '')
+  const [mayoristaDesde, setMayoristaDesde] = useState(producto?.mayoristaDesde ? textoCantidad(producto.mayoristaDesde) : '')
   const [codigo, setCodigo] = useState(producto?.codigoBarras ?? codigoInicial ?? '')
   const [minimo, setMinimo] = useState(producto ? textoCantidad(producto.stockMinimo) : '3')
   const [stockInicial, setStockInicial] = useState(producto ? textoCantidad(producto.stock) : '')
@@ -115,6 +117,16 @@ export function FormularioProducto({
         setErrores(nuevosErrores)
         return
       }
+      const mayoristaCentavos = mayorista.trim() ? pesosACentavos(pesosDeTexto(mayorista)) : undefined
+      const desdeMayorista = mayoristaDesde.trim() ? leerCantidad(mayoristaDesde) : undefined
+      if (mayoristaCentavos !== undefined && (!Number.isFinite(mayoristaCentavos) || mayoristaCentavos <= 0 || mayoristaCentavos > precioCentavos)) {
+        setAviso('El precio mayorista tiene que ser mayor a cero y no más caro que el precio común.')
+        return
+      }
+      if (desdeMayorista !== undefined && (!Number.isFinite(desdeMayorista) || desdeMayorista <= 0)) {
+        setAviso('Escribí desde cuántas unidades va el precio mayorista, o dejalo vacío.')
+        return
+      }
       setGuardando(true)
       const guardado = await repos.productos.guardar({
         ...(producto ?? {}),
@@ -129,6 +141,8 @@ export function FormularioProducto({
         precioOferta: ofertaCentavos,
         ofertaHasta: ofertaCentavos ? fechaOferta : undefined,
         venceEl: venceDeTexto(vence),
+        precioMayorista: mayoristaCentavos,
+        mayoristaDesde: mayoristaCentavos && desdeMayorista ? desdeMayorista : undefined,
       })
       onGuardado?.(guardado)
       if (!producto) {
@@ -261,13 +275,24 @@ export function FormularioProducto({
         </div>
 
         <details className="f-carga-mas">
-          <summary>Más opciones <span>mínimo, vencimiento y oferta</span></summary>
+          <summary>Más opciones <span>mínimo, mayorista, vencimiento y oferta</span></summary>
           <div className="f-carga-mas-cuerpo">
             <label className="f-campo">
               <span>Avisarme cuando queden <em>{sufijo}</em></span>
               <input aria-label="Mínimo" inputMode={porUnidad ? 'numeric' : 'decimal'} placeholder="3" className="f-entrada" value={minimo} {...enlace(Boolean(errores.stockMinimo), `${idError.control}-min`)} onChange={(evento) => { setMinimo(evento.target.value); setErrores((actuales) => ({ ...actuales, stockMinimo: undefined })) }} />
               {errores.stockMinimo && <small id={`${idError.control}-min`} className="f-stock-error" role="alert">{errores.stockMinimo}</small>}
             </label>
+            <div className="f-stock-fila-campos">
+              <label className="f-campo">
+                <span>Precio mayorista</span>
+                <div className="f-stock-prefijo"><span aria-hidden="true">$</span><input aria-label="Precio mayorista" inputMode="decimal" placeholder="Ej. 900" className="f-entrada" value={mayorista} onChange={(evento) => { setMayorista(evento.target.value); setAviso(null) }} /></div>
+              </label>
+              <label className="f-campo">
+                <span>Solo desde <em>{sufijo}</em></span>
+                <input aria-label="Mayorista desde" inputMode={porUnidad ? 'numeric' : 'decimal'} placeholder="Ej. 12" className="f-entrada" value={mayoristaDesde} onChange={(evento) => { setMayoristaDesde(evento.target.value); setAviso(null) }} />
+              </label>
+            </div>
+            <small className="f-dato f-stock-mayorista-ayuda">Con cantidad, se aplica solo al llevar esa cantidad. Sin cantidad, sólo en una venta por mayor.</small>
             <label className="f-campo">
               <span>Vence el <em>opcional</em></span>
               <input aria-label="Fecha de vencimiento" type="date" className="f-entrada" value={vence} onChange={(evento) => setVence(evento.target.value)} />

@@ -1147,3 +1147,10 @@
 .f-venta-promos { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
 .f-venta-promos li { display: flex; align-items: center; justify-content: space-between; gap: var(--f-3); padding: 6px 10px; border-radius: 10px; background: var(--f-verde-suave); color: var(--f-verde); font-size: 14px; font-weight: 800; }
 .f-venta-promo-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ───────────── Venta por mayor ───────────── */
+
+.f-venta-mayorista { display: flex; min-height: 44px; align-items: center; gap: 10px; padding: 0 12px; border: 1.5px solid var(--f-borde); border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
+.f-venta-mayorista input { width: 20px; height: 20px; margin: 0; accent-color: var(--f-verde); }
+.f-venta-mayorista strong { margin-left: auto; color: var(--f-verde); font-weight: 800; }
+.f-venta-mayorista[data-activo='true'] { border-color: var(--f-verde); background: var(--f-verde-suave); }

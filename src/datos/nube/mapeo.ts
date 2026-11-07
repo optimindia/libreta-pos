@@ -46,6 +46,8 @@ const CAMPOS: Record<string, string> = {
   proveedorId: 'proveedor_id',
   historialPrecios: 'historial_precios',
   venceEl: 'vence_el',
+  precioMayorista: 'precio_mayorista',
+  mayoristaDesde: 'mayorista_desde',
 }
 
 const FECHAS = new Set(['fecha', 'vence', 'vence_el', 'anulado_en', 'anulada_en', 'actualizado_en', 'oferta_hasta', 'eliminado_en', 'fecha_entrega'])
@@ -57,12 +59,12 @@ const INVERSO: Record<string, string> = Object.fromEntries(
 /** Un opcional que se borra (quitar la categoría, la oferta o el límite)
  *  tiene que viajar como null: un undefined desaparece del JSON y la nube se
  *  quedaría con el valor viejo. */
-const BORRABLES = new Set(['precioOferta', 'ofertaHasta', 'categoria', 'limiteFiado', 'proveedorId', 'cumpleanos', 'nota', 'venceEl'])
+const BORRABLES = new Set(['precioOferta', 'ofertaHasta', 'categoria', 'limiteFiado', 'proveedorId', 'cumpleanos', 'nota', 'venceEl', 'precioMayorista', 'mayoristaDesde'])
 
 /** Lo que no se manda queda como estaba en la nube: estas claves se fuerzan
  *  para que "sin categoría" o "sin límite" también lleguen a los demás. */
 const SIEMPRE: Record<string, Record<string, unknown>> = {
-  producto: { categoria: null, favorito: false, proveedorId: null, venceEl: null },
+  producto: { categoria: null, favorito: false, proveedorId: null, venceEl: null, precioMayorista: null, mayoristaDesde: null },
   cliente: { limiteFiado: null, cumpleanos: null, nota: null },
 }
 
@@ -134,10 +136,10 @@ export function aLaNube(
 
 /** Columnas numeric (cantidades con decimales): según el cliente, Postgres
  *  puede devolverlas como texto ("0.500"). Adentro siempre son números. */
-const CANTIDADES = new Set(['stock', 'stock_minimo', 'cantidad'])
+const CANTIDADES = new Set(['stock', 'stock_minimo', 'cantidad', 'mayorista_desde'])
 
 /** En la app un opcional vacío es "no está", no null. */
-const OPCIONALES = new Set(['vence_el', 'cumpleanos', 'nota', 'historial_precios', 'proveedor_id', 'pagos', 'devoluciones', 'categoria', 'limite_fiado', 'eliminado_en', 'precio_oferta', 'oferta_hasta', 'anulada_en', 'motivo_anulacion', 'entradas_caja', 'salidas_caja'])
+const OPCIONALES = new Set(['precio_mayorista', 'mayorista_desde', 'vence_el', 'cumpleanos', 'nota', 'historial_precios', 'proveedor_id', 'pagos', 'devoluciones', 'categoria', 'limite_fiado', 'eliminado_en', 'precio_oferta', 'oferta_hasta', 'anulada_en', 'motivo_anulacion', 'entradas_caja', 'salidas_caja'])
 
 export function deLaNube(tabla: string, fila: Fila): Fila {
   const local: Fila = {}
