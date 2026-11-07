@@ -45,7 +45,7 @@ export async function planRestauracion(respaldo: RespaldoLocal, reemplazar = fal
 export async function restaurarRespaldoLocal(respaldo: RespaldoLocal, opciones: { reemplazar?: boolean } = {}): Promise<number> {
   if (!validarRespaldoLocal(respaldo)) throw new Error('respaldo inválido')
   let restauradas = 0
-  await db.transaction('rw', [db.productos, db.ventas, db.clientes, db.fiados, db.fiadoPagos, db.ingresos, db.cierres, db.movimientosCaja, db.pedidos, db.preferencias, db.negocio], async () => {
+  await db.transaction('rw', [db.productos, db.ventas, db.clientes, db.fiados, db.fiadoPagos, db.ingresos, db.cierres, db.movimientosCaja, db.pedidos, db.proveedores, db.preferencias, db.negocio], async () => {
     const actual = await db.negocio.get('unico')
     const actualPreferencias = await db.preferencias.get('unico')
     const plan = planificarFusion(respaldo, await filasActuales(), { reemplazar: opciones.reemplazar })

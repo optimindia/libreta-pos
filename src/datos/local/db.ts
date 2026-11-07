@@ -1,14 +1,14 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type {
   Cierre, Cliente, Fiado, FiadoPago, Ingreso, MovimientoCaja, Negocio, Producto, Venta,
-  Pedido, PreferenciasNegocio,
+  Pedido, PreferenciasNegocio, Proveedor,
 } from '@/dominio/tipos'
 import type { VentaAbierta } from '@/dominio/ventaAbierta'
 
 /** Una operación pendiente de subir a la nube. */
 export interface EnCola {
   id: string
-  entidad: 'venta' | 'producto' | 'movimientoStock' | 'fiado' | 'fiadoPago' | 'ingreso' | 'cliente' | 'cierre' | 'movimientoCaja' | 'pedido' | 'preferencias' | 'negocio'
+  entidad: 'venta' | 'producto' | 'movimientoStock' | 'fiado' | 'fiadoPago' | 'ingreso' | 'cliente' | 'cierre' | 'movimientoCaja' | 'pedido' | 'preferencias' | 'negocio' | 'proveedor'
   operacion: 'crear' | 'actualizar' | 'eliminar'
   datos: unknown
   intentos: number
@@ -33,6 +33,7 @@ export const db = new Dexie('libreta') as Dexie & {
   negocio: EntityTable<Negocio, 'id'>
   cola: EntityTable<EnCola, 'id'>
   ventasAbiertas: EntityTable<VentaAbierta, 'id'>
+  proveedores: EntityTable<Proveedor, 'id'>
 }
 
 db.version(1).stores({
@@ -75,4 +76,10 @@ db.version(6).stores({
  *  del mostrador y tienen que sobrevivir a cambiar de pantalla o recargar. */
 db.version(7).stores({
   ventasAbiertas: 'id, actualizada',
+})
+
+/** Mejora #12: proveedores (y a quién se le compra cada producto). */
+db.version(8).stores({
+  proveedores: 'id, nombre',
+  productos: 'id, codigoBarras, nombre, proveedorId',
 })

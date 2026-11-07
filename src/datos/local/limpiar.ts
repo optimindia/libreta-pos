@@ -6,7 +6,7 @@ import { db } from './db'
 export async function limpiarDatosLocales(): Promise<void> {
   await db.transaction(
     'rw',
-    [db.productos, db.ventas, db.clientes, db.fiados, db.fiadoPagos, db.ingresos, db.cierres, db.movimientosCaja, db.pedidos, db.preferencias, db.negocio, db.cola],
+    [db.productos, db.ventas, db.clientes, db.fiados, db.fiadoPagos, db.ingresos, db.cierres, db.movimientosCaja, db.pedidos, db.preferencias, db.negocio, db.cola, db.proveedores],
     async () => {
       await Promise.all([
         db.productos.clear(),
@@ -21,6 +21,7 @@ export async function limpiarDatosLocales(): Promise<void> {
         db.preferencias.clear(),
         db.negocio.clear(),
         db.cola.clear(),
+        db.proveedores.clear(),
       ])
     },
   )

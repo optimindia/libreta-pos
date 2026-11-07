@@ -41,6 +41,8 @@ export interface Producto {
   /** Marca interna para propagar un borrado entre dispositivos sin romper
    *  el historial remoto. La app nunca muestra productos marcados. */
   eliminadoEn?: number
+  /** Quién lo vende (Mejora #12). */
+  proveedorId?: UUID
 }
 
 /** El precio y el costo se copian al vender: si mañana sube la yerba,
@@ -227,4 +229,18 @@ export interface PreferenciasNegocio {
   funciones: FuncionesNegocio
   ajustes?: AjustesNegocio
   actualizadoEn: number
+}
+
+/** Quien le vende mercadería al negocio. */
+export interface Proveedor {
+  id: UUID
+  nombre: string
+  telefono: string | null
+  /** Cuándo pasa: "martes y viernes a la mañana". */
+  visita: string | null
+  nota: string | null
+  /** Lo que se le debe, en centavos. */
+  deuda: Centavos
+  actualizadoEn?: number
+  eliminadoEn?: number
 }

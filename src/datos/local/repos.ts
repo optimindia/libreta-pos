@@ -3,7 +3,7 @@ import { CODIGO_VARIOS, esProductoVarios, MINIMO_VARIOS, NOMBRE_VARIOS, STOCK_VA
 import { db } from './db'
 import { encolar } from './cola'
 import type {
-  AjustesNegocio,
+  AjustesNegocio, Proveedor,
   Cierre, Cliente, Centavos, EstadoPedido, Fiado, FiadoPago, Ingreso, ItemIngreso, ItemVenta, MedioPago, MovimientoCaja, Pedido, PreferenciasNegocio, Producto, UUID, Venta,
 } from '@/dominio/tipos'
 import type { FuncionesNegocio } from '@/dominio/funciones'
@@ -156,6 +156,13 @@ export class ErrorCodigoRepetido extends Error {
   }
 }
 
+export class ErrorProveedorInvalido extends Error {
+  constructor(motivo: string) {
+    super(motivo)
+    this.name = 'ErrorProveedorInvalido'
+  }
+}
+
 export class ErrorClienteConDeuda extends Error {
   constructor(public readonly saldo: Centavos, nombre: string) {
     super(`${nombre} todavía debe ${formatearPesos(saldo)}. Cobrá el fiado antes de quitarlo de tu cartera.`)
@@ -268,6 +275,16 @@ export const repos = {
       })
       if (!actualizado) return null
       await encolarMovimientoStock(id, cambio, 'ajuste')
+      return actualizado
+    },
+    async asignarProveedor(id: UUID, proveedorId: UUID | null): Promise<Producto | null> {
+      const actual = await db.productos.get(id)
+      if (!actual) return null
+      const actualizado: Producto = { ...actual, actualizadoEn: Date.now() }
+      if (proveedorId) actualizado.proveedorId = proveedorId
+      else delete actualizado.proveedorId
+      await db.productos.put(actualizado)
+      await encolar('producto', 'actualizar', actualizado)
       return actualizado
     },
     async marcarFavorito(id: UUID, favorito: boolean): Promise<Producto | null> {
@@ -589,6 +606,40 @@ export const repos = {
 
       if (eliminadoEn !== null) await encolar('cliente', 'eliminar', { id, eliminadoEn })
       return eliminadoEn !== null
+    },
+  },
+
+  proveedores: {
+    async todos(): Promise<Proveedor[]> {
+      return (await db.proveedores.toArray()).filter((p) => !p.eliminadoEn).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
+    },
+    async guardar(datos: Omit<Proveedor, 'id' | 'actualizadoEn' | 'eliminadoEn'> & { id?: UUID }): Promise<Proveedor> {
+      const nombre = datos.nombre.trim()
+      if (nombre.length === 0) throw new ErrorProveedorInvalido('Escribí el nombre del proveedor.')
+      if (!Number.isInteger(datos.deuda) || datos.deuda < 0) throw new ErrorProveedorInvalido('La deuda no puede ser negativa.')
+      const anterior = datos.id ? await db.proveedores.get(datos.id) : undefined
+      const proveedor: Proveedor = {
+        id: datos.id ?? nuevoId(),
+        nombre,
+        telefono: datos.telefono?.trim() || null,
+        visita: datos.visita?.trim() || null,
+        nota: datos.nota?.trim() || null,
+        deuda: datos.deuda,
+      }
+      await db.proveedores.put(proveedor)
+      await encolar('proveedor', anterior ? 'actualizar' : 'crear', proveedor)
+      return proveedor
+    },
+    /** Se marca como quitado: sus productos quedan sin proveedor. */
+    async eliminar(id: UUID): Promise<void> {
+      const actual = await db.proveedores.get(id)
+      if (!actual) return
+      const eliminadoEn = Date.now()
+      await db.proveedores.put({ ...actual, eliminadoEn })
+      await encolar('proveedor', 'eliminar', { id, eliminadoEn })
+      for (const producto of await db.productos.where('proveedorId').equals(id).toArray()) {
+        await repos.productos.asignarProveedor(producto.id, null)
+      }
     },
   },
 

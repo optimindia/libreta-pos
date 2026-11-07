@@ -6,10 +6,10 @@
 /** Versión del formato del archivo. La 1 era la copia sin número de esquema. */
 export const VERSION_COPIA = 2
 /** Última versión de las tablas de Dexie (db.version en datos/local/db.ts). */
-export const ESQUEMA_ACTUAL = 7
+export const ESQUEMA_ACTUAL = 8
 
 export const TABLAS_DATOS = [
-  'productos', 'ventas', 'clientes', 'fiados', 'fiadoPagos', 'ingresos', 'cierres', 'movimientosCaja', 'pedidos',
+  'productos', 'ventas', 'clientes', 'fiados', 'fiadoPagos', 'ingresos', 'cierres', 'movimientosCaja', 'pedidos', 'proveedores',
 ] as const
 export type TablaDatos = (typeof TABLAS_DATOS)[number]
 
@@ -34,6 +34,7 @@ export interface Copia {
   /** Opcionales: las copias anteriores no los traían. */
   movimientosCaja?: Fila[]
   pedidos?: Fila[]
+  proveedores?: Fila[]
   preferencias?: Fila[]
 }
 
@@ -61,12 +62,13 @@ const REGLAS: Record<TablaDatos | 'negocio' | 'preferencias', Regla> = {
   cierres: (f) => num(f.fecha),
   movimientosCaja: (f) => num(f.fecha) && num(f.monto),
   pedidos: (f) => num(f.fecha) && lista(f.items),
+  proveedores: (f) => txt(f.nombre),
   preferencias: () => true,
   negocio: (f) => txt(f.nombre),
 }
 
 const OBLIGATORIAS = ['productos', 'ventas', 'clientes', 'fiados', 'fiadoPagos', 'ingresos', 'cierres', 'negocio'] as const
-const OPCIONALES = ['movimientosCaja', 'pedidos', 'preferencias'] as const
+const OPCIONALES = ['movimientosCaja', 'pedidos', 'proveedores', 'preferencias'] as const
 
 const rechazo = (motivo: MotivoRechazo, detalle: string): ResultadoCopia => ({ ok: false, motivo, detalle })
 
@@ -132,7 +134,7 @@ export function validarCopiaObjeto(valor: unknown): ResultadoCopia {
 const TITULOS: Record<TablaDatos, string> = {
   productos: 'Productos', ventas: 'Ventas', clientes: 'Clientes', fiados: 'Fiados',
   fiadoPagos: 'Pagos de fiados', ingresos: 'Ingresos de mercadería', cierres: 'Cierres de caja',
-  movimientosCaja: 'Movimientos de caja', pedidos: 'Pedidos',
+  movimientosCaja: 'Movimientos de caja', pedidos: 'Pedidos', proveedores: 'Proveedores',
 }
 
 export interface FilaResumen { tabla: TablaDatos; titulo: string; cantidad: number }
