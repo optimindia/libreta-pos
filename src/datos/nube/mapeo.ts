@@ -45,9 +45,10 @@ const CAMPOS: Record<string, string> = {
   salidasCaja: 'salidas_caja',
   proveedorId: 'proveedor_id',
   historialPrecios: 'historial_precios',
+  venceEl: 'vence_el',
 }
 
-const FECHAS = new Set(['fecha', 'vence', 'anulado_en', 'anulada_en', 'actualizado_en', 'oferta_hasta', 'eliminado_en', 'fecha_entrega'])
+const FECHAS = new Set(['fecha', 'vence', 'vence_el', 'anulado_en', 'anulada_en', 'actualizado_en', 'oferta_hasta', 'eliminado_en', 'fecha_entrega'])
 
 const INVERSO: Record<string, string> = Object.fromEntries(
   Object.entries(CAMPOS).map(([local, nube]) => [nube, local]),
@@ -56,12 +57,12 @@ const INVERSO: Record<string, string> = Object.fromEntries(
 /** Un opcional que se borra (quitar la categoría, la oferta o el límite)
  *  tiene que viajar como null: un undefined desaparece del JSON y la nube se
  *  quedaría con el valor viejo. */
-const BORRABLES = new Set(['precioOferta', 'ofertaHasta', 'categoria', 'limiteFiado', 'proveedorId', 'cumpleanos', 'nota'])
+const BORRABLES = new Set(['precioOferta', 'ofertaHasta', 'categoria', 'limiteFiado', 'proveedorId', 'cumpleanos', 'nota', 'venceEl'])
 
 /** Lo que no se manda queda como estaba en la nube: estas claves se fuerzan
  *  para que "sin categoría" o "sin límite" también lleguen a los demás. */
 const SIEMPRE: Record<string, Record<string, unknown>> = {
-  producto: { categoria: null, favorito: false, proveedorId: null },
+  producto: { categoria: null, favorito: false, proveedorId: null, venceEl: null },
   cliente: { limiteFiado: null, cumpleanos: null, nota: null },
 }
 
@@ -136,7 +137,7 @@ export function aLaNube(
 const CANTIDADES = new Set(['stock', 'stock_minimo', 'cantidad'])
 
 /** En la app un opcional vacío es "no está", no null. */
-const OPCIONALES = new Set(['cumpleanos', 'nota', 'historial_precios', 'proveedor_id', 'pagos', 'devoluciones', 'categoria', 'limite_fiado', 'eliminado_en', 'precio_oferta', 'oferta_hasta', 'anulada_en', 'motivo_anulacion', 'entradas_caja', 'salidas_caja'])
+const OPCIONALES = new Set(['vence_el', 'cumpleanos', 'nota', 'historial_precios', 'proveedor_id', 'pagos', 'devoluciones', 'categoria', 'limite_fiado', 'eliminado_en', 'precio_oferta', 'oferta_hasta', 'anulada_en', 'motivo_anulacion', 'entradas_caja', 'salidas_caja'])
 
 export function deLaNube(tabla: string, fila: Fila): Fila {
   const local: Fila = {}

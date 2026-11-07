@@ -45,6 +45,8 @@ export interface Producto {
   precioOferta?: Centavos
   /** Los últimos cambios de precio y costo, del más viejo al más nuevo. */
   historialPrecios?: CambioPrecio[]
+  /** Cuándo vence lo que hay en la góndola (la fecha más próxima). */
+  venceEl?: number | null
   ofertaHasta?: number
   /** Marca interna para propagar un borrado entre dispositivos sin romper
    *  el historial remoto. La app nunca muestra productos marcados. */
