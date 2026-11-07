@@ -1154,3 +1154,28 @@
 .f-venta-mayorista input { width: 20px; height: 20px; margin: 0; accent-color: var(--f-verde); }
 .f-venta-mayorista strong { margin-left: auto; color: var(--f-verde); font-weight: 800; }
 .f-venta-mayorista[data-activo='true'] { border-color: var(--f-verde); background: var(--f-verde-suave); }
+
+/* ───────────── Cliente de la venta y sellos ───────────── */
+
+.f-venta-cliente { display: flex; flex-direction: column; gap: 6px; }
+.f-venta-cliente-agregar { align-self: flex-start; min-height: 44px; padding: 0 4px; border: 0; background: transparent; color: var(--f-tinta-2); font: inherit; font-size: 15px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.f-venta-cliente-fila { display: flex; align-items: center; justify-content: space-between; gap: var(--f-3); }
+.f-venta-cliente-nombre { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+.f-venta-cliente-nombre strong { overflow: hidden; font-size: 16px; text-overflow: ellipsis; white-space: nowrap; }
+.f-venta-sellos { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.f-venta-sellos i { display: block; width: 14px; height: 14px; border-radius: 999px; box-shadow: inset 0 0 0 2px var(--f-borde); }
+.f-venta-sellos i[data-lleno='true'] { background: var(--f-verde); box-shadow: none; }
+.f-venta-sellos em { color: var(--f-tinta-2); font-size: 12px; font-style: normal; font-weight: 800; }
+.f-venta-cliente-quitar { min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: var(--f-tinta-2); font: inherit; font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.f-venta-premio { display: flex; min-height: 44px; align-items: center; gap: 10px; padding: 0 12px; border: 1.5px solid var(--f-lima); border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; }
+.f-venta-premio input { width: 20px; height: 20px; margin: 0; accent-color: var(--f-verde); }
+.f-venta-premio[data-activo='true'] { background: var(--f-verde-suave); }
+.f-venta-cliente-lista { display: flex; flex-direction: column; margin: var(--f-3) 0 0; padding: 0; list-style: none; }
+.f-venta-cliente-lista button { display: flex; width: 100%; min-height: 56px; flex-direction: column; justify-content: center; gap: 2px; padding: 6px 8px; border: 0; border-top: 1px solid var(--f-superficie-2); background: transparent; color: var(--f-tinta); font: inherit; text-align: left; cursor: pointer; }
+.f-venta-cliente-lista li:first-child button { border-top: 0; }
+.f-venta-cliente-lista button:hover, .f-venta-cliente-lista button:focus-visible { background: var(--f-superficie-2); }
+.f-venta-cliente-lista button:focus-visible { outline: 3px solid var(--f-foco); outline-offset: -3px; }
+.f-venta-cliente-lista strong { font-size: 16px; }
+.f-venta-cliente-lista span { color: var(--f-tinta-2); font-size: 14px; }
+.f-venta-cliente-buscar { flex: 0 0 auto; }
+.f-venta-monto-descuento { white-space: nowrap; }

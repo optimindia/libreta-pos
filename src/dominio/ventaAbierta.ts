@@ -23,6 +23,10 @@ export interface VentaAbierta {
   descuentoTotal: Descuento | null
   /** Venta por mayor: todos los productos que tengan precio mayorista lo usan. */
   mayorista?: boolean
+  /** El cliente de la venta (para sumar sellos), aunque no sea fiado. */
+  clienteId?: UUID
+  /** Se está usando el premio de fidelidad del cliente. */
+  canjeFidelidad?: boolean
   creada: number
   actualizada: number
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useAjustesNegocio } from '@/ui/sistema/usoAjustesNegocio'
+import { ClienteDeVenta } from './ClienteDeVenta'
 import { aplicarPromos } from '@/dominio/promos'
 import { ahorroMayorista, aplicarMayorista, mapaMayorista } from '@/dominio/mayorista'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -43,7 +44,7 @@ const SIN_VENTA = ventaNueva('sin-cargar', 0)
 const NEGOCIO_POR_DEFECTO: Negocio = { id: 'unico', nombre: 'Tu almacén', logo: null, color: null }
 
 export function PantallaVender() {
-  const { ventas, activa: activaGuardada, items, setItems, setNombre, setDescuentoItem, setDescuentoTotal, setMayorista, nueva, elegir, cerrar } = useVentasAbiertas()
+  const { ventas, activa: activaGuardada, items, setItems, setNombre, setDescuentoItem, setDescuentoTotal, setMayorista, setCliente, setCanje, nueva, elegir, cerrar } = useVentasAbiertas()
   // Mientras se leen las ventas guardadas (un instante) se muestra una en blanco.
   const activa = activaGuardada ?? SIN_VENTA
   const [descontando, setDescontando] = useState<{ productoId: UUID | null } | null>(null)
@@ -237,7 +238,9 @@ export function PantallaVender() {
     const llevaFiado = pagos ? pagos.some((parte) => parte.medio === 'fiado') : medio === 'fiado'
     if (llevaFiado && !clienteId) return
     try {
-      const venta = await repos.ventas.registrar({ items: cobrables, medioPago: medio, clienteId, vence, referenciaPago, pagos })
+      const delCliente = clienteId ?? activa.clienteId ?? null
+      const canjeFidelidad = activa.canjeFidelidad === true && delCliente !== null && delCliente === activa.clienteId
+      const venta = await repos.ventas.registrar({ items: cobrables, medioPago: medio, clienteId: delCliente, vence, referenciaPago, pagos, canjeFidelidad })
       cerrar(activa.id)
       setCobrando(false)
       setMedio('efectivo')
@@ -496,6 +499,15 @@ export function PantallaVender() {
                     <Boton variante="secundario" tamano="chico" onClick={ajustarAlStock}>Ajustar el ticket</Boton>
                   </div>
                 )}
+                {hayItems && (
+                  <ClienteDeVenta
+                    clienteId={activa.clienteId}
+                    canje={activa.canjeFidelidad === true}
+                    fidelidad={ajustesNegocio.fidelidad}
+                    onElegir={setCliente}
+                    onCanje={setCanje}
+                  />
+                )}
                 {hayMayorista && hayItems && (
                   <label className="f-venta-mayorista" data-activo={activa.mayorista ? 'true' : undefined}>
                     <input type="checkbox" checked={activa.mayorista === true} onChange={(evento) => setMayorista(evento.target.checked)} />
@@ -512,7 +524,7 @@ export function PantallaVender() {
                 )}
                 {hayItems && (
                   <div className="f-venta-descuento-fila">
-                    {ahorro - ahorroPromos - ahorroPorMayor > 0 && <span className="f-dato">{ahorroPromos + ahorroPorMayor > 0 ? 'Otros descuentos' : 'Descuento'} −{formatearPesos(ahorro - ahorroPromos - ahorroPorMayor)}</span>}
+                    {ahorro - ahorroPromos - ahorroPorMayor > 0 && <span className="f-dato">{activa.canjeFidelidad ? 'Premio' : ahorroPromos + ahorroPorMayor > 0 ? 'Otros descuentos' : 'Descuento'} <span className="f-venta-monto-descuento">−{formatearPesos(ahorro - ahorroPromos - ahorroPorMayor)}</span></span>}
                     <button type="button" className="f-venta-descuento" onClick={() => setDescontando({ productoId: null })}>
                       {activa.descuentoTotal ? 'Cambiar descuento de la venta' : 'Descuento a toda la venta'}
                     </button>

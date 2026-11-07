@@ -1,5 +1,6 @@
 import type { Promo } from './promos'
 import type { ConfigVendedores } from './vendedores'
+import type { ConfigFidelidad } from './fidelidad'
 import type { FuncionesNegocio } from './funciones'
 
 export type UUID = string
@@ -93,6 +94,8 @@ export interface Venta {
   /** Devoluciones parciales: lo que se devolvió, cuándo y cuánto. Los
    *  renglones y el total ya quedan descontados. */
   devoluciones?: Array<{ id: UUID; fecha: number; items: ItemVenta[]; monto: Centavos; motivo?: string }>
+  /** En esta venta el cliente usó su premio de fidelidad. */
+  canjeFidelidad?: boolean
 }
 
 export interface ItemPedido {
@@ -246,6 +249,8 @@ export interface AjustesNegocio {
   promos?: Promo[]
   /** Nombre y comisión de cada vendedor (por id de usuario). */
   vendedores?: ConfigVendedores
+  /** La décima gratis: cada cuántas compras hay premio y cuál. */
+  fidelidad?: ConfigFidelidad
 }
 
 export interface PreferenciasNegocio {
