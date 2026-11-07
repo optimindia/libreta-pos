@@ -5,7 +5,7 @@ import { useSyncExternalStore } from 'react'
 import { IconoFlechaDerecha } from '@/ui/sistema/iconos'
 
 export interface PasoGuia {
-  id: 'producto' | 'venta' | 'negocio'
+  id: 'producto' | 'venta' | 'cliente' | 'caja' | 'negocio'
   titulo: string
   detalle: string
   href: string
@@ -46,6 +46,9 @@ export function pasosDeLaGuia(datos: {
   productos: number
   ventas: number
   nombreConfigurado: boolean
+  /** Los pasos nuevos son opcionales: sin el dato, no se muestran. */
+  clientes?: number
+  cierres?: number
 }): PasoGuia[] {
   const pasos: PasoGuia[] = []
   if (datos.esDueno) {
@@ -66,6 +69,26 @@ export function pasosDeLaGuia(datos: {
     enlace: 'Ir a vender',
     hecho: datos.ventas > 0,
   })
+  if (datos.esDueno && datos.clientes !== undefined) {
+    pasos.push({
+      id: 'cliente',
+      titulo: 'Anotá a un cliente de confianza',
+      detalle: 'Para fiarle, saber qué lleva y mandarle avisos.',
+      href: '/clientes',
+      enlace: 'Ir a clientes',
+      hecho: datos.clientes > 0,
+    })
+  }
+  if (datos.esDueno && datos.cierres !== undefined) {
+    pasos.push({
+      id: 'caja',
+      titulo: 'Cerrá la caja al final del día',
+      detalle: 'Contás el efectivo y Libreta te dice si cuadra.',
+      href: '/plata',
+      enlace: 'Ir a plata',
+      hecho: datos.cierres > 0,
+    })
+  }
   if (datos.esDueno) {
     pasos.push({
       id: 'negocio',

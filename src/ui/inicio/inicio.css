@@ -739,3 +739,25 @@
   opacity: 0.7;
 }
 .fi-comparar-nota { flex-basis: 100%; margin: 0; color: var(--f-tinta-2); font-size: 13px; font-weight: 600; }
+
+/* ───────────── Bienvenida ───────────── */
+
+.fi-bienvenida { display: flex; flex-direction: column; gap: var(--f-4); }
+.fi-bienvenida-paso { display: flex; min-height: 220px; flex-direction: column; align-items: flex-start; gap: var(--f-3); animation: fi-bienvenida-entra 0.25s ease both; }
+.fi-bienvenida-paso h3 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+.fi-bienvenida-paso p { margin: 0; color: var(--f-tinta-2); font-size: 17px; line-height: 1.45; }
+.fi-bienvenida-icono { display: grid; width: 64px; height: 64px; place-items: center; border-radius: 20px; background: var(--f-lima); color: var(--f-sobre-lima); }
+.fi-bienvenida-icono svg { width: 30px; height: 30px; }
+.fi-bienvenida-puntos { display: flex; justify-content: center; gap: 4px; }
+.fi-bienvenida-puntos button { display: grid; width: 44px; height: 44px; place-items: center; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.fi-bienvenida-puntos span { display: block; width: 10px; height: 10px; border-radius: 999px; background: var(--f-borde); transition: width 0.2s ease, background-color 0.2s ease; }
+.fi-bienvenida-puntos button[aria-selected='true'] span { width: 28px; background: var(--f-tinta); }
+.fi-bienvenida-puntos button:focus-visible { outline: 3px solid var(--f-foco); outline-offset: -4px; border-radius: 999px; }
+.fi-bienvenida-acciones { display: flex; flex-direction: column; gap: var(--f-2); }
+.fi-bienvenida-saltar { align-self: center; min-height: 44px; padding: 0 12px; border: 0; background: transparent; color: var(--f-tinta-2); font: inherit; font-size: 15px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+@keyframes fi-bienvenida-entra { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .fi-bienvenida-paso { animation: none; } }
+@media (max-width: 599px) {
+  /* En el celu el enlace baja de renglón: que arranque donde arranca el texto del paso. */
+  .fi-guia-enlace { margin-left: calc(24px + var(--f-3) - var(--f-2)); }
+}
