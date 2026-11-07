@@ -1,5 +1,7 @@
 'use client'
 
+import { useAjustesNegocio } from '@/ui/sistema/usoAjustesNegocio'
+import { aplicarPromos } from '@/dominio/promos'
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { Centavos, ItemVenta, MedioPago, Negocio, Producto, UUID, Venta } from '@/dominio/tipos'
@@ -114,10 +116,14 @@ export function PantallaVender() {
     !estado.negocio?.negocioId &&
     nubeActiva()
 
+  const [ajustesNegocio] = useAjustesNegocio()
+  const promos = ajustesNegocio.promos ?? []
   // Lo que se cobra es el ticket con sus descuentos; la venta guarda el precio de lista.
-  const cobrables = itemsParaCobrar(activa)
+  const cobrables = itemsParaCobrar(activa, promos)
   const total = totalTicket(cobrables)
-  const ahorro = ahorroTotal(activa)
+  const ahorro = ahorroTotal(activa, promos)
+  const promosAplicadas = aplicarPromos(activa.items, promos).aplicadas
+  const ahorroPromos = ahorroTotal({ ...activa, descuentoItems: {}, descuentoTotal: null }, promos)
   const masVendidosHoy = useLiveQuery(async () => {
     const desde = Date.now() - 30 * 24 * 60 * 60 * 1000
     return db.ventas.where('fecha').above(desde).toArray()
@@ -388,7 +394,7 @@ export function PantallaVender() {
   const sobreDescuento = descontando
     ? descontando.productoId
       ? { titulo: 'Descuento del producto', inicial: activa.descuentoItems[descontando.productoId] ?? null, base: (() => { const renglon = activa.items.find((item) => item.productoId === descontando.productoId); return renglon ? renglon.precio * renglon.cantidad : 0 })() }
-      : { titulo: 'Descuento de la venta', inicial: activa.descuentoTotal, base: totalTicket(itemsParaCobrar({ ...activa, descuentoTotal: null })) }
+      : { titulo: 'Descuento de la venta', inicial: activa.descuentoTotal, base: totalTicket(itemsParaCobrar({ ...activa, descuentoTotal: null }, promos)) }
     : null
 
   return (
@@ -398,7 +404,7 @@ export function PantallaVender() {
         <h1 className="f-sr">Vender</h1>
 
         {!aparatoNuevo && (ventas.length > 1 || hayVentaAbierta) && (
-          <TiraVentas ventas={ventas} activaId={activa.id} llena={ventas.length >= MAX_VENTAS_ABIERTAS} onElegir={(id) => { elegir(id); setVerTicket(false) }} onNueva={nuevaVenta} />
+          <TiraVentas ventas={ventas} promos={promos} activaId={activa.id} llena={ventas.length >= MAX_VENTAS_ABIERTAS} onElegir={(id) => { elegir(id); setVerTicket(false) }} onNueva={nuevaVenta} />
         )}
 
         {aparatoNuevo ? (
@@ -486,9 +492,16 @@ export function PantallaVender() {
                     <Boton variante="secundario" tamano="chico" onClick={ajustarAlStock}>Ajustar el ticket</Boton>
                   </div>
                 )}
+                {promosAplicadas.length > 0 && (
+                  <ul className="f-venta-promos" aria-label="Promociones aplicadas">
+                    {promosAplicadas.map(({ promo, veces, ahorro: ahorroPromo }) => (
+                      <li key={promo.id}><span className="f-venta-promo-nombre">{promo.nombre}{veces > 1 ? ` ×${veces}` : ''}</span><span>−{formatearPesos(ahorroPromo)}</span></li>
+                    ))}
+                  </ul>
+                )}
                 {hayItems && (
                   <div className="f-venta-descuento-fila">
-                    {ahorro > 0 && <span className="f-dato">Descuento −{formatearPesos(ahorro)}</span>}
+                    {ahorro - ahorroPromos > 0 && <span className="f-dato">{ahorroPromos > 0 ? 'Otros descuentos' : 'Descuento'} −{formatearPesos(ahorro - ahorroPromos)}</span>}
                     <button type="button" className="f-venta-descuento" onClick={() => setDescontando({ productoId: null })}>
                       {activa.descuentoTotal ? 'Cambiar descuento de la venta' : 'Descuento a toda la venta'}
                     </button>

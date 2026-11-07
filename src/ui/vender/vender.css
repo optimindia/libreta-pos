@@ -1141,3 +1141,9 @@
 
 .f-dividido-resto strong { font-size: 26px; font-weight: 800; }
 .f-dividido-resto strong[data-falta='true'] { color: var(--f-coral); font-size: 17px; }
+
+/* ───────────── Promociones aplicadas ───────────── */
+
+.f-venta-promos { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.f-venta-promos li { display: flex; align-items: center; justify-content: space-between; gap: var(--f-3); padding: 6px 10px; border-radius: 10px; background: var(--f-verde-suave); color: var(--f-verde); font-size: 14px; font-weight: 800; }
+.f-venta-promo-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

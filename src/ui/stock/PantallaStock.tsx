@@ -22,6 +22,7 @@ import { usePuede } from '@/ui/sistema/usoRol'
 import { Portada } from '@/ui/sistema/Portada'
 import { Proveedores } from './Proveedores'
 import { Etiquetas } from './Etiquetas'
+import { Promos } from './Promos'
 import { porVencer, textoVence } from '@/dominio/vencimientos'
 import { ConteoInventario } from './ConteoInventario'
 import './stock.css'
@@ -155,7 +156,12 @@ export function PantallaStock() {
 
       {vista === 'contar' && <ConteoInventario productos={productos} />}
 
-      {vista === 'precios' && <ActualizarPrecios />}
+      {vista === 'precios' && (
+        <>
+          <ActualizarPrecios />
+          <Promos productos={productos} />
+        </>
+      )}
     </div>
   )
 }

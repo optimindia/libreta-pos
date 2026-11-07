@@ -1,5 +1,6 @@
 import type { Centavos, ItemVenta, Producto, UUID, Venta } from './tipos'
 import { agregarProducto, precioVigente } from './ticket'
+import { aplicarPromos, type Promo } from './promos'
 
 /** Cuántas ventas se pueden tener abiertas a la vez en un aparato. */
 export const MAX_VENTAS_ABIERTAS = 10
@@ -61,11 +62,22 @@ function descontarRenglon(item: ItemVenta, monto: Centavos): ItemVenta {
   return { ...item, precio: Math.max(1, item.precio - porUnidad) }
 }
 
+/** El ahorro de una promo, repartido por unidad. Si el precio es en pesos
+ *  redondos, el descuento por unidad también (a favor del cliente): así el
+ *  ticket no queda con centavos sueltos. */
+function descontarPromo(item: ItemVenta, monto: Centavos): ItemVenta {
+  let porUnidad = Math.ceil(monto / item.cantidad)
+  if (item.precio % 100 === 0) porUnidad = Math.ceil(porUnidad / 100) * 100
+  return { ...item, precio: Math.max(1, item.precio - porUnidad) }
+}
+
 /** Los renglones tal como se cobran: primero el descuento de cada renglón y
  *  después el de toda la venta, repartido en proporción a lo que pesa cada
  *  renglón. Lo que se muestra y lo que se registra sale de acá. */
-export function itemsParaCobrar(venta: Pick<VentaAbierta, 'items' | 'descuentoItems' | 'descuentoTotal'>): ItemVenta[] {
-  const conDescuentoPropio = venta.items.map((item) => {
+export function itemsParaCobrar(venta: Pick<VentaAbierta, 'items' | 'descuentoItems' | 'descuentoTotal'>, promos: Promo[] = []): ItemVenta[] {
+  const { porItem } = aplicarPromos(venta.items, promos)
+  const conPromos = venta.items.map((item) => (porItem[item.productoId] ? descontarPromo(item, porItem[item.productoId]) : item))
+  const conDescuentoPropio = conPromos.map((item) => {
     const descuento = venta.descuentoItems[item.productoId]
     if (!descuento) return item
     return descontarRenglon(item, importeDescuento(Math.round(item.precio * item.cantidad), descuento))
@@ -89,8 +101,8 @@ export function itemsParaCobrar(venta: Pick<VentaAbierta, 'items' | 'descuentoIt
 }
 
 /** Cuánto se ahorra el cliente con los descuentos de esta venta. */
-export function ahorroTotal(venta: Pick<VentaAbierta, 'items' | 'descuentoItems' | 'descuentoTotal'>): Centavos {
-  return totalDeItems(venta.items) - totalDeItems(itemsParaCobrar(venta))
+export function ahorroTotal(venta: Pick<VentaAbierta, 'items' | 'descuentoItems' | 'descuentoTotal'>, promos: Promo[] = []): Centavos {
+  return totalDeItems(venta.items) - totalDeItems(itemsParaCobrar(venta, promos))
 }
 
 /** Si cambian los renglones, los descuentos de lo que ya no está se van. */
