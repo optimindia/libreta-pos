@@ -150,3 +150,13 @@ export function mensajePedido(negocio: Negocio, pedido: Pedido, cliente?: Client
     'Te aviso cuando esté listo. ¡Gracias!',
   ].filter(Boolean).join('\n')
 }
+
+/** "Avisado hoy", "Avisado ayer" o "Avisado hace 3 días": cuándo se le mandó
+ *  el último recordatorio de la deuda. */
+export function textoUltimoAviso(cuando: number, ahora: number): string {
+  const inicio = (epoch: number) => { const d = new Date(epoch); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() }
+  const dias = Math.round((inicio(ahora) - inicio(cuando)) / 86_400_000)
+  if (dias <= 0) return 'Avisado hoy'
+  if (dias === 1) return 'Avisado ayer'
+  return `Avisado hace ${dias} días`
+}

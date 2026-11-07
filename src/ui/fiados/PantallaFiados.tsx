@@ -10,7 +10,8 @@ import { formatearPesos, pesosACentavos, pesosDeTexto } from '@/dominio/dinero'
 import { estadoVencimiento, etiquetaVencimiento, porcentajeLimite, riesgoFiado, type EstadoVencimiento } from '@/dominio/inteligencia'
 import { normalizarTexto } from '@/dominio/validaciones'
 import type { Cliente, UUID } from '@/dominio/tipos'
-import { mensajeCobro, mensajePagoFiado, enlaceWhatsApp } from '@/dominio/mensajes'
+import { mensajeCobro, mensajePagoFiado, enlaceWhatsApp, textoUltimoAviso } from '@/dominio/mensajes'
+import { useAvisosFiado } from './avisosFiado'
 import { Boton, clasesBoton } from '@/ui/sistema/Boton'
 import { CampoBusqueda } from '@/ui/sistema/CampoBusqueda'
 import { Chip, Chips } from '@/ui/sistema/Chip'
@@ -178,16 +179,77 @@ type Deuda = {
   porcentajeLimite: number | null
 }
 
+/** Uno por uno, porque WhatsApp abre un chat por vez: cada toque abre el
+ *  mensaje de ese cliente y lo marca como avisado. */
+function AvisarVencidos({
+  deudas,
+  avisos,
+  onAvisado,
+  onCerrar,
+}: {
+  deudas: Deuda[]
+  avisos: Record<UUID, number>
+  onAvisado: (clienteId: UUID) => void
+  onCerrar: () => void
+}) {
+  const [ahora] = useState(() => Date.now())
+  const conTelefono = deudas.filter((deuda) => deuda.cliente.telefono)
+  const sinTelefono = deudas.filter((deuda) => !deuda.cliente.telefono)
+  const avisadosHoy = conTelefono.filter((deuda) => avisos[deuda.clienteId] && textoUltimoAviso(avisos[deuda.clienteId], ahora) === 'Avisado hoy').length
+  return (
+    <Hoja abierta onCerrar={onCerrar} titulo="Avisar a los vencidos" ancho="angosto">
+      <p className="f-hoja-ayuda">
+        Tocá cada uno: se abre WhatsApp con el mensaje listo. Volvé acá y seguí con el próximo.
+      </p>
+      {conTelefono.length > 0 && (
+        <p className="f-fiados-avisos-progreso" role="status">{avisadosHoy} de {conTelefono.length} avisados hoy</p>
+      )}
+      <ul className="f-fiados-avisos">
+        {conTelefono.map((deuda) => {
+          const cuando = avisos[deuda.clienteId]
+          const hoy = cuando !== undefined && textoUltimoAviso(cuando, ahora) === 'Avisado hoy'
+          return (
+            <li key={deuda.clienteId} data-avisado={hoy ? 'true' : undefined}>
+              <span className="f-fiados-avisos-cuerpo">
+                <strong>{deuda.cliente.nombre}</strong>
+                <span>{formatearPesos(deuda.saldo)} · {cuando !== undefined ? textoUltimoAviso(cuando, ahora) : 'Sin avisar'}</span>
+              </span>
+              <a
+                className={clasesBoton(hoy ? 'secundario' : 'principal')}
+                target="_blank"
+                rel="noreferrer"
+                href={enlaceWhatsApp(deuda.cliente.telefono ?? '', mensajeCobro(deuda.cliente, deuda.saldo, deuda.diasDelMasViejo))}
+                aria-label={`${hoy ? 'Volver a avisar' : 'Avisar'} a ${deuda.cliente.nombre}`}
+                onClick={() => onAvisado(deuda.clienteId)}
+              >
+                <IconoWhatsApp /> {hoy ? 'Otra vez' : 'Avisar'}
+              </a>
+            </li>
+          )
+        })}
+      </ul>
+      {sinTelefono.length > 0 && (
+        <p className="f-dato">
+          Sin teléfono: {sinTelefono.map((deuda) => deuda.cliente.nombre).join(', ')}. Cargalo en su cuenta para poder avisarle.
+        </p>
+      )}
+      <Boton variante="secundario" onClick={onCerrar}>Listo</Boton>
+    </Hoja>
+  )
+}
+
 function DetalleCuenta({
   deuda,
   onCobrarTodo,
   onRegistrarPago,
   onEditar,
+  onAvisado,
 }: {
   deuda: Deuda
   onCobrarTodo: () => void
   onRegistrarPago: () => void
   onEditar: () => void
+  onAvisado: () => void
 }) {
   const { cliente } = deuda
   const estado = ETIQUETA_ESTADO[deuda.estado]
@@ -249,6 +311,7 @@ function DetalleCuenta({
             target="_blank"
             rel="noreferrer"
             href={enlaceWhatsApp(cliente.telefono, mensajeCobro(cliente, deuda.saldo, deuda.diasDelMasViejo))}
+            onClick={onAvisado}
           >
             <IconoWhatsApp /> Mandar mensaje
           </a>
@@ -274,6 +337,9 @@ export function PantallaFiados() {
   const [formularioCliente, setFormularioCliente] = useState<'nuevo' | Cliente | null>(null)
   const [soloVencidos, setSoloVencidos] = useState(false)
   const [ultimoPago, setUltimoPago] = useState<{ clienteId: UUID; monto: number } | null>(null)
+  const [avisos, marcarAvisado] = useAvisosFiado()
+  const [avisandoVencidos, setAvisandoVencidos] = useState(false)
+  const [ahoraPantalla] = useState(() => Date.now())
   const datos = useLiveQuery(async () => {
     const [fiados, pagos, clientes] = await Promise.all([
       db.fiados.toArray(),
@@ -352,6 +418,7 @@ export function PantallaFiados() {
       onCobrarTodo={() => void cobrarTodo(abierta.clienteId, abierta.saldo)}
       onRegistrarPago={() => { setClientePagando(abierta.clienteId); setMontoPago(''); setAvisoPago(null) }}
       onEditar={() => setFormularioCliente(abierta.cliente)}
+      onAvisado={() => marcarAvisado(abierta.clienteId)}
     />
   )
 
@@ -386,6 +453,13 @@ export function PantallaFiados() {
             <Chip activo={!soloVencidos} onClick={() => setSoloVencidos(false)}>Todos</Chip>
             <Chip activo={soloVencidos} onClick={() => setSoloVencidos(true)}>Vencidos ({vencidas})</Chip>
           </Chips>
+        )}
+
+        {vencidas > 0 && (
+          <button type="button" className="f-fiados-avisar" onClick={() => setAvisandoVencidos(true)}>
+            <IconoWhatsApp />
+            <span>Avisar a {vencidas === 1 ? 'el vencido' : `los ${vencidas} vencidos`}</span>
+          </button>
         )}
 
         {ultimoPago && clientePago && (
@@ -429,6 +503,20 @@ export function PantallaFiados() {
                     </span>
                     <span className="f-renglon-fin">{formatearPesos(deuda.saldo)}</span>
                   </button>
+                  {deuda.cliente.telefono ? (
+                    <a
+                      className="f-fiados-wsp"
+                      target="_blank"
+                      rel="noreferrer"
+                      href={enlaceWhatsApp(deuda.cliente.telefono, mensajeCobro(deuda.cliente, deuda.saldo, deuda.diasDelMasViejo))}
+                      aria-label={`Recordarle a ${deuda.cliente.nombre} por WhatsApp`}
+                      title={avisos[deuda.clienteId] ? textoUltimoAviso(avisos[deuda.clienteId], ahoraPantalla) : 'Recordar por WhatsApp'}
+                      data-avisado={avisos[deuda.clienteId] && textoUltimoAviso(avisos[deuda.clienteId], ahoraPantalla) === 'Avisado hoy' ? 'true' : undefined}
+                      onClick={() => marcarAvisado(deuda.clienteId)}
+                    >
+                      <IconoWhatsApp />
+                    </a>
+                  ) : datos.deudas.some((otra) => otra.cliente.telefono) && <span className="f-fiados-wsp" data-vacio="true" aria-hidden="true" />}
                 </li>
               )
             })}
@@ -463,6 +551,15 @@ export function PantallaFiados() {
           {detalle}
         </Tarjeta>
       )}
+      {avisandoVencidos && (
+        <AvisarVencidos
+          deudas={datos.deudas.filter((deuda) => deuda.estado === 'vencido')}
+          avisos={avisos}
+          onAvisado={marcarAvisado}
+          onCerrar={() => setAvisandoVencidos(false)}
+        />
+      )}
+
       {abierta && !ancha && (
         <Hoja abierta onCerrar={() => setSeleccionado(null)} titulo={`Cuenta de ${abierta.cliente.nombre}`}>
           {detalle}
