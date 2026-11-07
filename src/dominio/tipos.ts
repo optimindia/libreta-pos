@@ -48,6 +48,9 @@ export interface Producto {
   historialPrecios?: CambioPrecio[]
   /** Cuándo vence lo que hay en la góndola (la fecha más próxima). */
   venceEl?: number | null
+  /** Precio por mayor. Se usa en una venta mayorista, o solo desde `mayoristaDesde` unidades. */
+  precioMayorista?: Centavos
+  mayoristaDesde?: number
   ofertaHasta?: number
   /** Marca interna para propagar un borrado entre dispositivos sin romper
    *  el historial remoto. La app nunca muestra productos marcados. */

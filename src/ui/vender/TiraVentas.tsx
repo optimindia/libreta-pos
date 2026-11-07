@@ -3,6 +3,7 @@
 import { formatearPesos } from '@/dominio/dinero'
 import { totalTicket } from '@/dominio/ticket'
 import type { Promo } from '@/dominio/promos'
+import type { MapaMayorista } from '@/dominio/mayorista'
 import { itemsParaCobrar, nombreDeVenta, ventaConContenido, type VentaAbierta } from '@/dominio/ventaAbierta'
 import type { UUID } from '@/dominio/tipos'
 import { Chip, Chips } from '@/ui/sistema/Chip'
@@ -16,9 +17,11 @@ export function TiraVentas({
   onElegir,
   onNueva,
   promos = [],
+  mayoristas = {},
 }: {
   ventas: VentaAbierta[]
   promos?: Promo[]
+  mayoristas?: MapaMayorista
   activaId: UUID
   llena: boolean
   onElegir: (id: UUID) => void
@@ -28,7 +31,7 @@ export function TiraVentas({
     <Chips etiqueta="Ventas abiertas" className="f-ventas-tira">
       {ventas.map((venta, posicion) => {
         const nombre = nombreDeVenta(venta, posicion)
-        const total = totalTicket(itemsParaCobrar(venta, promos))
+        const total = totalTicket(itemsParaCobrar(venta, promos, mayoristas))
         return (
           <Chip key={venta.id} activo={venta.id === activaId} onClick={() => onElegir(venta.id)} aria-label={`${nombre}${ventaConContenido(venta) ? `, ${formatearPesos(total)}` : ', vacía'}`}>
             <span className="f-venta-pestana">{nombre}</span>

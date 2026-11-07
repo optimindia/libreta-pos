@@ -97,6 +97,10 @@ export function useVentasAbiertas() {
     cambiarActiva((venta) => ({ ...venta, descuentoTotal: descuento, actualizada: Date.now() }))
   }, [cambiarActiva])
 
+  const setMayorista = useCallback((mayorista: boolean) => {
+    cambiarActiva((venta) => ({ ...venta, mayorista, actualizada: Date.now() }))
+  }, [cambiarActiva])
+
   /** Suelta la venta activa si quedó vacía, para que no se acumulen pestañas
    *  en blanco al ir de una a otra. */
   const sinVaciaActiva = (previo: Estado): { ventas: VentaAbierta[]; sacada: UUID | null } => {
@@ -154,6 +158,7 @@ export function useVentasAbiertas() {
     setNombre,
     setDescuentoItem,
     setDescuentoTotal,
+    setMayorista,
     nueva,
     elegir,
     cerrar,
