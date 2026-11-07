@@ -44,6 +44,7 @@ const CAMPOS: Record<string, string> = {
   entradasCaja: 'entradas_caja',
   salidasCaja: 'salidas_caja',
   proveedorId: 'proveedor_id',
+  historialPrecios: 'historial_precios',
 }
 
 const FECHAS = new Set(['fecha', 'vence', 'anulado_en', 'anulada_en', 'actualizado_en', 'oferta_hasta', 'eliminado_en', 'fecha_entrega'])
@@ -135,7 +136,7 @@ export function aLaNube(
 const CANTIDADES = new Set(['stock', 'stock_minimo', 'cantidad'])
 
 /** En la app un opcional vacío es "no está", no null. */
-const OPCIONALES = new Set(['proveedor_id', 'pagos', 'devoluciones', 'categoria', 'limite_fiado', 'eliminado_en', 'precio_oferta', 'oferta_hasta', 'anulada_en', 'motivo_anulacion', 'entradas_caja', 'salidas_caja'])
+const OPCIONALES = new Set(['historial_precios', 'proveedor_id', 'pagos', 'devoluciones', 'categoria', 'limite_fiado', 'eliminado_en', 'precio_oferta', 'oferta_hasta', 'anulada_en', 'motivo_anulacion', 'entradas_caja', 'salidas_caja'])
 
 export function deLaNube(tabla: string, fila: Fila): Fila {
   const local: Fila = {}

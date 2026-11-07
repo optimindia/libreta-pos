@@ -20,6 +20,12 @@ export type TipoMovimientoCaja = 'entrada' | 'salida'
 /** Cómo se vende un producto: por unidad, por kilo o por litro. */
 export type UnidadVenta = 'unidad' | 'kg' | 'l'
 
+export interface CambioPrecio {
+  fecha: number
+  precio: Centavos
+  costo: Centavos
+}
+
 export interface Producto {
   id: UUID
   codigoBarras: string | null
@@ -37,6 +43,8 @@ export interface Producto {
   favorito?: boolean
   /** Precio promocional opcional. El precio histórico de una venta nunca cambia. */
   precioOferta?: Centavos
+  /** Los últimos cambios de precio y costo, del más viejo al más nuevo. */
+  historialPrecios?: CambioPrecio[]
   ofertaHasta?: number
   /** Marca interna para propagar un borrado entre dispositivos sin romper
    *  el historial remoto. La app nunca muestra productos marcados. */

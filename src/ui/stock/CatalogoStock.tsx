@@ -1,5 +1,6 @@
 'use client'
 
+import { HistorialPrecios } from './HistorialPrecios'
 import { cantidadValida, esFraccionado, formatearCantidad, leerCantidad, unidadDe } from '@/dominio/cantidad'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -84,6 +85,7 @@ function AjustarStock({ producto, onTerminado }: { producto: Producto; onTermina
 }
 
 function DetalleProducto({ producto }: { producto: Producto }) {
+  const verCosto = usePuede('editarProductos')
   const datos = useLiveQuery(async () => {
     const [ventas, ingresos] = await Promise.all([repos.ventas.todas(), repos.ingresos.todos()])
     const ventasProducto = ventas.filter((venta) => venta.estado !== 'anulada' && venta.items.some((item) => item.productoId === producto.id))
@@ -103,6 +105,7 @@ function DetalleProducto({ producto }: { producto: Producto }) {
         <div><span className="f-dato">Cobertura</span><strong className="f-plata">{datos.rotacion.diasCobertura === null ? '—' : `${datos.rotacion.diasCobertura}d`}</strong></div>
       </div>
       {datos.alertas.length > 0 && <p className="f-aviso" data-tono="ambar">{datos.alertas.join(' · ')}</p>}
+      <HistorialPrecios producto={producto} verCosto={verCosto} />
       <h3 className="f-hoja-subtitulo">Últimos movimientos</h3>
       {datos.movimientos.length === 0 ? <EstadoVacio compacto titulo="Todavía no hay movimientos" texto="Las ventas y los ingresos de este producto aparecen acá." /> : (
         <ul className="f-stock-movimientos">

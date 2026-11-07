@@ -727,3 +727,22 @@
 @media (min-width: 720px) {
   .f-proveedores-lista { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
 }
+
+/* ───────────── Historial de precios ───────────── */
+
+.f-precios-historial { display: flex; flex-direction: column; gap: var(--f-2); }
+.f-precios-historial-cabeza { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--f-2); }
+.f-precios-historial-cabeza .f-hoja-subtitulo { margin: 0; }
+.f-precios-historial-total { color: var(--f-tinta-2); font-size: 14px; font-weight: 700; }
+.f-precios-historial-total[data-sube='true'] { color: var(--f-coral); }
+.f-precios-historial-lista { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.f-precios-historial-lista li { display: grid; min-height: 48px; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: var(--f-3); border-top: 1px solid var(--f-superficie-2); }
+.f-precios-historial-lista li:first-child { border-top: 0; }
+.f-precios-historial-fecha { color: var(--f-tinta-2); font-size: 14px; font-weight: 600; }
+.f-precios-historial-valores { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.f-precios-historial-valores strong { font-size: 16px; }
+.f-precios-historial-valores span { color: var(--f-tinta-2); font-size: 13px; font-weight: 600; }
+.f-precios-historial-var { color: var(--f-tinta-2); font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.f-precios-historial-var[data-sube='true'] { color: var(--f-coral); }
+.f-precios-historial-mas { align-self: flex-start; min-height: 44px; padding: 0 14px; border: 1.5px solid var(--f-borde); border-radius: 999px; background: transparent; color: var(--f-tinta); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.f-precios-historial-mas:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
