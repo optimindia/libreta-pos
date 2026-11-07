@@ -23,6 +23,7 @@ import './clientes.css'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 import { TEXTOS, noSePudo } from '@/ui/sistema/textos'
 import { useDestino } from '@/ui/sistema/destino'
+import { armarCumple, cuandoCumple, diasHastaCumple, limpiarNota, MESES_LARGOS, partesCumple, textoCumple } from '@/dominio/cumpleanos'
 
 type FiltroCliente = 'todos' | 'con_deuda' | 'activos' | 'favoritos'
 
@@ -229,7 +230,13 @@ export function PantallaClientes() {
                   </span>
                 </button>
                 <div className="f-clientes-pie">
-                  {cliente.deuda > 0 ? <Etiqueta tono="coral" punto>Debe {formatearPesos(cliente.deuda)}</Etiqueta> : <Etiqueta tono="gris">Cuenta al día</Etiqueta>}
+                  <span className="f-clientes-etiquetas">
+                    {cliente.deuda > 0 ? <Etiqueta tono="coral" punto>Debe {formatearPesos(cliente.deuda)}</Etiqueta> : <Etiqueta tono="gris">Cuenta al día</Etiqueta>}
+                    {(() => {
+                      const faltan = diasHastaCumple(cliente.cumpleanos, ahora)
+                      return faltan !== null && faltan <= 7 ? <Etiqueta tono={faltan === 0 ? 'verde' : 'gris'}>{cuandoCumple(faltan)}</Etiqueta> : null
+                    })()}
+                  </span>
                   <div className="f-clientes-acciones">
                     {cliente.telefono && (
                       <a data-tamano="normal" href={enlaceWhatsApp(cliente.telefono, cliente.deuda > 0 ? mensajeCobro(cliente, cliente.deuda, cliente.diasDeuda) : `Hola ${cliente.nombre}, ¿cómo estás?`)} target="_blank" rel="noreferrer" className={clasesBoton('secundario')}><IconoWhatsApp /> WhatsApp</a>
@@ -268,7 +275,8 @@ function ClienteDetalle({ perfil, ventas, onCerrar, onEditar, onEliminar }: { pe
   const compras = ventas.filter((venta) => venta.clienteId === perfil.id && venta.estado !== 'anulada').sort((a, b) => b.fecha - a.fecha).slice(0, 5)
   return (
     <Hoja abierta onCerrar={onCerrar} titulo={perfil.nombre} etiquetaCerrar="Cerrar ficha">
-      <p className="f-hoja-ayuda">{perfil.telefono || 'Sin teléfono registrado'}</p>
+      <p className="f-hoja-ayuda">{perfil.telefono || 'Sin teléfono registrado'}{perfil.cumpleanos ? ` · Cumple el ${textoCumple(perfil.cumpleanos)}` : ''}</p>
+      {perfil.nota && <p className="f-clientes-nota">{perfil.nota}</p>}
       <div className="f-clientes-ficha-datos">
         <div><span className="f-dato">Total comprado</span><b>{formatearPesos(perfil.gastado)}</b></div>
         <div><span className="f-dato">Compras</span><b>{perfil.cantidadVentas}</b></div>
@@ -312,13 +320,23 @@ function ClienteForm({ cliente, onCancel, onSave }: { cliente?: Cliente; onCance
   const [nombre, setNombre] = useState(cliente?.nombre ?? '')
   const [telefono, setTelefono] = useState(cliente?.telefono ?? '')
   const [limite, setLimite] = useState(cliente?.limiteFiado ? String(cliente.limiteFiado / 100) : '')
+  const cumpleGuardado = partesCumple(cliente?.cumpleanos)
+  const [diaCumple, setDiaCumple] = useState(cumpleGuardado ? String(cumpleGuardado.dia) : '')
+  const [mesCumple, setMesCumple] = useState(cumpleGuardado ? String(cumpleGuardado.mes) : '')
+  const [nota, setNota] = useState(cliente?.nota ?? '')
   const [aviso, setAviso] = useState<string | null>(null)
   function guardar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     if (nombre.trim().length < 2) { setAviso('Escribí un nombre de al menos 2 caracteres.'); return }
     const limiteCentavos = limite.trim() ? pesosACentavos(pesosDeTexto(limite)) : undefined
     if (limiteCentavos !== undefined && limiteCentavos < 0) { setAviso('El límite no puede ser negativo.'); return }
-    onSave({ nombre: nombre.trim(), telefono: telefono.trim() || null, limiteFiado: limiteCentavos }, cliente?.id)
+    let cumpleanos: string | undefined
+    if (diaCumple || mesCumple) {
+      const armado = armarCumple(Number(diaCumple), Number(mesCumple))
+      if (!armado) { setAviso('Elegí el día y el mes del cumpleaños (o dejá los dos vacíos).'); return }
+      cumpleanos = armado
+    }
+    onSave({ nombre: nombre.trim(), telefono: telefono.trim() || null, limiteFiado: limiteCentavos, cumpleanos, nota: limpiarNota(nota) }, cliente?.id)
   }
   return (
     <Hoja abierta onCerrar={onCancel} titulo={cliente ? 'Editar cliente' : 'Nuevo cliente'} ancho="angosto">
@@ -339,6 +357,24 @@ function ClienteForm({ cliente, onCancel, onSave }: { cliente?: Cliente; onCance
             <input aria-label="Límite de fiado" inputMode="decimal" className="f-entrada tabular" placeholder="Ej. 20.000" value={limite} onChange={(evento) => setLimite(evento.target.value)} />
           </span>
           <small className="f-dato">Te avisamos antes de seguir fiando por encima de este monto.</small>
+        </label>
+        <fieldset className="f-campo f-clientes-cumple">
+          <legend>Cumpleaños <em>opcional</em></legend>
+          <div className="f-clientes-cumple-campos">
+            <select aria-label="Día del cumpleaños" className="f-entrada" value={diaCumple} onChange={(evento) => setDiaCumple(evento.target.value)}>
+              <option value="">Día</option>
+              {Array.from({ length: 31 }, (_, i) => <option key={i + 1} value={i + 1}>{i + 1}</option>)}
+            </select>
+            <select aria-label="Mes del cumpleaños" className="f-entrada" value={mesCumple} onChange={(evento) => setMesCumple(evento.target.value)}>
+              <option value="">Mes</option>
+              {MESES_LARGOS.map((mes, i) => <option key={mes} value={i + 1}>{mes.charAt(0).toUpperCase() + mes.slice(1)}</option>)}
+            </select>
+          </div>
+          <small className="f-dato">Te avisamos en Inicio para que lo saludes.</small>
+        </fieldset>
+        <label className="f-campo">
+          <span>Nota <em>opcional</em></span>
+          <textarea aria-label="Nota del cliente" className="f-entrada f-clientes-nota-campo" maxLength={500} rows={3} placeholder="Ej. Pasa los sábados. Le gusta el pan negro." value={nota} onChange={(evento) => setNota(evento.target.value)} />
         </label>
         {aviso && <p className="f-aviso" role="alert">{aviso}</p>}
         <Boton type="submit" variante="principal" ancho>{cliente ? 'Guardar cambios' : 'Guardar cliente'}</Boton>

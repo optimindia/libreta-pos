@@ -121,6 +121,10 @@ export interface Cliente {
   telefono: string | null
   /** Límite opcional para alertar antes de seguir fiando. */
   limiteFiado?: Centavos
+  /** Cumpleaños sin año, "MM-DD". */
+  cumpleanos?: string
+  /** Lo que conviene recordar del cliente (gustos, horarios, avisos). */
+  nota?: string
   /** Quitado de la cartera: no se borra, así el historial sigue entero. */
   eliminadoEn?: number
 }
