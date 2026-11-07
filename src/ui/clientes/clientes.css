@@ -234,3 +234,13 @@
 .f-clientes-borrar { flex: 0 0 44px; width: 44px; height: 44px; margin-left: auto; color: var(--f-tinta-2); }
 .f-clientes-borrar svg { width: 20px; height: 20px; }
 .f-clientes-borrar:hover { background: var(--f-coral-suave); color: var(--f-coral); }
+
+/* ───────────── Cumpleaños y nota ───────────── */
+
+.f-clientes-cumple { margin: 0; padding: 0; border: 0; min-width: 0; }
+.f-clientes-cumple legend { margin-bottom: 6px; padding: 0; font-size: 14px; font-weight: 700; }
+.f-clientes-cumple legend em { color: var(--f-tinta-2); font-style: normal; font-weight: 600; }
+.f-clientes-cumple-campos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--f-2); }
+.f-clientes-nota-campo { min-height: 88px; padding-top: 12px; resize: vertical; line-height: 1.4; }
+.f-clientes-nota { margin: 0; padding: var(--f-3); border-left: 4px solid var(--f-ambar); border-radius: 0 12px 12px 0; background: var(--f-superficie-2); font-size: 15px; line-height: 1.45; white-space: pre-line; }
+.f-clientes-etiquetas { display: inline-flex; flex-wrap: wrap; gap: 6px; }

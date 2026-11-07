@@ -1,5 +1,7 @@
 'use client'
 
+import { cumplesProximos, cuandoCumple, mensajeCumple, textoCumple } from '@/dominio/cumpleanos'
+import { enlaceWhatsApp } from '@/dominio/mensajes'
 import { esPagoDividido } from '@/dominio/pagos'
 import { formatearCantidad } from '@/dominio/cantidad'
 import Link from 'next/link'
@@ -26,6 +28,7 @@ import { Entrar } from '@/ui/vender/Entrar'
 import {
   IconoAlerta, IconoCamara, IconoCobrar, IconoEfectivo, IconoFiados, IconoFlechaDerecha, IconoGanancia, IconoHistorial,
   IconoConfirmar, IconoMasCantidad, IconoQR, IconoStock, IconoTransferencia, IconoVender, IconoWhatsApp,
+  IconoClientes,
 } from '@/ui/sistema/iconos'
 import type { Tarea } from '@/dominio/inicio'
 import type { ComponentType, ReactNode } from 'react'
@@ -110,6 +113,8 @@ export function PantallaInicio() {
         : `${Math.abs(contraSemanaPasada)}% menos que el mismo día de la semana pasada`
 
   const nombre = negocio?.nombre?.trim() || 'Tu almacén'
+  // Saludar a quien cumple hoy o en los próximos días: un detalle que fideliza.
+  const cumples = cumplesProximos(clientes, ahora.getTime(), 3)
 
   return (
     <div className="fi-pagina" data-entrada={entrada ? 'true' : undefined}>
@@ -159,7 +164,7 @@ export function PantallaInicio() {
 
         <section className="fi-tareas" aria-labelledby="fi-tareas-titulo">
           <h2 id="fi-tareas-titulo" className="fi-titulo-bloque">Para hacer ahora</h2>
-          {tareas.length === 0 ? (
+          {tareas.length === 0 && cumples.length === 0 ? (
             <p className="fi-tareas-nada"><span className="fi-tarea-icono" data-tono="verde" aria-hidden="true"><IconoConfirmar /></span>Nada pendiente. Está todo en orden.</p>
           ) : (
             <ul className="fi-tareas-lista">
@@ -176,6 +181,20 @@ export function PantallaInicio() {
                   </li>
                 )
               })}
+              {cumples.map(({ cliente, faltan }, indice) => (
+                <li key={`cumple-${cliente.id}`} className="fi-tarea" data-tono="verde" style={{ '--i': tareas.length + indice } as React.CSSProperties}>
+                  <span className="fi-tarea-icono" data-tono="verde" aria-hidden="true"><IconoClientes /></span>
+                  <span className="fi-tarea-texto">
+                    <strong>{faltan === 0 ? `Hoy cumple ${cliente.nombre}` : `${cliente.nombre}: ${cuandoCumple(faltan).toLowerCase()}`}</strong>
+                    <small>{faltan === 0 ? 'Mandale un saludo: es un lindo detalle.' : `El ${textoCumple(cliente.cumpleanos)}.`}</small>
+                  </span>
+                  {cliente.telefono && faltan === 0 ? (
+                    <a href={enlaceWhatsApp(cliente.telefono, mensajeCumple(cliente, nombre))} target="_blank" rel="noreferrer" className="fi-tarea-accion" aria-label={`Saludar a ${cliente.nombre} por WhatsApp`}>Saludar</a>
+                  ) : (
+                    <Link href={`/clientes?buscar=${encodeURIComponent(cliente.nombre)}`} className="fi-tarea-accion" aria-label={`Ver a ${cliente.nombre}`}>Ver</Link>
+                  )}
+                </li>
+              ))}
             </ul>
           )}
         </section>
