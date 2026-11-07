@@ -103,7 +103,7 @@ describe('foco visible', () => {
         const s = selector.trim()
         if (s.includes(':focus-visible') || s.includes(':focus-within')) continue
         // un campo dentro de un contenedor que lo recibe por :focus-within
-        if (/^\.f-buscar input$|^\.f-cobro-monto input$/.test(s)) continue
+        if (/^\.f-buscar input$|^\.f-cobro-monto input$|^\.f-buscador-campo input$/.test(s)) continue
         // el panel de una hoja recibe el foco por código; no es un control
         if (s === '.f-hoja' || s === "[id='contenido']:focus") continue
         // el foco sólido de los campos está en la regla siguiente (:focus-visible)

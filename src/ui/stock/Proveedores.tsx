@@ -15,6 +15,7 @@ import { Hoja } from '@/ui/sistema/Hoja'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { IconoCalendario, IconoProveedor, IconoWhatsApp } from '@/ui/sistema/iconos'
 import { noSePudo } from '@/ui/sistema/textos'
+import { useDestino } from '@/ui/sistema/destino'
 
 const FECHA = new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: '2-digit' })
 const normalizar = (texto: string) => texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -33,6 +34,10 @@ export function Proveedores() {
   }, [], null)
   const [ahora] = useState(() => Date.now())
   const [abierto, setAbierto] = useState<string | null>(null)
+  useDestino('/stock', (parametros) => {
+    const proveedor = parametros.get('proveedor')
+    if (proveedor) setAbierto(proveedor)
+  })
   const [creando, setCreando] = useState(false)
 
   if (!datos) return null

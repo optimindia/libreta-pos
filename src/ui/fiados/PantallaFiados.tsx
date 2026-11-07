@@ -24,6 +24,7 @@ import { usePantallaAncha } from './usoPantallaAncha'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
 import { TEXTOS, noSePudo } from '@/ui/sistema/textos'
+import { useDestino } from '@/ui/sistema/destino'
 
 function iniciales(nombre: string): string {
   return nombre.split(' ').slice(0, 2).map((palabra) => palabra.charAt(0).toUpperCase()).join('')
@@ -330,6 +331,10 @@ export function PantallaFiados() {
   const ancha = usePantallaAncha()
   const [busqueda, setBusqueda] = useState('')
   const [seleccionado, setSeleccionado] = useState<UUID | null>(null)
+  useDestino('/fiados', (parametros) => {
+    const cliente = parametros.get('cliente')
+    if (cliente) setSeleccionado(cliente)
+  })
   const [clientePagando, setClientePagando] = useState<UUID | null>(null)
   const [montoPago, setMontoPago] = useState('')
   const [guardandoPago, setGuardandoPago] = useState(false)

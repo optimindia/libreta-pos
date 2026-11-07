@@ -11,7 +11,7 @@ import { PantallaClientes } from '@/ui/clientes/PantallaClientes'
 import { PantallaVender } from '@/ui/vender/PantallaVender'
 
 let ruta = '/fiados'
-vi.mock('next/navigation', () => ({ usePathname: () => ruta }))
+vi.mock('next/navigation', () => ({ usePathname: () => ruta, useRouter: () => ({ push: () => {} }) }))
 
 async function comoVendedor() {
   await db.negocio.put({ id: 'unico', nombre: 'Almacén', logo: null, color: null, negocioId: 'n-1', usuarioId: 'u-2', rol: 'vendedor', nombreUsuario: 'Lucía' })

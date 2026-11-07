@@ -9,7 +9,7 @@ const estado = vi.hoisted(() => ({
   sesion: false,
 }))
 
-vi.mock('next/navigation', () => ({ usePathname: () => estado.ruta }))
+vi.mock('next/navigation', () => ({ usePathname: () => estado.ruta, useRouter: () => ({ push: () => {} }) }))
 vi.mock('@/datos/nube/cliente', () => ({ cliente: null }))
 vi.mock('@/ui/sistema/Navegacion', () => ({ Navegacion: () => <nav aria-label="Secciones">menú</nav> }))
 vi.mock('@/datos/nube/acceso', async (original) => ({

@@ -23,11 +23,16 @@ import { Portada } from '@/ui/sistema/Portada'
 import { Proveedores } from './Proveedores'
 import { Etiquetas } from './Etiquetas'
 import './stock.css'
+import { useDestino } from '@/ui/sistema/destino'
 
 type Pestaña = 'catalogo' | 'cargar' | 'precios' | 'etiquetas' | 'proveedores'
 
 export function PantallaStock() {
   const [pestaña, setPestaña] = useState<Pestaña>('catalogo')
+  useDestino('/stock', (parametros) => {
+    if (parametros.get('pestana') === 'proveedores') setPestaña('proveedores')
+    else if (parametros.get('buscar')) setPestaña('catalogo')
+  })
   // Lo que se va cargando en esta tanda, el último arriba.
   const [tanda, setTanda] = useState<Producto[]>([])
   const productos = useLiveQuery(() => repos.productos.todos(), [], [])
