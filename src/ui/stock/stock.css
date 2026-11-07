@@ -800,3 +800,29 @@
 .f-stock-vencen li span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .f-stock-vencen li span:last-child { flex: 0 0 auto; font-weight: 800; }
 .f-stock-vencen ul { max-width: 560px; }
+
+/* ───────────── Promociones ───────────── */
+
+.f-promos { display: flex; flex-direction: column; gap: var(--f-3); margin-top: var(--f-4); }
+.f-promos-cabeza { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--f-3); }
+.f-promos-cabeza .f-dato { margin: 2px 0 0; }
+.f-promos-lista { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.f-promos-lista li { display: grid; min-height: 60px; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--f-3); border-top: 1px solid var(--f-superficie-2); }
+.f-promos-lista li:first-child { border-top: 0; }
+.f-promos-lista li[data-inactiva='true'] .f-promos-textos { opacity: 0.6; }
+.f-promos-textos { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.f-promos-textos strong { overflow: hidden; font-size: 16px; text-overflow: ellipsis; white-space: nowrap; }
+.f-promos-textos span { color: var(--f-tinta-2); font-size: 14px; font-weight: 600; }
+.f-promos-interruptor { display: inline-flex; min-height: 44px; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
+.f-promos-interruptor input { width: 20px; height: 20px; margin: 0; accent-color: var(--f-verde); }
+.f-promos-quitar { min-height: 44px; padding: 0 12px; border: 0; background: transparent; color: var(--f-tinta-2); font: inherit; font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.f-promo-form { display: flex; flex-direction: column; gap: var(--f-3); }
+.f-promo-dos { display: grid; grid-template-columns: 1fr 1fr; gap: var(--f-3); }
+.f-promo-parte { display: grid; grid-template-columns: minmax(0, 1fr) 72px; gap: var(--f-2); }
+.f-promo-agregar { align-self: flex-start; min-height: 44px; padding: 0 4px; border: 0; background: transparent; color: var(--f-tinta); font: inherit; font-size: 15px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.f-promos-acciones { display: flex; align-items: center; gap: 4px; }
+.f-promos-cabeza > button { white-space: nowrap; }
+@media (max-width: 520px) {
+  .f-promos-acciones { flex-direction: column; align-items: flex-end; gap: 0; }
+}
+

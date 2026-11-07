@@ -1,3 +1,4 @@
+import type { Promo } from './promos'
 import type { FuncionesNegocio } from './funciones'
 
 export type UUID = string
@@ -237,6 +238,8 @@ export interface AjustesNegocio {
   leyendaTicket?: string
   /** Gastos fijos de cada mes (alquiler, luz, sueldos…), en centavos. */
   gastosFijos?: Array<{ id: string; nombre: string; monto: Centavos }>
+  /** Promociones automáticas (3x2, por cantidad, combos). */
+  promos?: Promo[]
 }
 
 export interface PreferenciasNegocio {
