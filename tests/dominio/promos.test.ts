@@ -49,3 +49,11 @@ describe('promociones', () => {
     expect(precio * 3).toBeLessThanOrEqual(200000)
   })
 })
+
+describe('ajustes de otras versiones', () => {
+  it('lo que esta versión no conoce se conserva al normalizar', () => {
+    const ajustes = normalizarAjustes({ metaPlata: '1000', algoNuevo: { activo: true } }) as Record<string, unknown>
+    expect(ajustes.algoNuevo).toEqual({ activo: true })
+    expect(ajustes.metaPlata).toBe('1000')
+  })
+})

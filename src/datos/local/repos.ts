@@ -66,9 +66,16 @@ async function obtenerPreferenciasLocales(): Promise<PreferenciasNegocio> {
 }
 
 /** Sólo textos conocidos y cortos: lo que viene de la nube puede ser viejo. */
+const AJUSTES_CONOCIDOS = new Set(['metaPlata', 'metaPro', 'leyendaTicket', 'gastosFijos', 'promos', 'vendedores', 'fidelidad'])
+
 export function normalizarAjustes(crudo: unknown): AjustesNegocio {
   const dato = (typeof crudo === 'object' && crudo !== null ? crudo : {}) as Record<string, unknown>
-  const ajustes: AjustesNegocio = {}
+  // Lo que esta versión no conoce (lo guardó una versión más nueva en otro
+  // aparato) se conserva tal cual: así, al guardar un ajuste desde acá, no se
+  // borra lo que el otro aparato configuró.
+  const ajustes: AjustesNegocio = Object.fromEntries(
+    Object.entries(dato).filter(([clave, valor]) => !AJUSTES_CONOCIDOS.has(clave) && valor !== undefined),
+  ) as AjustesNegocio
   for (const clave of ['metaPlata', 'metaPro', 'leyendaTicket'] as const) {
     if (typeof dato[clave] === 'string') ajustes[clave] = (dato[clave] as string).slice(0, 80)
   }
