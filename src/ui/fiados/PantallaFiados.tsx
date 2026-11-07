@@ -12,6 +12,7 @@ import { normalizarTexto } from '@/dominio/validaciones'
 import type { Cliente, UUID } from '@/dominio/tipos'
 import { mensajeCobro, mensajePagoFiado, enlaceWhatsApp, textoUltimoAviso } from '@/dominio/mensajes'
 import { useAvisosFiado } from './avisosFiado'
+import { CompartirCuenta } from './CompartirCuenta'
 import { Boton, clasesBoton } from '@/ui/sistema/Boton'
 import { CampoBusqueda } from '@/ui/sistema/CampoBusqueda'
 import { Chip, Chips } from '@/ui/sistema/Chip'
@@ -245,8 +246,10 @@ function DetalleCuenta({
   onRegistrarPago,
   onEditar,
   onAvisado,
+  nombreNegocio,
 }: {
   deuda: Deuda
+  nombreNegocio: string
   onCobrarTodo: () => void
   onRegistrarPago: () => void
   onEditar: () => void
@@ -320,6 +323,7 @@ function DetalleCuenta({
         <Boton variante="secundario" tamano="grande" onClick={onEditar}>
           <IconoEditar /> Editar cliente
         </Boton>
+        <CompartirCuenta cliente={cliente} negocio={nombreNegocio} />
       </div>
 
       <Movimientos clienteId={deuda.clienteId} />
@@ -370,8 +374,9 @@ export function PantallaFiados() {
         porcentajeLimite: porcentajeLimite(deuda.saldo, cliente.limiteFiado),
       })
     }
-    return { deudas, clientes }
-  }, [], { deudas: [] as Deuda[], clientes: [] as Cliente[] })
+    const negocio = (await db.negocio.get('unico'))?.nombre?.trim() || 'el almacén'
+    return { deudas, clientes, negocio }
+  }, [], { deudas: [] as Deuda[], clientes: [] as Cliente[], negocio: 'el almacén' })
 
   const aguja = normalizarTexto(busqueda)
   const deudas = datos.deudas.filter((deuda) => {
@@ -424,6 +429,7 @@ export function PantallaFiados() {
       onRegistrarPago={() => { setClientePagando(abierta.clienteId); setMontoPago(''); setAvisoPago(null) }}
       onEditar={() => setFormularioCliente(abierta.cliente)}
       onAvisado={() => marcarAvisado(abierta.clienteId)}
+      nombreNegocio={datos.negocio}
     />
   )
 

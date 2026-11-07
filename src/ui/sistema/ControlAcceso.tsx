@@ -18,7 +18,7 @@ import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
 
 /** Páginas que cualquiera puede leer sin cuenta: los términos y la política
  *  de privacidad tienen que poder consultarse antes de aceptarlos. */
-const RUTAS_PUBLICAS = ['/terminos', '/privacidad'] as const
+const RUTAS_PUBLICAS = ['/terminos', '/privacidad', '/saldo'] as const
 
 const MAXIMO_TIMER_MS = 2_147_483_647
 
