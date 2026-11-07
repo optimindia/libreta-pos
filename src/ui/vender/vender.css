@@ -1091,3 +1091,53 @@
 .f-paso button.f-fraccion-cantidad:hover { border-color: var(--f-tinta); }
 
 .f-producto-por { margin-left: 2px; color: var(--f-tinta-2); font-size: 0.6em; font-weight: 700; }
+
+/* ───────────── Pago dividido ───────────── */
+
+.f-cobro-medio { display: flex; flex-direction: column; gap: var(--f-2); }
+
+.f-dividido-volver {
+  align-self: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--f-tinta);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.f-dividido-volver:focus-visible { outline: 3px solid var(--f-foco); outline-offset: 2px; }
+
+.f-dividido-cabeza { display: flex; align-items: center; justify-content: space-between; gap: var(--f-2); }
+.f-dividido-cabeza strong { font-size: 17px; font-weight: 800; }
+
+.f-dividido-parte {
+  display: flex;
+  flex-direction: column;
+  gap: var(--f-2);
+  padding: var(--f-3);
+  border-radius: var(--f-radio-tarjeta);
+  background: var(--f-superficie-2);
+}
+
+.f-dividido-monto { margin: 0; }
+
+.f-dividido-resto {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 0 var(--f-2);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.f-dividido-resto strong { font-size: 26px; font-weight: 800; }
+.f-dividido-resto strong[data-falta='true'] { color: var(--f-coral); font-size: 17px; }

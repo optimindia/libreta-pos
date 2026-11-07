@@ -70,6 +70,12 @@ export interface Venta {
   pedidoId?: UUID
   /** Quién cobró (id de usuario). Las ventas viejas no lo traen: "Sin dato". */
   vendidoPor?: UUID | null
+  /** Pago dividido: dos o más partes (medio y monto) que suman el total.
+   *  `medioPago` queda con el medio de la parte más grande. */
+  pagos?: Array<{ medio: MedioPago; monto: Centavos }>
+  /** Devoluciones parciales: lo que se devolvió, cuándo y cuánto. Los
+   *  renglones y el total ya quedan descontados. */
+  devoluciones?: Array<{ id: UUID; fecha: number; items: ItemVenta[]; monto: Centavos; motivo?: string }>
 }
 
 export interface ItemPedido {

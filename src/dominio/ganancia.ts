@@ -1,4 +1,5 @@
 import type { Centavos, MedioPago, UUID, Venta } from './tipos'
+import { partesDePago } from './pagos'
 import { multiplicar, sumar } from './dinero'
 
 export interface ResumenDia {
@@ -57,7 +58,7 @@ export function resumenDelDia(ventas: Venta[], dia: Date): ResumenDia {
     efectivo: 0, transferencia: 0, qr: 0, fiado: 0,
   }
   for (const venta of delDia) {
-    porMedioPago[venta.medioPago] += venta.total
+    for (const parte of partesDePago(venta)) porMedioPago[parte.medio] += parte.monto
   }
   return {
     vendido: sumar(...delDia.map((venta) => venta.total)),

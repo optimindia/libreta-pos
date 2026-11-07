@@ -16,6 +16,7 @@ import { TiraVentas } from './TiraVentas'
 import { HojaDescuento } from './HojaDescuento'
 import { useVentasAbiertas } from './usoVentasAbiertas'
 import { useReservasEnVivo } from './usoReservasEnVivo'
+import type { PartePago } from '@/dominio/pagos'
 import { ahorroTotal, itemsParaCobrar, masVendidos, MAX_VENTAS_ABIERTAS, repetirVenta, ventaConContenido, ventaNueva, type Descuento } from '@/dominio/ventaAbierta'
 import { Cobro, OPCIONES_PAGO, type MedioCobro } from './Cobro'
 import { BotonEscanear } from './BotonEscanear'
@@ -221,11 +222,12 @@ export function PantallaVender() {
     return () => window.removeEventListener('keydown', atajo)
   })
 
-  async function cobrar(medio: MedioPago, clienteId: UUID | null = null, vence: number | null = null, referenciaPago?: string, entregado?: number) {
+  async function cobrar(medio: MedioPago, clienteId: UUID | null = null, vence: number | null = null, referenciaPago?: string, entregado?: number, pagos?: PartePago[]) {
     if (!puedeCobrar) return
-    if (medio === 'fiado' && !clienteId) return
+    const llevaFiado = pagos ? pagos.some((parte) => parte.medio === 'fiado') : medio === 'fiado'
+    if (llevaFiado && !clienteId) return
     try {
-      const venta = await repos.ventas.registrar({ items: cobrables, medioPago: medio, clienteId, vence, referenciaPago })
+      const venta = await repos.ventas.registrar({ items: cobrables, medioPago: medio, clienteId, vence, referenciaPago, pagos })
       cerrar(activa.id)
       setCobrando(false)
       setMedio('efectivo')

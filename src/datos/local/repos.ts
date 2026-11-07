@@ -11,6 +11,9 @@ import { normalizarFunciones } from '@/dominio/funciones'
 import { nuevoId } from '@/dominio/id'
 import { totalTicket } from '@/dominio/ticket'
 import { deudaPorCliente, saldoFiado } from '@/dominio/fiado'
+import { medioPrincipal, montoEnMedio, problemaDePagos, type PartePago } from '@/dominio/pagos'
+import { aplicarDevolucion, ErrorDevolucion, type Devolucion, type PedidoDevolucion } from '@/dominio/devolucion'
+export { ErrorDevolucion } from '@/dominio/devolucion'
 import { formatearPesos } from '@/dominio/dinero'
 import { pedidoReservaStock, totalPedido } from '@/dominio/pedidos'
 
@@ -317,15 +320,25 @@ export const repos = {
       vence?: number | null
       referenciaPago?: string
       pedidoId?: UUID
+      /** Pago dividido: las partes tienen que sumar el total. */
+      pagos?: PartePago[]
     }): Promise<Venta> {
-      validarVenta(datos.items, datos.medioPago, datos.clienteId)
+      const pagos = datos.pagos && datos.pagos.length > 0 ? datos.pagos.map((parte) => ({ medio: parte.medio, monto: parte.monto })) : undefined
+      if (pagos) {
+        const problema = problemaDePagos(pagos, totalTicket(datos.items))
+        if (problema) throw new ErrorVentaInvalida(problema)
+      }
+      const medioPago = pagos ? medioPrincipal(pagos) : datos.medioPago
+      const llevaFiado = pagos ? pagos.some((parte) => parte.medio === 'fiado') : medioPago === 'fiado'
+      validarVenta(datos.items, llevaFiado ? 'fiado' : medioPago, datos.clienteId)
       if (!(await cantidadesSegunUnidad(datos.items))) throw new ErrorVentaInvalida('Hay una cantidad que no va: lo que se vende por unidad va en números enteros.')
       const vendidoPor = (await quienSoy()).usuarioId
       const venta: Venta = {
         id: nuevoId(),
         fecha: Date.now(),
         total: totalTicket(datos.items),
-        medioPago: datos.medioPago,
+        medioPago,
+        ...(pagos ? { pagos } : {}),
         items: datos.items,
         clienteId: datos.clienteId,
         estado: 'completada',
@@ -354,12 +367,14 @@ export const repos = {
             tocados.push(descontado)
           }
         }
-        if (venta.medioPago === 'fiado' && venta.clienteId) {
+        // Sólo lo que se fió va a la libreta: en un pago dividido, la parte fiada.
+        const fiadoMonto = montoEnMedio(venta, 'fiado')
+        if (fiadoMonto > 0 && venta.clienteId) {
           fiado = {
             id: nuevoId(),
             clienteId: venta.clienteId,
             ventaId: venta.id,
-            monto: venta.total,
+            monto: fiadoMonto,
             fecha: venta.fecha,
             vence: datos.vence ?? null,
           }
@@ -404,7 +419,7 @@ export const repos = {
         if (!actual) throw new ErrorVentaNoAnulable('No encontramos esa venta.')
         if (actual.estado === 'anulada') throw new ErrorVentaYaAnulada()
 
-        if (actual.medioPago === 'fiado') {
+        if (montoEnMedio(actual, 'fiado') > 0) {
           const fiado = (await db.fiados.toArray()).find((item) => item.ventaId === actual.id && !item.anuladoEn)
           if (fiado) {
             const pagos = await db.fiadoPagos.where('fiadoId').equals(fiado.id).toArray()
@@ -431,13 +446,15 @@ export const repos = {
 
         await db.ventas.put(ventaAnulada)
 
-        if (actual.medioPago === 'efectivo') {
+        // Sale de la caja lo que entró en efectivo (en un pago dividido, esa parte).
+        const efectivoCobrado = montoEnMedio(actual, 'efectivo')
+        if (efectivoCobrado > 0) {
           devolucion = {
             id: nuevoId(),
             fecha: ahora,
             tipo: 'salida',
             concepto: `Devolución de venta ${actual.id.slice(0, 6)}`,
-            monto: actual.total,
+            monto: efectivoCobrado,
             medioPago: 'efectivo',
           }
           await db.movimientosCaja.add(devolucion)
@@ -452,6 +469,63 @@ export const repos = {
       if (fiadoActualizado) await encolar('fiado', 'actualizar', fiadoActualizado)
       if (devolucion) await encolar('movimientoCaja', 'crear', devolucion)
       return ventaAnulada
+    },
+    /** Devolución parcial: el cliente trae algunos productos. Vuelven al
+     *  stock, la venta queda con lo que se llevó y la plata sale en orden: lo
+     *  fiado baja la deuda; el efectivo, si la venta es de una caja ya
+     *  cerrada, sale como gasto de la caja de hoy (si es de la caja abierta,
+     *  la venta más chica ya lo descuenta). */
+    async devolver(id: UUID, pedido: PedidoDevolucion[], motivo?: string): Promise<{ venta: Venta; devolucion: Devolucion }> {
+      const tocados: Producto[] = []
+      let resultado: { venta: Venta; devolucion: Devolucion } | null = null
+      let fiadoActualizado: Fiado | null = null
+      let salida: MovimientoCaja | null = null
+      await db.transaction('rw', [db.ventas, db.productos, db.fiados, db.fiadoPagos, db.cierres, db.movimientosCaja], async () => {
+        const actual = await db.ventas.get(id)
+        if (!actual) throw new ErrorDevolucion('No encontramos esa venta.')
+        const ahora = Date.now()
+        const { venta, devolucion, reparto } = aplicarDevolucion(actual, pedido, { id: nuevoId(), fecha: ahora, motivo })
+
+        for (const item of devolucion.items) {
+          const producto = await db.productos.get(item.productoId)
+          if (!producto) continue
+          const repuesto = { ...producto, stock: redondearCantidad(producto.stock + item.cantidad), actualizadoEn: ahora }
+          await db.productos.put(repuesto)
+          tocados.push(repuesto)
+        }
+
+        let efectivoQueSale = 0
+        if (reparto.fiado > 0) {
+          const fiado = (await db.fiados.toArray()).find((f) => f.ventaId === actual.id && !f.anuladoEn)
+          const saldo = fiado ? saldoFiado(fiado, await db.fiadoPagos.where('fiadoId').equals(fiado.id).toArray()) : 0
+          const baja = Math.min(reparto.fiado, saldo)
+          if (fiado && baja > 0) {
+            const monto = fiado.monto - baja
+            // La base no admite un fiado en cero: si se devolvió todo lo que
+            // debía, el fiado queda saldado (anulado) con su monto original.
+            fiadoActualizado = monto > 0 ? { ...fiado, monto } : { ...fiado, anuladoEn: ahora }
+            await db.fiados.put(fiadoActualizado)
+          }
+          // Lo que ya había pagado de esa parte se le devuelve en efectivo.
+          efectivoQueSale += reparto.fiado - baja
+        }
+        const ultimoCierre = (await db.cierres.orderBy('fecha').reverse().filter((c) => c.alcance !== 'turno').first()) ?? null
+        if (reparto.efectivo > 0 && ultimoCierre && actual.fecha <= ultimoCierre.fecha) efectivoQueSale += reparto.efectivo
+        if (efectivoQueSale > 0) {
+          salida = { id: nuevoId(), fecha: ahora, tipo: 'salida', concepto: `Devolución de venta ${actual.id.slice(0, 6)}`, monto: efectivoQueSale, medioPago: 'efectivo' }
+          await db.movimientosCaja.add(salida)
+        }
+        await db.ventas.put(venta)
+        resultado = { venta, devolucion }
+      })
+      const listo = resultado as { venta: Venta; devolucion: Devolucion } | null
+      if (!listo) throw new ErrorDevolucion('No se pudo guardar la devolución.')
+      for (const producto of tocados) await encolar('producto', 'actualizar', producto)
+      for (const item of listo.devolucion.items) await encolarMovimientoStock(item.productoId, item.cantidad, 'anulacion', listo.venta.id)
+      await encolar('venta', 'actualizar', listo.venta)
+      if (fiadoActualizado) await encolar('fiado', 'actualizar', fiadoActualizado)
+      if (salida) await encolar('movimientoCaja', 'crear', salida)
+      return listo
     },
     async todas(): Promise<Venta[]> {
       return db.ventas.orderBy('fecha').reverse().toArray()

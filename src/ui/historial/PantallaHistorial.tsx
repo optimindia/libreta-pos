@@ -1,5 +1,7 @@
 'use client'
 
+import { esPagoDividido, textoDePago } from '@/dominio/pagos'
+import { aplicarDevolucion, ErrorDevolucion } from '@/dominio/devolucion'
 import { formatearCantidad } from '@/dominio/cantidad'
 import { Portada } from '@/ui/sistema/Portada'
 import { useState } from 'react'
@@ -41,10 +43,84 @@ function fechaVenta(epoch: number): string {
   }).format(new Date(epoch))
 }
 
+/** Devolver algunos productos de una venta: cuántos de cada uno, el motivo
+ *  y cuánto se devuelve, antes de confirmar. */
+function DevolverProductos({ venta, onListo, onCancelar }: { venta: Venta; onListo: (venta: Venta) => void; onCancelar: () => void }) {
+  const [cantidades, setCantidades] = useState<Record<string, string>>({})
+  const [motivo, setMotivo] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const [aviso, setAviso] = useState<string | null>(null)
+  const pedido = venta.items.map((item) => ({ productoId: item.productoId, cantidad: Number((cantidades[item.productoId] ?? '').replace(',', '.')) || 0 }))
+  let monto = 0
+  let problema: string | null = null
+  try {
+    monto = aplicarDevolucion(venta, pedido, { id: 'vista', fecha: venta.fecha }).devolucion.monto
+  } catch (error) {
+    problema = error instanceof ErrorDevolucion ? error.message : null
+  }
+  const elegido = pedido.some((p) => p.cantidad > 0)
+
+  async function confirmar() {
+    setGuardando(true)
+    setAviso(null)
+    try {
+      const { venta: actualizada } = await repos.ventas.devolver(venta.id, pedido, motivo)
+      onListo(actualizada)
+    } catch (error) {
+      setAviso(error instanceof ErrorDevolucion ? error.message : noSePudo('guardar', 'la devolución'))
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  return (
+    <div className="fh-devolver" role="group" aria-label="Devolver productos">
+      <h3 className="f-renglon-texto">¿Qué devuelve?</h3>
+      <ul className="fh-devolver-lista">
+        {venta.items.map((item) => (
+          <li key={item.productoId} className="fh-devolver-item">
+            <span className="fh-devolver-nombre">
+              <strong>{item.nombre}</strong>
+              <small>Llevó {formatearCantidad(item.cantidad)}</small>
+            </span>
+            <input
+              aria-label={`Cuánto devuelve de ${item.nombre}`}
+              inputMode="decimal"
+              className="f-entrada fh-devolver-cantidad"
+              placeholder="0"
+              value={cantidades[item.productoId] ?? ''}
+              onChange={(evento) => setCantidades((actual) => ({ ...actual, [item.productoId]: evento.target.value.replace(/[^\d.,]/g, '') }))}
+            />
+            <button type="button" className="fh-devolver-todo" onClick={() => setCantidades((actual) => ({ ...actual, [item.productoId]: String(item.cantidad).replace('.', ',') }))}>
+              Todo
+            </button>
+          </li>
+        ))}
+      </ul>
+      <label className="f-campo">
+        <span>Motivo <em>opcional</em></span>
+        <input aria-label="Motivo de la devolución" className="f-entrada" placeholder="Ej. vino roto" value={motivo} onChange={(evento) => setMotivo(evento.target.value)} />
+      </label>
+      {elegido && problema && <p className="f-aviso" data-tono="ambar">{problema}</p>}
+      {elegido && !problema && (
+        <p className="fh-devolver-resumen" aria-live="polite">Se devuelven <strong className="f-plata">{formatearPesos(monto)}</strong></p>
+      )}
+      <div className="fh-acciones" data-orden="columna">
+        <Boton variante="cuidado" disabled={!elegido || Boolean(problema) || guardando} onClick={() => void confirmar()}>
+          {guardando ? 'Guardando…' : 'Confirmar devolución'}
+        </Boton>
+        <Boton variante="secundario" onClick={onCancelar}>Volver</Boton>
+      </div>
+      {aviso && <p className="f-aviso" role="alert">{aviso}</p>}
+    </div>
+  )
+}
+
 function DetalleVenta({ venta, yo, onAnulada }: { venta: Venta; yo: Identidad; onAnulada: (venta: Venta) => void }) {
   const negocio = useLiveQuery(() => db.negocio.get('unico'), [], undefined)
   const nombre = negocio?.nombre || 'Tu almacén'
   const [confirmando, setConfirmando] = useState(false)
+  const [devolviendo, setDevolviendo] = useState(false)
   const [motivo, setMotivo] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [aviso, setAviso] = useState<string | null>(null)
@@ -70,7 +146,7 @@ function DetalleVenta({ venta, yo, onAnulada }: { venta: Venta; yo: Identidad; o
 
   return (
     <>
-      <p className="f-hoja-ayuda">{fechaVenta(venta.fecha)} · {MEDIOS[venta.medioPago]}{anulada ? ' · Anulada' : ''}</p>
+      <p className="f-hoja-ayuda">{fechaVenta(venta.fecha)} · {esPagoDividido(venta) ? textoDePago(venta) : MEDIOS[venta.medioPago]}{anulada ? ' · Anulada' : ''}</p>
       <p className="f-hoja-ayuda">Vendió: {etiquetaVendedor(venta.vendidoPor, yo)}</p>
       {anulada && (
         <div className="f-aviso" data-tono="ambar">
@@ -87,9 +163,21 @@ function DetalleVenta({ venta, yo, onAnulada }: { venta: Venta; yo: Identidad; o
         ))}
       </ul>
       <div className="fh-total"><span>Total</span><span className="f-plata f-plata-36">{formatearPesos(venta.total)}</span></div>
+      {(venta.devoluciones ?? []).length > 0 && (
+        <div className="fh-devoluciones" aria-label="Devoluciones">
+          {(venta.devoluciones ?? []).map((d) => (
+            <p key={d.id} className="fh-devolucion">
+              <span>Devolvió el {fechaVenta(d.fecha)}: {d.items.map((item) => `${formatearCantidad(item.cantidad)} × ${item.nombre}`).join(', ')}{d.motivo ? ` (${d.motivo})` : ''}</span>
+              <strong className="f-plata">−{formatearPesos(d.monto)}</strong>
+            </p>
+          ))}
+        </div>
+      )}
       {venta.referenciaPago && <div className="fh-referencia"><span>Referencia de cobro</span><strong>{venta.referenciaPago}</strong></div>}
 
-      {anula && confirmando && !anulada ? (
+      {anula && devolviendo && !anulada ? (
+        <DevolverProductos venta={venta} onCancelar={() => setDevolviendo(false)} onListo={(actualizada) => { setDevolviendo(false); onAnulada(actualizada) }} />
+      ) : anula && confirmando && !anulada ? (
         <div className="fh-anular" role="group" aria-label="Anular venta">
           <h3 className="f-renglon-texto">¿Anular esta venta?</h3>
           <p className="f-hoja-ayuda">Se devuelve el stock y queda una salida de caja si fue en efectivo. La venta no se borra.</p>
@@ -110,6 +198,7 @@ function DetalleVenta({ venta, yo, onAnulada }: { venta: Venta; yo: Identidad; o
             Reenviar ticket por WhatsApp
           </a>
           <BotonesTicket datos={{ negocio: nombre, venta, vendedor: venta.vendidoPor ? etiquetaVendedor(venta.vendidoPor, yo) : null }} />
+          {anula && <Boton variante="secundario" onClick={() => { setDevolviendo(true); setAviso(null) }}>Devolver productos</Boton>}
           {anula && <Boton variante="cuidado" onClick={() => { setConfirmando(true); setAviso(null) }}>Anular venta</Boton>}
         </div>
       )}
@@ -186,7 +275,7 @@ export function PantallaHistorial() {
                     <span className="f-renglon-cuerpo">
                       <span className="f-renglon-titulo" data-anulada={anulada ? 'true' : undefined}>{venta.items.map((item) => item.nombre).join(', ')}</span>
                       <span className="f-renglon-detalle">
-                        {fechaVenta(venta.fecha)} · {MEDIOS[venta.medioPago]}
+                        {fechaVenta(venta.fecha)} · {esPagoDividido(venta) ? 'Pago dividido' : MEDIOS[venta.medioPago]}
                         {anulada && <> · <Etiqueta tono="ambar" className="fh-anulada">Anulada</Etiqueta></>}
                       </span>
                     </span>

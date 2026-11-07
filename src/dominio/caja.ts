@@ -1,4 +1,5 @@
 import type { Centavos, FiadoPago, MovimientoCaja, Venta } from './tipos'
+import { montoEnMedio } from './pagos'
 import { sumar } from './dinero'
 
 export interface MovimientosEfectivo {
@@ -27,8 +28,8 @@ export function movimientosEfectivo(
   return {
     ventasEfectivo: sumar(
       ...ventas
-        .filter((venta) => venta.medioPago === 'efectivo' && enElPeriodo(venta.fecha))
-        .map((venta) => venta.total),
+        .filter((venta) => enElPeriodo(venta.fecha))
+        .map((venta) => montoEnMedio(venta, 'efectivo')),
     ),
     pagosFiadoEfectivo: sumar(
       ...pagos.filter((pago) => enElPeriodo(pago.fecha)).map((pago) => pago.monto),

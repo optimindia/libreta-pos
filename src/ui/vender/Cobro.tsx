@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { Cliente, MedioPago, UUID } from '@/dominio/tipos'
 import { superaLimiteFiado } from '@/dominio/fiado'
+import { medioPrincipal, type PartePago } from '@/dominio/pagos'
 import { formatearPesos, pesosACentavos, vuelto } from '@/dominio/dinero'
 import { conPuntos, soloDigitos, sugerenciasDePago, teclear, type TeclaCobro } from '@/dominio/cobro'
 import { repos } from '@/datos/local/repos'
@@ -305,6 +306,92 @@ function Fiado({
   )
 }
 
+const OTRO_MEDIO: Record<MedioCobro, MedioCobro> = { efectivo: 'transferencia', transferencia: 'efectivo', qr: 'efectivo', fiado: 'efectivo' }
+
+/** Pago en dos partes: "$5.000 en efectivo y el resto por transferencia".
+ *  La segunda parte se completa sola con lo que falta. Si una parte es
+ *  fiado, se elige el cliente y a la libreta va sólo esa parte. */
+function PagoDividido({
+  total,
+  onCobrar,
+}: {
+  total: number
+  onCobrar: (pagos: PartePago[], clienteId?: UUID, vence?: number | null) => void
+}) {
+  const [primero, setPrimero] = useState<MedioCobro>('efectivo')
+  const [segundo, setSegundo] = useState<MedioCobro>('transferencia')
+  const [texto, setTexto] = useState('')
+  const [confirmado, setConfirmado] = useState(false)
+  const monto = texto === '' ? 0 : pesosACentavos(Number(texto) || 0)
+  const resto = total - monto
+  const valido = monto > 0 && resto > 0
+  const pagos: PartePago[] = [{ medio: primero, monto }, { medio: segundo, monto: resto }]
+  const fiado = pagos.find((parte) => parte.medio === 'fiado')
+  const digital = pagos.some((parte) => parte.medio === 'transferencia' || parte.medio === 'qr')
+
+  function elegirPrimero(medio: MedioCobro) {
+    setPrimero(medio)
+    if (medio === segundo) setSegundo(OTRO_MEDIO[medio])
+  }
+  function elegirSegundo(medio: MedioCobro) {
+    setSegundo(medio)
+    if (medio === primero) setPrimero(OTRO_MEDIO[medio])
+  }
+
+  return (
+    <div className="f-cobro f-dividido">
+      <section className="f-dividido-parte" aria-label="Primera parte del pago">
+        <Segmentado etiqueta="Primera parte" opciones={OPCIONES_PAGO} valor={primero} onCambiar={elegirPrimero} />
+        <div className="f-cobro-tablero f-dividido-monto">
+        <label className="f-cobro-te-dan">
+          <span className="f-cobro-rotulo">¿Cuánto paga así?</span>
+          <span className="f-cobro-monto">
+            <span aria-hidden="true">$</span>
+            <input
+              aria-label="Monto de la primera parte"
+              inputMode="numeric"
+              autoComplete="off"
+              autoFocus
+              placeholder="0"
+              className="f-plata"
+              value={conPuntos(texto)}
+              onChange={(evento) => setTexto(soloDigitos(evento.target.value))}
+            />
+          </span>
+        </label>
+        </div>
+      </section>
+
+      <section className="f-dividido-parte" aria-label="Segunda parte del pago">
+        <Segmentado etiqueta="El resto" opciones={OPCIONES_PAGO} valor={segundo} onCambiar={elegirSegundo} />
+        <p className="f-dividido-resto" aria-live="polite">
+          <span>El resto</span>
+          <strong className="f-plata" data-falta={monto >= total ? 'true' : undefined}>
+            {monto >= total ? 'Pasa del total' : formatearPesos(Math.max(0, resto))}
+          </strong>
+        </p>
+      </section>
+
+      {valido && fiado ? (
+        <Fiado total={fiado.monto} onCobrar={(clienteId, vence) => onCobrar(pagos, clienteId, vence)} />
+      ) : (
+        <form className="f-cobro" onSubmit={(evento) => { evento.preventDefault(); if (valido && (!digital || confirmado)) onCobrar(pagos) }}>
+          {digital && (
+            <label className="f-confirmar">
+              <input type="checkbox" checked={confirmado} onChange={(evento) => setConfirmado(evento.target.checked)} />
+              <span><strong>Ya vi el pago aprobado</strong><small>Confirmo la parte por transferencia o QR.</small></span>
+            </label>
+          )}
+          <Boton type="submit" variante="principal" tamano="grande" ancho className="f-cobro-confirmar" disabled={!valido || (digital && !confirmado)}>
+            <span>Cobrar {formatearPesos(total)}</span>
+            {valido && <small>{`${formatearPesos(monto)} + ${formatearPesos(resto)}`}</small>}
+          </Boton>
+        </form>
+      )}
+    </div>
+  )
+}
+
 /** La hoja de cobro: el total arriba, "Cómo paga" y, según el medio, el
  *  teclado con el vuelto, la confirmación de la transferencia o el cliente
  *  del fiado. */
@@ -317,19 +404,35 @@ export function Cobro({
   total: number
   /** El medio que ya se eligió en el panel de la venta (PC). */
   medioInicial?: MedioCobro
-  onCobrar: (medio: MedioPago, clienteId?: UUID, vence?: number | null, referenciaPago?: string, pagoCon?: number) => void
+  onCobrar: (medio: MedioPago, clienteId?: UUID, vence?: number | null, referenciaPago?: string, pagoCon?: number, pagos?: PartePago[]) => void
   onCancelar: () => void
 }) {
   const [pantalla, setPantalla] = useState<MedioCobro>(medioInicial)
+  const [dividido, setDividido] = useState(false)
 
   return (
     <Hoja abierta onCerrar={onCancelar} titulo="Cobrar" extra={formatearPesos(total)} etiquetaCerrar="Cancelar el cobro" ancho="angosto">
-      <Segmentado etiqueta="Cómo paga" opciones={OPCIONES_PAGO} valor={pantalla} onCambiar={setPantalla} />
+      {dividido ? (
+        <>
+          <div className="f-dividido-cabeza">
+            <strong>Pago en dos partes</strong>
+            <button type="button" className="f-dividido-volver" onClick={() => setDividido(false)}>Un solo medio</button>
+          </div>
+          <PagoDividido total={total} onCobrar={(pagos, clienteId, vence) => onCobrar(medioPrincipal(pagos), clienteId, vence, undefined, undefined, pagos)} />
+        </>
+      ) : (
+        <>
+      <div className="f-cobro-medio">
+        <Segmentado etiqueta="Cómo paga" opciones={OPCIONES_PAGO} valor={pantalla} onCambiar={setPantalla} />
+        <button type="button" className="f-dividido-volver" onClick={() => setDividido(true)}>Pagar con dos medios</button>
+      </div>
 
       {pantalla === 'efectivo' && <Efectivo total={total} onCobrar={(entregado) => onCobrar('efectivo', undefined, undefined, undefined, entregado)} />}
       {pantalla === 'fiado' && <Fiado total={total} onCobrar={(clienteId, vence) => onCobrar('fiado', clienteId, vence)} />}
       {(pantalla === 'transferencia' || pantalla === 'qr') && (
         <CobroDigital key={pantalla} medio={pantalla} total={total} onCobrar={(referencia) => onCobrar(pantalla, undefined, undefined, referencia)} />
+      )}
+        </>
       )}
     </Hoja>
   )

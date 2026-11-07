@@ -1,5 +1,6 @@
 'use client'
 
+import { esPagoDividido } from '@/dominio/pagos'
 import { formatearCantidad } from '@/dominio/cantidad'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -261,7 +262,7 @@ export function PantallaInicio() {
                     <span className="fi-venta-cuerpo">
                       <span className="fi-venta-titulo">{venta.items.map((item) => (item.cantidad !== 1 ? `${item.nombre} ×${formatearCantidad(item.cantidad)}` : item.nombre)).join(', ')}</span>
                       <span className="fi-venta-detalle" data-tono={venta.medioPago === 'fiado' ? 'coral' : undefined}>
-                        {HORA.format(new Date(venta.fecha))} · {MEDIO[venta.medioPago]}{venta.medioPago === 'fiado' && nombreCliente(venta.clienteId) ? ` a ${nombreCliente(venta.clienteId)}` : ''}
+                        {HORA.format(new Date(venta.fecha))} · {esPagoDividido(venta) ? 'en partes' : MEDIO[venta.medioPago]}{venta.medioPago === 'fiado' && nombreCliente(venta.clienteId) ? ` a ${nombreCliente(venta.clienteId)}` : ''}
                       </span>
                     </span>
                     <span className="fi-venta-monto">{formatearPesos(venta.total)}</span>

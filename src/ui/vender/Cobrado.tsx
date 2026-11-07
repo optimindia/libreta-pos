@@ -1,5 +1,6 @@
 'use client'
 
+import { esPagoDividido } from '@/dominio/pagos'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/datos/local/db'
 import type { Negocio, Venta } from '@/dominio/tipos'
@@ -44,7 +45,7 @@ export function Cobrado({
   const link = enlaceWhatsApp(cliente?.telefono ?? '', mensajeTicket(negocio, venta))
 
   return (
-    <Hoja abierta onCerrar={onNueva} titulo={`Cobrado ${TEXTO_DEL_MEDIO[venta.medioPago]}`} etiquetaCerrar="Cerrar y empezar otra venta" ancho="angosto">
+    <Hoja abierta onCerrar={onNueva} titulo={esPagoDividido(venta) ? 'Cobrado en partes' : `Cobrado ${TEXTO_DEL_MEDIO[venta.medioPago]}`} etiquetaCerrar="Cerrar y empezar otra venta" ancho="angosto">
       <div className="f-cobrado">
         <span className="f-cobrado-icono" aria-hidden="true"><IconoSincronizado /></span>
         <strong className="f-plata-48">{formatearPesos(venta.total)}</strong>

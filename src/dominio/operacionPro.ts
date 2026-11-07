@@ -10,6 +10,7 @@ import type {
   UUID,
   Venta,
 } from './tipos'
+import { partesDePago } from './pagos'
 import { formatearPesos, multiplicar, sumar } from './dinero'
 import { gananciaVenta } from './ganancia'
 import { deudaPorCliente, saldoFiado } from './fiado'
@@ -368,10 +369,12 @@ export function mixCobrosOperacion(
   const delPeriodo = ventasDelRango(ventas, rangoReporte(periodo, ahora))
   const total = sumar(...delPeriodo.map((venta) => venta.total))
   for (const venta of delPeriodo) {
-    const actual = porMedio.get(venta.medioPago) ?? { medio: venta.medioPago, ventas: 0, monto: 0, porcentaje: 0 }
-    actual.ventas += 1
-    actual.monto += venta.total
-    porMedio.set(venta.medioPago, actual)
+    for (const parte of partesDePago(venta)) {
+      const actual = porMedio.get(parte.medio) ?? { medio: parte.medio, ventas: 0, monto: 0, porcentaje: 0 }
+      actual.ventas += 1
+      actual.monto += parte.monto
+      porMedio.set(parte.medio, actual)
+    }
   }
   return [...porMedio.values()]
     .map((medio) => ({ ...medio, porcentaje: total > 0 ? Math.round((medio.monto / total) * 100) : 0 }))
