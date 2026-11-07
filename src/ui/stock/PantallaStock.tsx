@@ -22,6 +22,7 @@ import { usePuede } from '@/ui/sistema/usoRol'
 import { Portada } from '@/ui/sistema/Portada'
 import { Proveedores } from './Proveedores'
 import { Etiquetas } from './Etiquetas'
+import { porVencer, textoVence } from '@/dominio/vencimientos'
 import { ConteoInventario } from './ConteoInventario'
 import './stock.css'
 import { useDestino } from '@/ui/sistema/destino'
@@ -42,6 +43,8 @@ export function PantallaStock() {
   const escanerStock = funcionActiva(funciones, 'escanerStock')
   const importarFactura = funcionActiva(funciones, 'importarFactura')
   const faltan = faltantes(productos)
+  const [ahora] = useState(() => Date.now())
+  const vencen = porVencer(productos, ahora)
   // El vendedor mira el stock; cargar, editar y poner precios es del dueño
   // (la base se lo rechaza).
   const editaCatalogo = usePuede('editarProductos')
@@ -67,6 +70,18 @@ export function PantallaStock() {
           ? <Boton variante="principal" className="f-stock-llego" onClick={() => setPestaña('cargar')}>+ Llegó mercadería</Boton>
           : undefined}
       />
+
+      {vista === 'catalogo' && vencen.length > 0 && (
+        <div className="f-aviso f-stock-vencen" data-tono="coral" role="status">
+          <strong>{vencen.some((item) => item.dias < 0) ? 'Hay productos vencidos' : 'Productos por vencer'}</strong>
+          <ul>
+            {vencen.slice(0, 5).map(({ producto, dias }) => (
+              <li key={producto.id}><span>{producto.nombre}</span><span data-vencido={dias < 0 ? 'true' : undefined}>{textoVence(dias)}</span></li>
+            ))}
+          </ul>
+          {vencen.length > 5 && <span className="f-dato">Y {vencen.length - 5} más.</span>}
+        </div>
+      )}
 
       {vista === 'catalogo' && faltan.length > 0 && (
         <p className="f-aviso" data-tono="ambar">

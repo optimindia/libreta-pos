@@ -791,3 +791,12 @@
 @media (max-width: 899px) {
   .f-conteo-pie > button { flex: 1 1 100%; }
 }
+
+/* ───────────── Vencimientos ───────────── */
+
+.f-stock-vencen { display: flex; flex-direction: column; gap: 6px; }
+.f-stock-vencen ul { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.f-stock-vencen li { display: flex; justify-content: space-between; gap: var(--f-3); font-weight: 600; }
+.f-stock-vencen li span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.f-stock-vencen li span:last-child { flex: 0 0 auto; font-weight: 800; }
+.f-stock-vencen ul { max-width: 560px; }

@@ -2,6 +2,7 @@
 
 import { cumplesProximos, cuandoCumple, mensajeCumple, textoCumple } from '@/dominio/cumpleanos'
 import { enlaceWhatsApp } from '@/dominio/mensajes'
+import { porVencer, textoVence } from '@/dominio/vencimientos'
 import { esPagoDividido } from '@/dominio/pagos'
 import { formatearCantidad } from '@/dominio/cantidad'
 import Link from 'next/link'
@@ -115,6 +116,7 @@ export function PantallaInicio() {
   const nombre = negocio?.nombre?.trim() || 'Tu almacén'
   // Saludar a quien cumple hoy o en los próximos días: un detalle que fideliza.
   const cumples = cumplesProximos(clientes, ahora.getTime(), 3)
+  const vencen = hayStock ? porVencer(productos, ahora.getTime()) : []
 
   return (
     <div className="fi-pagina" data-entrada={entrada ? 'true' : undefined}>
@@ -164,7 +166,7 @@ export function PantallaInicio() {
 
         <section className="fi-tareas" aria-labelledby="fi-tareas-titulo">
           <h2 id="fi-tareas-titulo" className="fi-titulo-bloque">Para hacer ahora</h2>
-          {tareas.length === 0 && cumples.length === 0 ? (
+          {tareas.length === 0 && cumples.length === 0 && vencen.length === 0 ? (
             <p className="fi-tareas-nada"><span className="fi-tarea-icono" data-tono="verde" aria-hidden="true"><IconoConfirmar /></span>Nada pendiente. Está todo en orden.</p>
           ) : (
             <ul className="fi-tareas-lista">
@@ -181,6 +183,16 @@ export function PantallaInicio() {
                   </li>
                 )
               })}
+              {vencen.length > 0 && (
+                <li className="fi-tarea" data-tono="coral" style={{ '--i': tareas.length } as React.CSSProperties}>
+                  <span className="fi-tarea-icono" data-tono="coral" aria-hidden="true"><IconoAlerta /></span>
+                  <span className="fi-tarea-texto">
+                    <strong>{vencen.length === 1 ? `${vencen[0].producto.nombre}: ${textoVence(vencen[0].dias).toLowerCase()}` : `${vencen.length} productos ${vencen.some((item) => item.dias < 0) ? 'vencidos o por vencer' : 'por vencer'}`}</strong>
+                    <small>{vencen.length === 1 ? 'Sacalo de la góndola o ponelo en oferta.' : vencen.slice(0, 3).map((item) => item.producto.nombre).join(', ')}</small>
+                  </span>
+                  <Link href="/stock" className="fi-tarea-accion" aria-label="Ver productos por vencer">Ver</Link>
+                </li>
+              )}
               {cumples.map(({ cliente, faltan }, indice) => (
                 <li key={`cumple-${cliente.id}`} className="fi-tarea" data-tono="verde" style={{ '--i': tareas.length + indice } as React.CSSProperties}>
                   <span className="fi-tarea-icono" data-tono="verde" aria-hidden="true"><IconoClientes /></span>

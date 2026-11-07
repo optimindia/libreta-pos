@@ -1,5 +1,6 @@
 'use client'
 
+import { textoDeVence, venceDeTexto } from '@/dominio/vencimientos'
 import { useId, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { Producto, UnidadVenta } from '@/dominio/tipos'
@@ -56,6 +57,7 @@ export function FormularioProducto({
   const [precio, setPrecio] = useState(producto ? String(producto.precio / 100) : '')
   const [precioOferta, setPrecioOferta] = useState(producto?.precioOferta ? String(producto.precioOferta / 100) : '')
   const [ofertaHasta, setOfertaHasta] = useState(producto?.ofertaHasta ? new Date(producto.ofertaHasta).toISOString().slice(0, 10) : '')
+  const [vence, setVence] = useState(textoDeVence(producto?.venceEl))
   const [codigo, setCodigo] = useState(producto?.codigoBarras ?? codigoInicial ?? '')
   const [minimo, setMinimo] = useState(producto ? textoCantidad(producto.stockMinimo) : '3')
   const [stockInicial, setStockInicial] = useState(producto ? textoCantidad(producto.stock) : '')
@@ -126,11 +128,12 @@ export function FormularioProducto({
         categoria: categoria.trim() || undefined,
         precioOferta: ofertaCentavos,
         ofertaHasta: ofertaCentavos ? fechaOferta : undefined,
+        venceEl: venceDeTexto(vence),
       })
       onGuardado?.(guardado)
       if (!producto) {
         // Lista para el siguiente: se queda la categoría y cómo se vende.
-        setNombre(''); setCosto(''); setPrecio(''); setPrecioOferta(''); setOfertaHasta(''); setCodigo(''); setStockInicial('')
+        setNombre(''); setCosto(''); setPrecio(''); setPrecioOferta(''); setOfertaHasta(''); setCodigo(''); setStockInicial(''); setVence('')
         setErrores({})
         if (seguir) campoCodigo.current?.focus()
         else onTerminar?.()
@@ -258,12 +261,17 @@ export function FormularioProducto({
         </div>
 
         <details className="f-carga-mas">
-          <summary>Más opciones <span>mínimo para avisar y oferta</span></summary>
+          <summary>Más opciones <span>mínimo, vencimiento y oferta</span></summary>
           <div className="f-carga-mas-cuerpo">
             <label className="f-campo">
               <span>Avisarme cuando queden <em>{sufijo}</em></span>
               <input aria-label="Mínimo" inputMode={porUnidad ? 'numeric' : 'decimal'} placeholder="3" className="f-entrada" value={minimo} {...enlace(Boolean(errores.stockMinimo), `${idError.control}-min`)} onChange={(evento) => { setMinimo(evento.target.value); setErrores((actuales) => ({ ...actuales, stockMinimo: undefined })) }} />
               {errores.stockMinimo && <small id={`${idError.control}-min`} className="f-stock-error" role="alert">{errores.stockMinimo}</small>}
+            </label>
+            <label className="f-campo">
+              <span>Vence el <em>opcional</em></span>
+              <input aria-label="Fecha de vencimiento" type="date" className="f-entrada" value={vence} onChange={(evento) => setVence(evento.target.value)} />
+              <small className="f-dato">La fecha más próxima de lo que tenés. Te avisamos una semana antes.</small>
             </label>
             <div className="f-stock-fila-campos">
               <label className="f-campo">
