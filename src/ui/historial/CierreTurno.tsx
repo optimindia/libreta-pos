@@ -10,6 +10,7 @@ import type { Cierre, UUID } from '@/dominio/tipos'
 import { repos } from '@/datos/local/repos'
 import { Boton } from '@/ui/sistema/Boton'
 import { Hoja } from '@/ui/sistema/Hoja'
+import { ArqueoBilletes } from '@/ui/plata/ArqueoBilletes'
 import { Fila, Monto } from '@/ui/plata/CierreCaja'
 
 /** El vendedor cierra SU turno: cuenta el efectivo y la app lo compara con
@@ -51,6 +52,7 @@ function UltimoTurno({ cierre }: { cierre: Cierre }) {
 
 function PanelTurno({ resumen, onTerminado }: { resumen: ResumenTurno; onTerminado: () => void }) {
   const [contado, setContado] = useState('')
+  const [porBilletes, setPorBilletes] = useState(false)
   const contadoCentavos = pesosACentavos(Number(contado) || 0)
   const diferencia = contado === '' ? null : diferenciaCaja(contadoCentavos, resumen.esperado)
 
@@ -78,13 +80,23 @@ function PanelTurno({ resumen, onTerminado }: { resumen: ResumenTurno; onTermina
         </dl>
       </section>
 
-      <label className="f-campo">
-        <span>¿Cuánto contaste? <em>importe real</em></span>
-        <span className="fp-prefijo">
-          <span aria-hidden="true">$</span>
-          <input aria-label="Contado en el cajón" inputMode="decimal" autoFocus placeholder="Ej. 5.000" className="f-entrada fp-entrada-grande tabular" value={contado} onChange={(evento) => setContado(evento.target.value)} />
-        </span>
-      </label>
+      <div className="fp-contar-modo">
+        <span className="f-hoja-subtitulo">¿Cuánto contaste?</span>
+        <button type="button" className="fp-contar-cambiar" aria-pressed={porBilletes} onClick={() => setPorBilletes(!porBilletes)}>
+          {porBilletes ? 'Escribir el total' : 'Contar por billetes'}
+        </button>
+      </div>
+      {porBilletes ? (
+        <ArqueoBilletes onTotal={(centavos) => setContado(centavos > 0 ? String(centavos / 100) : '')} />
+      ) : (
+        <label className="f-campo">
+          <span className="f-sr">¿Cuánto contaste? Importe real</span>
+          <span className="fp-prefijo">
+            <span aria-hidden="true">$</span>
+            <input aria-label="Contado en el cajón" inputMode="decimal" autoFocus placeholder="Ej. 5.000" className="f-entrada fp-entrada-grande tabular" value={contado} onChange={(evento) => setContado(evento.target.value)} />
+          </span>
+        </label>
+      )}
 
       {diferencia !== null && (
         <div className="fp-diferencia" data-tono={diferencia < 0 ? 'ambar' : 'verde'}>
