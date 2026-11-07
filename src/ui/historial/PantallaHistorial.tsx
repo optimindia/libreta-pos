@@ -1,5 +1,6 @@
 'use client'
 
+import { esPagoDividido, textoDePago } from '@/dominio/pagos'
 import { formatearCantidad } from '@/dominio/cantidad'
 import { Portada } from '@/ui/sistema/Portada'
 import { useState } from 'react'
@@ -70,7 +71,7 @@ function DetalleVenta({ venta, yo, onAnulada }: { venta: Venta; yo: Identidad; o
 
   return (
     <>
-      <p className="f-hoja-ayuda">{fechaVenta(venta.fecha)} · {MEDIOS[venta.medioPago]}{anulada ? ' · Anulada' : ''}</p>
+      <p className="f-hoja-ayuda">{fechaVenta(venta.fecha)} · {esPagoDividido(venta) ? textoDePago(venta) : MEDIOS[venta.medioPago]}{anulada ? ' · Anulada' : ''}</p>
       <p className="f-hoja-ayuda">Vendió: {etiquetaVendedor(venta.vendidoPor, yo)}</p>
       {anulada && (
         <div className="f-aviso" data-tono="ambar">
@@ -186,7 +187,7 @@ export function PantallaHistorial() {
                     <span className="f-renglon-cuerpo">
                       <span className="f-renglon-titulo" data-anulada={anulada ? 'true' : undefined}>{venta.items.map((item) => item.nombre).join(', ')}</span>
                       <span className="f-renglon-detalle">
-                        {fechaVenta(venta.fecha)} · {MEDIOS[venta.medioPago]}
+                        {fechaVenta(venta.fecha)} · {esPagoDividido(venta) ? 'Pago dividido' : MEDIOS[venta.medioPago]}
                         {anulada && <> · <Etiqueta tono="ambar" className="fh-anulada">Anulada</Etiqueta></>}
                       </span>
                     </span>

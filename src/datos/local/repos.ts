@@ -11,6 +11,7 @@ import { normalizarFunciones } from '@/dominio/funciones'
 import { nuevoId } from '@/dominio/id'
 import { totalTicket } from '@/dominio/ticket'
 import { deudaPorCliente, saldoFiado } from '@/dominio/fiado'
+import { medioPrincipal, montoEnMedio, problemaDePagos, type PartePago } from '@/dominio/pagos'
 import { formatearPesos } from '@/dominio/dinero'
 import { pedidoReservaStock, totalPedido } from '@/dominio/pedidos'
 
@@ -317,15 +318,25 @@ export const repos = {
       vence?: number | null
       referenciaPago?: string
       pedidoId?: UUID
+      /** Pago dividido: las partes tienen que sumar el total. */
+      pagos?: PartePago[]
     }): Promise<Venta> {
-      validarVenta(datos.items, datos.medioPago, datos.clienteId)
+      const pagos = datos.pagos && datos.pagos.length > 0 ? datos.pagos.map((parte) => ({ medio: parte.medio, monto: parte.monto })) : undefined
+      if (pagos) {
+        const problema = problemaDePagos(pagos, totalTicket(datos.items))
+        if (problema) throw new ErrorVentaInvalida(problema)
+      }
+      const medioPago = pagos ? medioPrincipal(pagos) : datos.medioPago
+      const llevaFiado = pagos ? pagos.some((parte) => parte.medio === 'fiado') : medioPago === 'fiado'
+      validarVenta(datos.items, llevaFiado ? 'fiado' : medioPago, datos.clienteId)
       if (!(await cantidadesSegunUnidad(datos.items))) throw new ErrorVentaInvalida('Hay una cantidad que no va: lo que se vende por unidad va en números enteros.')
       const vendidoPor = (await quienSoy()).usuarioId
       const venta: Venta = {
         id: nuevoId(),
         fecha: Date.now(),
         total: totalTicket(datos.items),
-        medioPago: datos.medioPago,
+        medioPago,
+        ...(pagos ? { pagos } : {}),
         items: datos.items,
         clienteId: datos.clienteId,
         estado: 'completada',
@@ -354,12 +365,14 @@ export const repos = {
             tocados.push(descontado)
           }
         }
-        if (venta.medioPago === 'fiado' && venta.clienteId) {
+        // Sólo lo que se fió va a la libreta: en un pago dividido, la parte fiada.
+        const fiadoMonto = montoEnMedio(venta, 'fiado')
+        if (fiadoMonto > 0 && venta.clienteId) {
           fiado = {
             id: nuevoId(),
             clienteId: venta.clienteId,
             ventaId: venta.id,
-            monto: venta.total,
+            monto: fiadoMonto,
             fecha: venta.fecha,
             vence: datos.vence ?? null,
           }
@@ -404,7 +417,7 @@ export const repos = {
         if (!actual) throw new ErrorVentaNoAnulable('No encontramos esa venta.')
         if (actual.estado === 'anulada') throw new ErrorVentaYaAnulada()
 
-        if (actual.medioPago === 'fiado') {
+        if (montoEnMedio(actual, 'fiado') > 0) {
           const fiado = (await db.fiados.toArray()).find((item) => item.ventaId === actual.id && !item.anuladoEn)
           if (fiado) {
             const pagos = await db.fiadoPagos.where('fiadoId').equals(fiado.id).toArray()
@@ -431,13 +444,15 @@ export const repos = {
 
         await db.ventas.put(ventaAnulada)
 
-        if (actual.medioPago === 'efectivo') {
+        // Sale de la caja lo que entró en efectivo (en un pago dividido, esa parte).
+        const efectivoCobrado = montoEnMedio(actual, 'efectivo')
+        if (efectivoCobrado > 0) {
           devolucion = {
             id: nuevoId(),
             fecha: ahora,
             tipo: 'salida',
             concepto: `Devolución de venta ${actual.id.slice(0, 6)}`,
-            monto: actual.total,
+            monto: efectivoCobrado,
             medioPago: 'efectivo',
           }
           await db.movimientosCaja.add(devolucion)

@@ -1,4 +1,5 @@
 import type { Centavos, Cierre, FiadoPago, UUID, Venta } from './tipos'
+import { montoEnMedio } from './pagos'
 import { esperadoEnCaja, movimientosEfectivo } from './caja'
 import { sumar } from './dinero'
 
@@ -115,7 +116,7 @@ export function desgloseDelDia(
   return claves.map((vendedor) => {
     const suyas = filtrarPorVendedor(delDia, vendedor).filter((v) => v.estado !== 'anulada')
     const efectivo = sumar(
-      ...filtrarPorVendedor(delDia, vendedor).filter((v) => v.medioPago === 'efectivo').map((v) => v.total),
+      ...filtrarPorVendedor(delDia, vendedor).map((v) => montoEnMedio(v, 'efectivo')),
       ...filtrarPorVendedor(pagosDelDia, vendedor).map((p) => p.monto),
     )
     const ultimo = cierres

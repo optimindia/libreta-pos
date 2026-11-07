@@ -60,6 +60,22 @@ describe('PantallaVender', () => {
     await waitFor(async () => expect((await repos.ventas.todas())[0].referenciaPago).toBe('8472'))
   })
 
+  it('cobra en dos partes: una en efectivo y el resto por transferencia', async () => {
+    render(<PantallaVender />)
+    fireEvent.click(await screen.findByText('Yerba Playadito'))
+    fireEvent.click(await screen.findByRole('button', { name: /^cobrar$/i }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Pagar con dos medios' }))
+    fireEvent.change(screen.getByLabelText('Monto de la primera parte'), { target: { value: '1000' } })
+    expect(screen.getByText('$3.200')).toBeTruthy()
+    const cobrar = screen.getByRole('button', { name: /cobrar \$4\.200/i })
+    expect(cobrar).toHaveProperty('disabled', true)
+    fireEvent.click(screen.getByLabelText(/ya vi el pago aprobado/i))
+    fireEvent.click(cobrar)
+    await waitFor(async () => expect(await repos.ventas.todas()).toHaveLength(1))
+    const [venta] = await repos.ventas.todas()
+    expect(venta.pagos).toEqual([{ medio: 'efectivo', monto: 100000 }, { medio: 'transferencia', monto: 320000 }])
+  })
+
   it('al elegir fiado crea el cliente y registra la deuda', async () => {
     render(<PantallaVender />)
     fireEvent.click(await screen.findByText('Yerba Playadito'))

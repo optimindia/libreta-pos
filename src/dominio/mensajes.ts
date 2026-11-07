@@ -1,4 +1,5 @@
 import { formatearCantidad } from './cantidad'
+import { esPagoDividido, montoEnMedio, textoDePago } from './pagos'
 import type { Centavos, Cliente, Negocio, Pedido, Venta } from './tipos'
 import type { SugerenciaCompra } from './reposicion'
 import { formatearPesos } from './dinero'
@@ -122,8 +123,10 @@ export function mensajeTicket(negocio: Negocio, venta: Venta): string {
     `*Total: ${formatearPesos(venta.total)}*`,
     fechaLegible(venta.fecha),
   ]
-  if (venta.medioPago === 'fiado') {
-    partes.push('', `Quedó en la libreta: ${formatearPesos(venta.total)}`)
+  if (esPagoDividido(venta)) partes.push(`Pago: ${textoDePago(venta)}`)
+  const enLibreta = montoEnMedio(venta, 'fiado')
+  if (enLibreta > 0) {
+    partes.push('', `Quedó en la libreta: ${formatearPesos(enLibreta)}`)
   }
   partes.push('', '¡Gracias por tu compra!')
   return partes.join('\n')

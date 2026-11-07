@@ -1,4 +1,5 @@
 import { formatearCantidad } from './cantidad'
+import { esPagoDividido, textoDePago } from './pagos'
 import type { Centavos, MedioPago, Venta } from './tipos'
 import { formatearPesos } from './dinero'
 
@@ -48,7 +49,7 @@ export function fechaHoraArgentina(epoch: number): string {
  *  efectivo; después de eso la venta no guarda el vuelto. */
 export interface DatosTicket {
   negocio: string
-  venta: Pick<Venta, 'fecha' | 'total' | 'medioPago' | 'items'>
+  venta: Pick<Venta, 'fecha' | 'total' | 'medioPago' | 'items' | 'pagos'>
   vendedor?: string | null
   pagoCon?: Centavos | null
   leyenda: string
@@ -80,7 +81,7 @@ export function resumenTicket(datos: DatosTicket): ResumenTicket {
       importe: formatearPesos(Math.round(item.precio * item.cantidad)),
     })),
     total: formatearPesos(venta.total),
-    medioPago: ETIQUETA_MEDIO[venta.medioPago],
+    medioPago: esPagoDividido(venta) ? textoDePago(venta) : ETIQUETA_MEDIO[venta.medioPago],
     pagoCon: hayVuelto ? formatearPesos(entregado) : null,
     vuelto: hayVuelto ? formatearPesos(entregado - venta.total) : null,
     vendedor: datos.vendedor?.trim() || null,

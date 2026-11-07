@@ -1,4 +1,5 @@
 import type { Centavos, MedioPago, Producto, UUID, Venta } from './tipos'
+import { partesDePago } from './pagos'
 import { multiplicar, sumar } from './dinero'
 import { gananciaVenta } from './ganancia'
 
@@ -60,7 +61,7 @@ export function resumenPeriodo(ventas: Venta[], periodo: PeriodoReporte, ahora: 
   let unidades = 0
 
   for (const venta of delPeriodo) {
-    porMedioPago[venta.medioPago] += venta.total
+    for (const parte of partesDePago(venta)) porMedioPago[parte.medio] += parte.monto
     unidades += venta.items.reduce((total, item) => total + item.cantidad, 0)
   }
 
