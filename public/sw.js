@@ -79,3 +79,21 @@ self.addEventListener('fetch', (evento) => {
       ),
   )
 })
+
+// Avisos locales (los arma la app en el aparato, sin servidor de push): al
+// tocar uno se abre la pantalla que corresponde, o se enfoca la que ya está.
+self.addEventListener('notificationclick', (evento) => {
+  evento.notification.close()
+  const destino = (evento.notification.data && evento.notification.data.url) || '/'
+  evento.waitUntil((async () => {
+    const ventanas = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    for (const ventana of ventanas) {
+      if ('focus' in ventana) {
+        await ventana.focus()
+        if ('navigate' in ventana) await ventana.navigate(destino).catch(() => undefined)
+        return
+      }
+    }
+    await self.clients.openWindow(destino)
+  })())
+})

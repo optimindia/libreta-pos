@@ -213,3 +213,11 @@
 /* La portada ocupa todo el ancho, aunque los estilos viejos de Ajustes
    armen una grilla de dos columnas. */
 .page-config > .f-portada { grid-column: 1 / -1; width: 100%; }
+
+/* ───────────── Avisos en este aparato ───────────── */
+
+.f-avisos { display: flex; flex-direction: column; gap: var(--f-3); }
+.f-avisos .f-dato { margin: 0; }
+.f-avisos-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: var(--f-2); }
+.f-avisos-estado { display: inline-flex; align-items: center; gap: 8px; margin-right: auto; color: var(--f-verde); font-weight: 800; }
+.f-avisos-estado span { width: 10px; height: 10px; border-radius: 999px; background: var(--f-verde); }
