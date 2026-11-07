@@ -2,6 +2,7 @@ import { promoValida } from '@/dominio/promos'
 import { normalizarVendedores } from '@/dominio/vendedores'
 import { normalizarFidelidad } from '@/dominio/fidelidad'
 import { historialConCambio } from '@/dominio/historialPrecios'
+import { controlaStock } from '@/dominio/stock'
 import { cantidadValida, esFraccionado, redondearCantidad } from '@/dominio/cantidad'
 import { CODIGO_VARIOS, esProductoVarios, MINIMO_VARIOS, NOMBRE_VARIOS, STOCK_VARIOS } from '@/dominio/varios'
 import { db } from './db'
@@ -66,7 +67,7 @@ async function obtenerPreferenciasLocales(): Promise<PreferenciasNegocio> {
 }
 
 /** Sólo textos conocidos y cortos: lo que viene de la nube puede ser viejo. */
-const AJUSTES_CONOCIDOS = new Set(['metaPlata', 'metaPro', 'leyendaTicket', 'gastosFijos', 'promos', 'vendedores', 'fidelidad'])
+const AJUSTES_CONOCIDOS = new Set(['metaPlata', 'metaPro', 'leyendaTicket', 'gastosFijos', 'promos', 'vendedores', 'fidelidad', 'sinControlStockPorDefecto'])
 
 export function normalizarAjustes(crudo: unknown): AjustesNegocio {
   const dato = (typeof crudo === 'object' && crudo !== null ? crudo : {}) as Record<string, unknown>
@@ -86,6 +87,7 @@ export function normalizarAjustes(crudo: unknown): AjustesNegocio {
       .slice(0, 50)
       .map((g) => ({ id: g.id, nombre: g.nombre.slice(0, 60), monto: g.monto }))
   }
+  if (dato.sinControlStockPorDefecto === true) ajustes.sinControlStockPorDefecto = true
   const fidelidad = normalizarFidelidad(dato.fidelidad)
   if (fidelidad) ajustes.fidelidad = fidelidad
   const vendedores = normalizarVendedores(dato.vendedores)
@@ -315,6 +317,21 @@ export const repos = {
       await encolar('producto', 'actualizar', actualizado)
       return actualizado
     },
+    /** Prende o apaga el control de stock de varios productos a la vez. */
+    async cambiarControlStock(ids: UUID[], controlar: boolean): Promise<number> {
+      const cambiados: Producto[] = []
+      await db.transaction('rw', db.productos, async () => {
+        for (const id of ids) {
+          const actual = await db.productos.get(id)
+          if (!actual || actual.eliminadoEn || controlaStock(actual) === controlar) continue
+          const actualizado: Producto = { ...actual, sinControlStock: !controlar, actualizadoEn: Date.now() }
+          await db.productos.put(actualizado)
+          cambiados.push(actualizado)
+        }
+      })
+      for (const producto of cambiados) await encolar('producto', 'actualizar', producto)
+      return cambiados.length
+    },
     async marcarFavorito(id: UUID, favorito: boolean): Promise<Producto | null> {
       const actual = await db.productos.get(id)
       if (!actual) return null
@@ -396,6 +413,8 @@ export const repos = {
         ...(datos.canjeFidelidad && datos.clienteId ? { canjeFidelidad: true } : {}),
       }
       const tocados: Producto[] = []
+      // Lo que no lleva control de stock no se descuenta ni genera movimientos.
+      const sinControl = new Set<UUID>()
       let fiado: Fiado | null = null
       await db.transaction('rw', db.ventas, db.productos, db.fiados, db.pedidos, async () => {
         const reservadas = await cantidadesReservadas(datos.pedidoId)
@@ -403,13 +422,16 @@ export const repos = {
         for (const item of venta.items) cantidades.set(item.productoId, (cantidades.get(item.productoId) ?? 0) + item.cantidad)
         for (const [productoId, cantidad] of cantidades) {
           const producto = await db.productos.get(productoId)
+          if (producto && !controlaStock(producto)) continue
           const disponible = producto ? Math.max(0, producto.stock - (reservadas.get(productoId) ?? 0)) : 0
           if (!producto || disponible < cantidad) throw new ErrorStockInsuficiente(producto?.nombre ?? 'este producto', disponible)
         }
         await db.ventas.add(venta)
         for (const item of venta.items) {
           const producto = await db.productos.get(item.productoId)
-          if (producto) {
+          if (producto && !controlaStock(producto)) {
+            sinControl.add(producto.id)
+          } else if (producto) {
             const descontado = { ...producto, stock: redondearCantidad(producto.stock - item.cantidad), actualizadoEn: Date.now() }
             await db.productos.put(descontado)
             tocados.push(descontado)
@@ -435,6 +457,7 @@ export const repos = {
         await encolar('producto', 'actualizar', producto)
       }
       for (const item of venta.items) {
+        if (sinControl.has(item.productoId)) continue
         await encolarMovimientoStock(item.productoId, -item.cantidad, 'venta', venta.id)
       }
       await encolar('venta', 'crear', venta)
@@ -485,7 +508,7 @@ export const repos = {
         }
         for (const [productoId, cantidad] of cantidades) {
           const producto = await db.productos.get(productoId)
-          if (!producto) continue
+          if (!producto || !controlaStock(producto)) continue
           const restaurado = { ...producto, stock: redondearCantidad(producto.stock + cantidad), actualizadoEn: Date.now() }
           await db.productos.put(restaurado)
           tocados.push(restaurado)
@@ -536,7 +559,7 @@ export const repos = {
 
         for (const item of devolucion.items) {
           const producto = await db.productos.get(item.productoId)
-          if (!producto) continue
+          if (!producto || !controlaStock(producto)) continue
           const repuesto = { ...producto, stock: redondearCantidad(producto.stock + item.cantidad), actualizadoEn: ahora }
           await db.productos.put(repuesto)
           tocados.push(repuesto)
@@ -569,7 +592,10 @@ export const repos = {
       const listo = resultado as { venta: Venta; devolucion: Devolucion } | null
       if (!listo) throw new ErrorDevolucion('No se pudo guardar la devolución.')
       for (const producto of tocados) await encolar('producto', 'actualizar', producto)
-      for (const item of listo.devolucion.items) await encolarMovimientoStock(item.productoId, item.cantidad, 'anulacion', listo.venta.id)
+      const repuestos = new Set(tocados.map((producto) => producto.id))
+      for (const item of listo.devolucion.items) {
+        if (repuestos.has(item.productoId)) await encolarMovimientoStock(item.productoId, item.cantidad, 'anulacion', listo.venta.id)
+      }
       await encolar('venta', 'actualizar', listo.venta)
       if (fiadoActualizado) await encolar('fiado', 'actualizar', fiadoActualizado)
       if (salida) await encolar('movimientoCaja', 'crear', salida)
@@ -868,12 +894,13 @@ export const repos = {
           if (producto) {
             // Un costo en $0 (o ilegible en la foto) no pisa el que ya había.
             const costo = Number.isFinite(item.costoUnitario) && item.costoUnitario > 0 ? item.costoUnitario : producto.costo
-            const cargado: Producto = { ...producto, stock: redondearCantidad(producto.stock + item.cantidad), costo, actualizadoEn: Date.now() }
+            const lleva = controlaStock(producto)
+            const cargado: Producto = { ...producto, stock: lleva ? redondearCantidad(producto.stock + item.cantidad) : producto.stock, costo, actualizadoEn: Date.now() }
             const historial = historialConCambio(producto, cargado, cargado.actualizadoEn ?? Date.now())
             if (historial) cargado.historialPrecios = historial
             await db.productos.put(cargado)
             tocados.push(cargado)
-            cargados.push(item)
+            if (lleva) cargados.push(item)
           }
         }
       })
@@ -922,6 +949,7 @@ export const repos = {
         for (const item of pedido.items) cantidades.set(item.productoId, (cantidades.get(item.productoId) ?? 0) + item.cantidad)
         for (const [productoId, cantidad] of cantidades) {
           const producto = await db.productos.get(productoId)
+          if (producto && !controlaStock(producto)) continue
           const disponible = producto ? Math.max(0, producto.stock - (reservadas.get(productoId) ?? 0)) : 0
           if (!producto || disponible < cantidad) throw new ErrorStockInsuficiente(producto?.nombre ?? 'este producto', disponible)
         }

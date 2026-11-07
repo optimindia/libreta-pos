@@ -23,8 +23,14 @@ export function stockCalculado(
   return entraron - salieron
 }
 
+/** Si el negocio lleva la cuenta de cuántos hay de este producto. Los que
+ *  no (lo suelto, lo que no se cuenta) se venden siempre y no avisan. */
+export function controlaStock(producto: Pick<Producto, 'sinControlStock'>): boolean {
+  return producto.sinControlStock !== true
+}
+
 export function faltantes(productos: Producto[]): Producto[] {
   return productos
-    .filter((producto) => producto.stockMinimo > 0 && producto.stock <= producto.stockMinimo)
+    .filter((producto) => controlaStock(producto) && producto.stockMinimo > 0 && producto.stock <= producto.stockMinimo)
     .sort((a, b) => a.stock - b.stock)
 }

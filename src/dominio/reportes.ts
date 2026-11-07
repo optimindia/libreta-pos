@@ -2,6 +2,7 @@ import type { Centavos, MedioPago, Producto, UUID, Venta } from './tipos'
 import { partesDePago } from './pagos'
 import { multiplicar, sumar } from './dinero'
 import { gananciaVenta } from './ganancia'
+import { controlaStock } from './stock'
 
 export type PeriodoReporte = 'hoy' | '7dias' | '30dias' | 'todo'
 
@@ -108,7 +109,7 @@ export function rankingProductos(
 }
 
 export function valorStock(productos: Producto[]): { costo: Centavos; venta: Centavos; unidades: number } {
-  return productos.reduce(
+  return productos.filter(controlaStock).reduce(
     (total, producto) => ({
       costo: total.costo + multiplicar(producto.costo, Math.max(0, producto.stock)),
       venta: total.venta + multiplicar(producto.precio, Math.max(0, producto.stock)),

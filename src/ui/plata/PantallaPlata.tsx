@@ -29,6 +29,7 @@ import { CentroAcciones } from './CentroAcciones'
 import { estadoVencimiento } from '@/dominio/inteligencia'
 import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
+import { controlaStock } from '@/dominio/stock'
 
 const ETIQUETA_PERIODO: Record<PeriodoReporte, string> = { hoy: 'Hoy', '7dias': '7 días', '30dias': '30 días', todo: 'Todo' }
 
@@ -77,7 +78,7 @@ export function PantallaPlata() {
   const inicioHoy = new Date()
   inicioHoy.setHours(0, 0, 0, 0)
   const cierrePendiente = datos.todas.some((venta) => venta.fecha >= inicioHoy.getTime()) && (!datos.ultimoCierre || datos.ultimoCierre.fecha < inicioHoy.getTime())
-  const agotados = datos.productos.filter((producto) => producto.stock <= 0).length
+  const agotados = datos.productos.filter((producto) => controlaStock(producto) && producto.stock <= 0).length
   const alertasMargen = datos.productos.filter((producto) => producto.costo <= 0 || producto.precio <= 0 || producto.precio < producto.costo).length
   const vencidos = datos.fiados.filter((fiado) => estadoVencimiento(fiado.vence, datos.ahora) === 'vencido').length
 

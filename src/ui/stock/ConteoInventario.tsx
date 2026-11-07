@@ -13,6 +13,7 @@ import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 import { Hoja } from '@/ui/sistema/Hoja'
 import { Tarjeta } from '@/ui/sistema/Tarjeta'
 import { IconoBuscar } from '@/ui/sistema/iconos'
+import { controlaStock } from '@/dominio/stock'
 
 /** El conteo a medio hacer queda guardado en este aparato: se puede contar
  *  una góndola hoy y otra mañana. */
@@ -38,7 +39,9 @@ function guardarBorrador(textos: Record<string, string>) {
 
 type Mostrar = 'todos' | 'faltan' | 'diferencias'
 
-export function ConteoInventario({ productos }: { productos: Producto[] }) {
+export function ConteoInventario({ productos: todos }: { productos: Producto[] }) {
+  // Sólo se cuenta lo que lleva control de stock.
+  const productos = useMemo(() => todos.filter(controlaStock), [todos])
   const [textos, setTextos] = useState<Record<string, string>>({})
   const [busqueda, setBusqueda] = useState('')
   const [categoria, setCategoria] = useState('')
@@ -112,7 +115,9 @@ export function ConteoInventario({ productos }: { productos: Producto[] }) {
   }
 
   if (productos.length === 0) {
-    return <EstadoVacio titulo="No hay productos para contar" texto="Cargá productos en el catálogo y después contalos acá." />
+    return todos.length > 0
+      ? <EstadoVacio titulo="No llevás la cuenta del stock" texto="Todos tus productos están sin control de stock. Si querés contarlos, prendé el control en Catálogo › Control de stock." />
+      : <EstadoVacio titulo="No hay productos para contar" texto="Cargá productos en el catálogo y después contalos acá." />
   }
 
   return (

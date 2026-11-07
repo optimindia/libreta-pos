@@ -49,6 +49,7 @@ const CAMPOS: Record<string, string> = {
   precioMayorista: 'precio_mayorista',
   mayoristaDesde: 'mayorista_desde',
   canjeFidelidad: 'canje_fidelidad',
+  sinControlStock: 'sin_control_stock',
 }
 
 const FECHAS = new Set(['fecha', 'vence', 'vence_el', 'anulado_en', 'anulada_en', 'actualizado_en', 'oferta_hasta', 'eliminado_en', 'fecha_entrega'])
@@ -65,7 +66,7 @@ const BORRABLES = new Set(['precioOferta', 'ofertaHasta', 'categoria', 'limiteFi
 /** Lo que no se manda queda como estaba en la nube: estas claves se fuerzan
  *  para que "sin categoría" o "sin límite" también lleguen a los demás. */
 const SIEMPRE: Record<string, Record<string, unknown>> = {
-  producto: { categoria: null, favorito: false, proveedorId: null, venceEl: null, precioMayorista: null, mayoristaDesde: null },
+  producto: { categoria: null, favorito: false, proveedorId: null, venceEl: null, precioMayorista: null, mayoristaDesde: null, sinControlStock: false },
   cliente: { limiteFiado: null, cumpleanos: null, nota: null },
 }
 

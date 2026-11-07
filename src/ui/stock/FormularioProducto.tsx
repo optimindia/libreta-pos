@@ -15,6 +15,8 @@ import { Segmentado } from '@/ui/sistema/Segmentado'
 import { IconoEscanear } from '@/ui/sistema/iconos'
 import { VisorCamara } from '@/ui/escaner/VisorCamara'
 import { noSePudo } from '@/ui/sistema/textos'
+import { controlaStock } from '@/dominio/stock'
+import { useAjustesNegocio } from '@/ui/sistema/usoAjustesNegocio'
 
 const CATEGORIAS_SUGERIDAS = ['Almacén', 'Bebidas', 'Lácteos', 'Limpieza', 'Golosinas', 'Panificados']
 
@@ -63,6 +65,8 @@ export function FormularioProducto({
   const [codigo, setCodigo] = useState(producto?.codigoBarras ?? codigoInicial ?? '')
   const [minimo, setMinimo] = useState(producto ? textoCantidad(producto.stockMinimo) : '3')
   const [stockInicial, setStockInicial] = useState(producto ? textoCantidad(producto.stock) : '')
+  const [ajustesNegocio] = useAjustesNegocio()
+  const [controla, setControla] = useState(producto ? controlaStock(producto) : ajustesNegocio.sinControlStockPorDefecto !== true)
   const [errores, setErrores] = useState<ErroresProducto>({})
   const [camara, setCamara] = useState(false)
   const [guardando, setGuardando] = useState(false)
@@ -104,7 +108,7 @@ export function FormularioProducto({
         unidad,
       }, existentes, producto?.id)
       const stockValido = Number.isFinite(stock) && stock >= 0 && (porUnidad ? Number.isInteger(stock) : redondearCantidad(stock) === stock)
-      if (!producto && !stockValido) nuevosErrores.stockInicial = porUnidad ? 'Escribí cuántas unidades tenés (un número entero).' : `Escribí cuántos ${sufijo} tenés (por ejemplo 2,5).`
+      if (!producto && controla && !stockValido) nuevosErrores.stockInicial = porUnidad ? 'Escribí cuántas unidades tenés (un número entero).' : `Escribí cuántos ${sufijo} tenés (por ejemplo 2,5).`
       if (ofertaCentavos !== undefined && (ofertaCentavos <= 0 || ofertaCentavos >= precioCentavos)) {
         setAviso('El precio de oferta debe ser mayor a cero y menor que el precio habitual.')
         return
@@ -134,13 +138,14 @@ export function FormularioProducto({
         codigoBarras: codigoLimpio || null,
         costo: costoCentavos,
         precio: precioCentavos,
-        stock: producto ? producto.stock : stock,
+        stock: producto ? producto.stock : controla ? stock : 0,
         stockMinimo,
         unidad,
         categoria: categoria.trim() || undefined,
         precioOferta: ofertaCentavos,
         ofertaHasta: ofertaCentavos ? fechaOferta : undefined,
         venceEl: venceDeTexto(vence),
+        sinControlStock: !controla,
         precioMayorista: mayoristaCentavos,
         mayoristaDesde: mayoristaCentavos && desdeMayorista ? desdeMayorista : undefined,
       })
@@ -238,7 +243,12 @@ export function FormularioProducto({
         )}
         {(errores.costo || errores.precio) && <p id={idError.dinero} className="f-stock-error" role="alert">{errores.costo ?? errores.precio}</p>}
 
-        {!producto && (
+        <label className="f-stock-control">
+          <input type="checkbox" checked={controla} onChange={(evento) => setControla(evento.target.checked)} />
+          <span><strong>Llevar la cuenta del stock</strong><small>{controla ? 'Se descuenta al vender y te avisa cuando se acaba.' : 'Se vende siempre, sin contar cuántos hay.'}</small></span>
+        </label>
+
+        {!producto && controla && (
           <label className="f-campo">
             <span>¿Cuántos tenés? <em>{sufijo}</em></span>
             <input aria-label="Stock inicial" inputMode={porUnidad ? 'numeric' : 'decimal'} placeholder={porUnidad ? 'Ej. 12' : 'Ej. 2,5'} className="f-entrada" value={stockInicial} {...enlace(Boolean(errores.stockInicial), idError.stock)} onChange={(evento) => { setStockInicial(evento.target.value); setErrores((actuales) => ({ ...actuales, stockInicial: undefined })) }} />
@@ -277,11 +287,11 @@ export function FormularioProducto({
         <details className="f-carga-mas">
           <summary>Más opciones <span>mínimo, mayorista, vencimiento y oferta</span></summary>
           <div className="f-carga-mas-cuerpo">
-            <label className="f-campo">
+            {controla && <label className="f-campo">
               <span>Avisarme cuando queden <em>{sufijo}</em></span>
               <input aria-label="Mínimo" inputMode={porUnidad ? 'numeric' : 'decimal'} placeholder="3" className="f-entrada" value={minimo} {...enlace(Boolean(errores.stockMinimo), `${idError.control}-min`)} onChange={(evento) => { setMinimo(evento.target.value); setErrores((actuales) => ({ ...actuales, stockMinimo: undefined })) }} />
               {errores.stockMinimo && <small id={`${idError.control}-min`} className="f-stock-error" role="alert">{errores.stockMinimo}</small>}
-            </label>
+            </label>}
             <div className="f-stock-fila-campos">
               <label className="f-campo">
                 <span>Precio mayorista</span>

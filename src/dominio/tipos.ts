@@ -53,6 +53,8 @@ export interface Producto {
   /** Precio por mayor. Se usa en una venta mayorista, o solo desde `mayoristaDesde` unidades. */
   precioMayorista?: Centavos
   mayoristaDesde?: number
+  /** No se controla el stock: se vende siempre, no se descuenta ni avisa que falta. */
+  sinControlStock?: boolean
   ofertaHasta?: number
   /** Marca interna para propagar un borrado entre dispositivos sin romper
    *  el historial remoto. La app nunca muestra productos marcados. */
@@ -251,6 +253,8 @@ export interface AjustesNegocio {
   vendedores?: ConfigVendedores
   /** La décima gratis: cada cuántas compras hay premio y cuál. */
   fidelidad?: ConfigFidelidad
+  /** Los productos nuevos se cargan sin control de stock. */
+  sinControlStockPorDefecto?: boolean
 }
 
 export interface PreferenciasNegocio {

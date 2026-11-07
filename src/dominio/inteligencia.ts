@@ -1,5 +1,6 @@
 import type { Centavos, Cliente, Producto, UUID, Venta } from './tipos'
 import { multiplicar, sumar } from './dinero'
+import { controlaStock } from './stock'
 
 const DIA_EN_MS = 24 * 60 * 60 * 1000
 
@@ -123,6 +124,7 @@ export function alertasProducto(producto: Producto): string[] {
   if (producto.costo <= 0) alertas.push('Sin costo')
   if (producto.precio <= 0) alertas.push('Sin precio')
   else if (producto.precio < producto.costo) alertas.push('Vende debajo del costo')
+  if (!controlaStock(producto)) return alertas
   if (producto.stock < 0) alertas.push('Stock negativo')
   else if (producto.stock === 0) alertas.push('Sin stock')
   else if (producto.stock <= producto.stockMinimo) alertas.push('Stock bajo')
@@ -258,7 +260,7 @@ export function productosDormidos(
       .flatMap((venta) => venta.items.map((item) => item.productoId)),
   )
   return productos
-    .filter((producto) => producto.stock > 0 && !vendidos.has(producto.id))
+    .filter((producto) => controlaStock(producto) && producto.stock > 0 && !vendidos.has(producto.id))
     .sort((a, b) => multiplicar(b.costo, b.stock) - multiplicar(a.costo, a.stock))
 }
 
