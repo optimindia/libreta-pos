@@ -22,6 +22,7 @@ import { FiltroVendedor } from '@/ui/sistema/FiltroVendedor'
 import { SIN_DATO, filtrarPorVendedor } from '@/dominio/turno'
 import { MovimientosCaja } from './MovimientosCaja'
 import { GananciaReal } from './GananciaReal'
+import { ResumenMensual } from './ResumenMensual'
 import { RendimientoVendedores } from './RendimientoVendedores'
 import { InteligenciaPlata } from './InteligenciaPlata'
 import { CentroAcciones } from './CentroAcciones'
@@ -98,6 +99,7 @@ export function PantallaPlata() {
           </>
         )}
         accion={(
+          <div className="fp-acciones-portada">
           <a
             className={clasesBoton('secundario', 'fp-compartir')}
             target="_blank"
@@ -106,6 +108,8 @@ export function PantallaPlata() {
           >
             Compartir resumen
           </a>
+          {yo?.rol === 'dueno' && <ResumenMensual />}
+          </div>
         )}
       />
 

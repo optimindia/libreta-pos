@@ -429,3 +429,4 @@
 .fp-vendedores-campos legend { grid-column: 1 / -1; margin-bottom: 6px; padding: 0; font-size: 14px; font-weight: 800; }
 .fp-vendedores-pct { display: flex; align-items: center; gap: 6px; }
 .fp-vendedores-pct span { color: var(--f-tinta-2); font-weight: 800; }
+.fp-acciones-portada { display: flex; flex-direction: column; gap: var(--f-2); }
