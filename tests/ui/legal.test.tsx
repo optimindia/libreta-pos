@@ -7,7 +7,7 @@ const cargarEstadoAcceso = vi.fn(() => Promise.resolve({
   autenticado: false, usuarioId: null, negocio: null, suscripcion: null, online: false, verificadoRemoto: false,
 }))
 
-vi.mock('next/navigation', () => ({ usePathname: () => ruta }))
+vi.mock('next/navigation', () => ({ usePathname: () => ruta, useRouter: () => ({ push: () => {} }) }))
 vi.mock('@/datos/nube/cliente', () => ({ cliente: null }))
 vi.mock('@/ui/sistema/Navegacion', () => ({ Navegacion: () => <nav>menú del POS</nav> }))
 vi.mock('@/ui/cuenta/EstadoCuenta', () => ({ EstadoCuenta: () => null }))

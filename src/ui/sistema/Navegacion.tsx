@@ -21,8 +21,10 @@ import {
   IconoAgregarInicio, IconoAbajo, IconoClientes, IconoCompartirIos, IconoConfig, IconoCuenta, IconoDesplegar,
   IconoEditarMenu, IconoFiados, IconoHistorial, IconoInicio, IconoInstalar, IconoLuna, IconoMas, IconoOculto,
   IconoPedidos, IconoPlata, IconoPlegar, IconoPorcentaje, IconoRestablecer, IconoSol, IconoStock, IconoArriba,
-  IconoTemaAuto, IconoVender, IconoVisible,
+  IconoTemaAuto, IconoVender, IconoVisible, IconoBuscar,
 } from './iconos'
+import { BuscadorGeneral, abrirBuscador } from './BuscadorGeneral'
+import type { SeccionBuscable } from '@/dominio/buscador'
 
 type Seccion = { href: string; texto: string; Icono: () => React.JSX.Element; funcion: ClaveFuncion | null }
 
@@ -38,6 +40,17 @@ export const SECCIONES: Record<IdSeccion, Seccion> = {
   operacion: { href: '/operacion', texto: 'Control Pro', Icono: IconoPorcentaje, funcion: 'controlPro' },
   config: { href: '/config', texto: 'Ajustes', Icono: IconoConfig, funcion: 'configuracion' },
   cuenta: { href: '/cuenta', texto: 'Mi cuenta', Icono: IconoCuenta, funcion: 'cuenta' },
+}
+
+/** Otras palabras con las que alguien busca cada sección. */
+const SINONIMOS: Partial<Record<IdSeccion, string[]>> = {
+  vender: ['cobrar', 'caja registradora', 'venta'],
+  fiados: ['deudas', 'cuenta corriente', 'libreta', 'me deben'],
+  stock: ['productos', 'mercadería', 'precios', 'etiquetas', 'proveedores', 'inventario'],
+  plata: ['caja', 'cierre', 'ganancia', 'gastos'],
+  historial: ['ventas', 'tickets', 'devolución', 'anular'],
+  config: ['configuración', 'ticket', 'impresora', 'negocio'],
+  cuenta: ['pin', 'contraseña', 'vendedores', 'usuarios'],
 }
 
 function esActiva(ruta: string, href: string): boolean {
@@ -189,6 +202,8 @@ export function Navegacion() {
   const compacta = menu.compacta
   // Sólo hay sesión que cerrar si el aparato está vinculado a una cuenta.
   const conCuenta = Boolean(negocio?.negocioId)
+  const buscables: SeccionBuscable[] = visibles.map((id) => ({ id, texto: SECCIONES[id].texto, href: SECCIONES[id].href, sinonimos: SINONIMOS[id] }))
+  const conProveedores = rolDe(negocio?.rol) === 'dueno'
 
   // ¿Quedan secciones fuera de la vista? Se muestra "Más" y un degradado.
   const lista = useRef<HTMLElement>(null)
@@ -234,6 +249,10 @@ export function Navegacion() {
           <span className="f-logo" aria-hidden="true">L</span>
           <span className="f-sr">{nombre}</span>
         </div>
+
+        <button type="button" className="f-nav-item f-nav-buscar" onClick={abrirBuscador} aria-label={compacta ? 'Buscar (Ctrl+K)' : undefined} data-tip="Buscar" title="Buscar (Ctrl+K)">
+          <span className="f-nav-icono"><IconoBuscar /></span><span className="f-nav-texto">Buscar</span>
+        </button>
 
         <div className="f-lateral-desliza" data-mas-arriba={masArriba ? 'true' : undefined} data-mas-abajo={masAbajo ? 'true' : undefined}>
         <nav className="f-lateral-lista" aria-label="Secciones" ref={lista} onScroll={medirLista}>
@@ -300,6 +319,9 @@ export function Navegacion() {
       </nav>
 
       <Hoja abierta={hojaMas} onCerrar={() => setHojaMas(false)} titulo="Más secciones">
+        <button type="button" className="f-mas-buscar" onClick={() => { setHojaMas(false); abrirBuscador() }}>
+          <IconoBuscar /><span>Buscar productos, clientes…</span>
+        </button>
         {enHoja.length > 0 && (
           <div className="f-mas-grilla">
             {enHoja.map((id) => {
@@ -323,6 +345,7 @@ export function Navegacion() {
         </div>
       </Hoja>
 
+      <BuscadorGeneral secciones={buscables} conProveedores={conProveedores} />
       <EditorMenu abierto={editor} onCerrar={() => setEditor(false)} disponible={disponible} />
     </>
   )

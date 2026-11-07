@@ -4,7 +4,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { db } from '@/datos/local/db'
 import { Navegacion } from '@/ui/sistema/Navegacion'
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/fiados' }))
+vi.mock('next/navigation', () => ({ usePathname: () => '/fiados', useRouter: () => ({ push: () => {} }) }))
 
 beforeEach(async () => {
   await db.delete()

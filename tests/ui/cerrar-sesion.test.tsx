@@ -7,7 +7,7 @@ import { violacionesAxe } from './axe'
 
 const cerrarSesion = vi.fn(async () => {})
 vi.mock('@/datos/nube/sesion', async (original) => ({ ...(await original<object>()), cerrarSesion: () => cerrarSesion() }))
-vi.mock('next/navigation', () => ({ usePathname: () => '/' }))
+vi.mock('next/navigation', () => ({ usePathname: () => '/', useRouter: () => ({ push: () => {} }) }))
 
 beforeEach(async () => {
   cerrarSesion.mockClear()

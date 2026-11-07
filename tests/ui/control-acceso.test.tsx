@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/' }))
+vi.mock('next/navigation', () => ({ usePathname: () => '/', useRouter: () => ({ push: () => {} }) }))
 vi.mock('@/datos/nube/cliente', () => ({ cliente: null }))
 vi.mock('@/datos/nube/acceso', () => ({
   EVENTO_ACCESO: 'libreta-acceso',

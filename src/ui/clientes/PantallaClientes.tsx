@@ -22,6 +22,7 @@ import { IconoCerrar, IconoClientes, IconoEditar, IconoEliminar, IconoFlechaDere
 import './clientes.css'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 import { TEXTOS, noSePudo } from '@/ui/sistema/textos'
+import { useDestino } from '@/ui/sistema/destino'
 
 type FiltroCliente = 'todos' | 'con_deuda' | 'activos' | 'favoritos'
 
@@ -77,6 +78,10 @@ function iniciales(nombre: string): string {
 
 export function PantallaClientes() {
   const [busqueda, setBusqueda] = useState('')
+  useDestino('/clientes', (parametros) => {
+    const buscar = parametros.get('buscar')
+    if (buscar) setBusqueda(buscar)
+  })
   const [filtro, setFiltro] = useState<FiltroCliente>('todos')
   const [seleccionado, setSeleccionado] = useState<string | null>(null)
   const [formulario, setFormulario] = useState<'nuevo' | Cliente | null>(null)

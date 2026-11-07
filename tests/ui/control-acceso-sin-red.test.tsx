@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react'
 import type { EstadoAcceso } from '@/datos/nube/acceso'
 
 let estado: EstadoAcceso
-vi.mock('next/navigation', () => ({ usePathname: () => '/vender' }))
+vi.mock('next/navigation', () => ({ usePathname: () => '/vender', useRouter: () => ({ push: () => {} }) }))
 vi.mock('@/datos/nube/cliente', () => ({ cliente: null, nubeActiva: () => true }))
 vi.mock('@/ui/sistema/Navegacion', () => ({ Navegacion: () => null }))
 vi.mock('@/datos/nube/acceso', () => ({

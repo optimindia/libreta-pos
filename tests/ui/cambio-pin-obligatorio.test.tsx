@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 const estado = vi.hoisted(() => ({ debe: false, falla: false }))
 const cambiarMiPin = vi.hoisted(() => vi.fn())
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/vender' }))
+vi.mock('next/navigation', () => ({ usePathname: () => '/vender', useRouter: () => ({ push: () => {} }) }))
 vi.mock('@/datos/nube/cliente', () => ({ cliente: null }))
 vi.mock('@/datos/nube/sesion', () => ({ cerrarSesion: vi.fn(async () => {}) }))
 vi.mock('@/datos/nube/pin', () => ({

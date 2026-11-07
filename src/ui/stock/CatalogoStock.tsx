@@ -24,6 +24,7 @@ import './stock.css'
 import { EstadoVacio } from '@/ui/sistema/EstadoVacio'
 import { EstadoCarga } from '@/ui/sistema/EstadoCarga'
 import { TEXTOS, noSePudo } from '@/ui/sistema/textos'
+import { useDestino } from '@/ui/sistema/destino'
 
 type Orden = 'nombre' | 'stock' | 'precio' | 'margen'
 type Filtro = 'reponer' | 'sin-stock' | 'sin-precio'
@@ -145,6 +146,10 @@ export function CatalogoStock({ productos, onCargar }: { productos: Producto[]; 
   const [orden, setOrden] = useState<Orden>('nombre')
   const [editando, setEditando] = useState<Producto | null>(null)
   const [ajustando, setAjustando] = useState<Producto | null>(null)
+  useDestino('/stock', (parametros) => {
+    const buscar = parametros.get('buscar')
+    if (buscar) { setBusqueda(buscar); setFiltro(null); setCategoria('') }
+  })
   const [detalle, setDetalle] = useState<Producto | null>(null)
   const [productoAEliminar, setProductoAEliminar] = useState<Producto | null>(null)
   const [borrandoProducto, setBorrandoProducto] = useState(false)
